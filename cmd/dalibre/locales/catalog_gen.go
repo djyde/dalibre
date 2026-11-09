@@ -2853,6 +2853,16 @@ func (msgs Messages) AppToastMovedToTrash(count int) string {
 	return Catalog.Format(msgs.locale, "appToastMovedToTrash", map[string]any{"count": count})
 }
 
+// AppToastRenamedBooks says "Renamed {count, plural, one {# book} other {# books}}"
+// in the language the app shows.
+func AppToastRenamedBooks(count int) string { return In(i18n.Locale()).AppToastRenamedBooks(count) }
+
+// AppToastRenamedBooks says "Renamed {count, plural, one {# book} other {# books}}"
+// in the language of msgs.
+func (msgs Messages) AppToastRenamedBooks(count int) string {
+	return Catalog.Format(msgs.locale, "appToastRenamedBooks", map[string]any{"count": count})
+}
+
 // AppToastAddedFormat says "Added {format}"
 // in the language the app shows.
 func AppToastAddedFormat(format string) string { return In(i18n.Locale()).AppToastAddedFormat(format) }
@@ -4089,6 +4099,90 @@ func SettingsOpenAnotherLibrary() string { return In(i18n.Locale()).SettingsOpen
 // in the language of msgs.
 func (msgs Messages) SettingsOpenAnotherLibrary() string {
 	return Catalog.Format(msgs.locale, "settingsOpenAnotherLibrary", nil)
+}
+
+// SettingsFileNamesTitle says "File names"
+// in the language the app shows.
+func SettingsFileNamesTitle() string { return In(i18n.Locale()).SettingsFileNamesTitle() }
+
+// SettingsFileNamesTitle says "File names"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesTitle() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesTitle", nil)
+}
+
+// SettingsFileNamesBody says "Dalibre names book folders and files by title and author as written, so 三体 stays 三体. calibre turns them into …"
+// in the language the app shows.
+func SettingsFileNamesBody() string { return In(i18n.Locale()).SettingsFileNamesBody() }
+
+// SettingsFileNamesBody says "Dalibre names book folders and files by title and author as written, so 三体 stays 三体. calibre turns them into …"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesBody() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesBody", nil)
+}
+
+// SettingsFileNamesChecking says "Checking file names…"
+// in the language the app shows.
+func SettingsFileNamesChecking() string { return In(i18n.Locale()).SettingsFileNamesChecking() }
+
+// SettingsFileNamesChecking says "Checking file names…"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesChecking() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesChecking", nil)
+}
+
+// SettingsFileNamesAllMatch says "Every book’s folder and files match its title and author."
+// in the language the app shows.
+func SettingsFileNamesAllMatch() string { return In(i18n.Locale()).SettingsFileNamesAllMatch() }
+
+// SettingsFileNamesAllMatch says "Every book’s folder and files match its title and author."
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesAllMatch() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesAllMatch", nil)
+}
+
+// SettingsFileNamesMismatch says "{count, plural, one {# book has a transliterated or outdated name} other {# books have transliterated or outdated nam…"
+// in the language the app shows.
+func SettingsFileNamesMismatch(count int) string {
+	return In(i18n.Locale()).SettingsFileNamesMismatch(count)
+}
+
+// SettingsFileNamesMismatch says "{count, plural, one {# book has a transliterated or outdated name} other {# books have transliterated or outdated nam…"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesMismatch(count int) string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesMismatch", map[string]any{"count": count})
+}
+
+// SettingsFileNamesRename says "Rename"
+// in the language the app shows.
+func SettingsFileNamesRename() string { return In(i18n.Locale()).SettingsFileNamesRename() }
+
+// SettingsFileNamesRename says "Rename"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesRename() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesRename", nil)
+}
+
+// SettingsFileNamesRenaming says "Renaming {current} of {total}"
+// in the language the app shows.
+func SettingsFileNamesRenaming(current int, total int) string {
+	return In(i18n.Locale()).SettingsFileNamesRenaming(current, total)
+}
+
+// SettingsFileNamesRenaming says "Renaming {current} of {total}"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesRenaming(current int, total int) string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesRenaming", map[string]any{"current": current, "total": total})
+}
+
+// SettingsFileNamesCalibreNote says "calibre without NoTrans renames a book back to pinyin when it edits it."
+// in the language the app shows.
+func SettingsFileNamesCalibreNote() string { return In(i18n.Locale()).SettingsFileNamesCalibreNote() }
+
+// SettingsFileNamesCalibreNote says "calibre without NoTrans renames a book back to pinyin when it edits it."
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesCalibreNote() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesCalibreNote", nil)
 }
 
 // SettingsCatalogsTitle says "Catalogs"

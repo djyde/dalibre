@@ -333,6 +333,85 @@ func (l *Library) relocate(tx *sql.Tx, id int64, oldPath, title, author string) 
 	return undo, nil
 }
 
+// MisnamedBooks lists the books whose folder or file names no longer match
+// their title and first author, such as books calibre added with pinyin
+// names ("Liu Ci Xin/San Ti (3)" for 刘慈欣's 三体).
+func (l *Library) MisnamedBooks() ([]*Book, error) {
+	books, err := l.Books()
+	if err != nil {
+		return nil, err
+	}
+	names := map[int64][]string{}
+	rows, err := l.db.Query(`SELECT book, name FROM data`)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var id int64
+		var name string
+		if err := rows.Scan(&id, &name); err != nil {
+			rows.Close()
+			return nil, err
+		}
+		names[id] = append(names[id], name)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	var out []*Book
+	for _, b := range books {
+		author := firstOr(b.Authors, "Unknown")
+		misnamed := b.Path != BookPath(b.ID, b.Title, author)
+		want := BookFileName(b.Title, author)
+		for _, n := range names[b.ID] {
+			misnamed = misnamed || n != want
+		}
+		if misnamed {
+			out = append(out, b)
+		}
+	}
+	return out, nil
+}
+
+// RenameBooks moves each book's folder and files to the names its title and
+// first author give, one book at a time, so that a failure leaves the
+// books before it renamed and the rest as they were. progress, if not nil,
+// is called after each book.
+func (l *Library) RenameBooks(ids []int64, progress func(done int)) (renamed int, err error) {
+	for i, id := range ids {
+		if err := l.renameBook(id); err != nil {
+			return renamed, err
+		}
+		renamed++
+		if progress != nil {
+			progress(i + 1)
+		}
+	}
+	return renamed, nil
+}
+
+func (l *Library) renameBook(id int64) error {
+	b, err := l.Book(id)
+	if err != nil {
+		return err
+	}
+	tx, err := l.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	undo, err := l.relocate(tx, id, b.Path, b.Title, firstOr(b.Authors, "Unknown"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", b.Title, err)
+	}
+	if err := tx.Commit(); err != nil {
+		undo()
+		return err
+	}
+	return nil
+}
+
 func removeIfEmpty(dir, root string) {
 	if filepath.Clean(dir) == filepath.Clean(root) {
 		return

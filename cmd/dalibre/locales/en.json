@@ -374,6 +374,14 @@
       }
     }
   },
+  "appToastRenamedBooks": "Renamed {count, plural, one {# book} other {# books}}",
+  "@appToastRenamedBooks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "appToastAddedFormat": "Added {format}",
   "appToastRemovedFormat": "Removed {format}",
   "appToastNoFiles": "“{title}” has no files",
@@ -513,6 +521,31 @@
   "settingsLibraryBody": "Dalibre reads and writes calibre libraries: calibre can open the same folder.",
   "settingsNoLibraryOpen": "No library is open",
   "settingsOpenAnotherLibrary": "Open another library…",
+  "settingsFileNamesTitle": "File names",
+  "settingsFileNamesBody": "Dalibre names book folders and files by title and author as written, so 三体 stays 三体. calibre turns them into pinyin or plain Latin letters (San Ti), unless its NoTrans plugin is installed.",
+  "settingsFileNamesChecking": "Checking file names…",
+  "settingsFileNamesAllMatch": "Every book’s folder and files match its title and author.",
+  "settingsFileNamesMismatch": "{count, plural, one {# book has a transliterated or outdated name} other {# books have transliterated or outdated names}}",
+  "@settingsFileNamesMismatch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsFileNamesRename": "Rename",
+  "settingsFileNamesRenaming": "Renaming {current} of {total}",
+  "@settingsFileNamesRenaming": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsFileNamesCalibreNote": "calibre without NoTrans renames a book back to pinyin when it edits it.",
   "settingsCatalogsTitle": "Catalogs",
   "settingsCatalogsBody": "Browse and download from OPDS catalogs: a calibre, Calibre-Web or Kavita server at home, or public ones like Standard Ebooks. Each shows up in the sidebar.",
   "settingsAddCatalogButton": "Add catalog…",

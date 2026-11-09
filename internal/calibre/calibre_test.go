@@ -1,12 +1,14 @@
 package calibre
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 func TestTitleSort(t *testing.T) {
@@ -45,14 +47,29 @@ func TestBookPath(t *testing.T) {
 	if got, want := BookPath(12, "The Three-Body Problem", "Liu Cixin"), "Liu Cixin/The Three-Body Problem (12)"; got != want {
 		t.Errorf("BookPath = %q, want %q", got, want)
 	}
-	if got := BookPath(3, "三体", "刘慈欣"); got != "Liu Ci Xin/San Ti (3)" {
+	// Chinese stays Chinese, not pinyin ("Liu Ci Xin/San Ti (3)").
+	if got := BookPath(3, "三体", "刘慈欣"); got != "刘慈欣/三体 (3)" {
 		t.Errorf("CJK BookPath = %q", got)
+	}
+	if got := BookFileName("三体", "刘慈欣"); got != "三体 - 刘慈欣" {
+		t.Errorf("CJK BookFileName = %q", got)
+	}
+	// Long CJK names are cut at whole characters and fit in 255 bytes.
+	longCJK := strings.Repeat("地球往事", 40)
+	p := BookPath(7, longCJK, longCJK)
+	for _, part := range strings.Split(p, "/") {
+		if len(part) > 255 || !utf8.ValidString(part) {
+			t.Errorf("CJK path part %d bytes, valid %v", len(part), utf8.ValidString(part))
+		}
+	}
+	if n := BookFileName(longCJK, longCJK); len(n)+len(".epub") > 255 || !utf8.ValidString(n) {
+		t.Errorf("CJK file name %d bytes", len(n))
 	}
 	if got := BookPath(1, "What? Why: Now", "CON"); got != "CONw/What_ Why_ Now (1)" {
 		t.Errorf("sanitized BookPath = %q", got)
 	}
 	long := strings.Repeat("Very Long Title ", 20)
-	p := BookPath(99, long, "Author")
+	p = BookPath(99, long, "Author")
 	// The limit is calibre's, on the title before " (id)" is appended.
 	if title := strings.TrimSuffix(strings.SplitN(p, "/", 2)[1], " (99)"); len(title) > pathLimit()-len(" (99)")/2-2 {
 		t.Errorf("title component too long: %d %q", len(title), title)
@@ -233,5 +250,61 @@ func TestSetCoverReencodes(t *testing.T) {
 	data, err := os.ReadFile(lib.CoverPath(b))
 	if err != nil || !b.HasCover || data[0] != 0xff || data[1] != 0xd8 {
 		t.Errorf("cover not a JPEG: has=%v err=%v", b.HasCover, err)
+	}
+}
+
+// A book calibre added has pinyin names; RenameBooks gives it back its
+// Chinese ones.
+func TestRenamePinyinBooks(t *testing.T) {
+	lib := newTestLibrary(t)
+	id, err := lib.AddBook(NewBook{File: writeTemp(t, "a.epub", "x"), Metadata: Metadata{Title: "三体", Authors: []string{"刘慈欣"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	other, err := lib.AddBook(NewBook{File: writeTemp(t, "b.epub", "y"), Metadata: Metadata{Title: "Dune", Authors: []string{"Frank Herbert"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Make it look like calibre wrote it.
+	b, _ := lib.Book(id)
+	pinyinPath := fmt.Sprintf("Liu Ci Xin/San Ti (%d)", id)
+	pinyinDir := filepath.Join(lib.Root, filepath.FromSlash(pinyinPath))
+	if err := os.MkdirAll(filepath.Dir(pinyinDir), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Rename(lib.Dir(b), pinyinDir); err != nil {
+		t.Fatal(err)
+	}
+	os.Remove(filepath.Dir(lib.Dir(b)))
+	if err := os.Rename(filepath.Join(pinyinDir, "三体 - 刘慈欣.epub"), filepath.Join(pinyinDir, "San Ti - Liu Ci Xin.epub")); err != nil {
+		t.Fatal(err)
+	}
+	lib.db.Exec(`UPDATE books SET path = ? WHERE id = ?`, pinyinPath, id)
+	lib.db.Exec(`UPDATE data SET name = 'San Ti - Liu Ci Xin' WHERE book = ?`, id)
+
+	misnamed, err := lib.MisnamedBooks()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(misnamed) != 1 || misnamed[0].ID != id {
+		t.Fatalf("misnamed = %v, want only book %d (not %d)", misnamed, id, other)
+	}
+	n, err := lib.RenameBooks([]int64{id}, nil)
+	if err != nil || n != 1 {
+		t.Fatalf("RenameBooks = %d, %v", n, err)
+	}
+	b, _ = lib.Book(id)
+	if want := fmt.Sprintf("刘慈欣/三体 (%d)", id); b.Path != want {
+		t.Errorf("path = %q, want %q", b.Path, want)
+	}
+	d, _ := lib.Details(b)
+	if _, err := os.Stat(d.Files[0].Path); err != nil || filepath.Base(d.Files[0].Path) != "三体 - 刘慈欣.epub" {
+		t.Errorf("file %s: %v", d.Files[0].Path, err)
+	}
+	if _, err := os.Stat(filepath.Join(lib.Root, "Liu Ci Xin")); !os.IsNotExist(err) {
+		t.Errorf("empty pinyin author folder left behind")
+	}
+	if misnamed, _ := lib.MisnamedBooks(); len(misnamed) != 0 {
+		t.Errorf("still misnamed: %d", len(misnamed))
 	}
 }
