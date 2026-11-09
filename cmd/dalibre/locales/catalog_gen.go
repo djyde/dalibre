@@ -4111,14 +4111,34 @@ func (msgs Messages) SettingsFileNamesTitle() string {
 	return Catalog.Format(msgs.locale, "settingsFileNamesTitle", nil)
 }
 
-// SettingsFileNamesBody says "Dalibre names book folders and files by title and author as written, so 三体 stays 三体. calibre turns them into …"
+// SettingsFileNamesBody says "How Dalibre names book folders and files. The choice is saved in the library, so every computer that opens it follows…"
 // in the language the app shows.
 func SettingsFileNamesBody() string { return In(i18n.Locale()).SettingsFileNamesBody() }
 
-// SettingsFileNamesBody says "Dalibre names book folders and files by title and author as written, so 三体 stays 三体. calibre turns them into …"
+// SettingsFileNamesBody says "How Dalibre names book folders and files. The choice is saved in the library, so every computer that opens it follows…"
 // in the language of msgs.
 func (msgs Messages) SettingsFileNamesBody() string {
 	return Catalog.Format(msgs.locale, "settingsFileNamesBody", nil)
+}
+
+// SettingsFileNamesOriginal says "As written (三体)"
+// in the language the app shows.
+func SettingsFileNamesOriginal() string { return In(i18n.Locale()).SettingsFileNamesOriginal() }
+
+// SettingsFileNamesOriginal says "As written (三体)"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesOriginal() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesOriginal", nil)
+}
+
+// SettingsFileNamesASCII says "Latin letters, like calibre (San Ti)"
+// in the language the app shows.
+func SettingsFileNamesASCII() string { return In(i18n.Locale()).SettingsFileNamesASCII() }
+
+// SettingsFileNamesASCII says "Latin letters, like calibre (San Ti)"
+// in the language of msgs.
+func (msgs Messages) SettingsFileNamesASCII() string {
+	return Catalog.Format(msgs.locale, "settingsFileNamesASCII", nil)
 }
 
 // SettingsFileNamesChecking says "Checking file names…"
@@ -4131,23 +4151,23 @@ func (msgs Messages) SettingsFileNamesChecking() string {
 	return Catalog.Format(msgs.locale, "settingsFileNamesChecking", nil)
 }
 
-// SettingsFileNamesAllMatch says "Every book’s folder and files match its title and author."
+// SettingsFileNamesAllMatch says "Every book’s folder and files follow this."
 // in the language the app shows.
 func SettingsFileNamesAllMatch() string { return In(i18n.Locale()).SettingsFileNamesAllMatch() }
 
-// SettingsFileNamesAllMatch says "Every book’s folder and files match its title and author."
+// SettingsFileNamesAllMatch says "Every book’s folder and files follow this."
 // in the language of msgs.
 func (msgs Messages) SettingsFileNamesAllMatch() string {
 	return Catalog.Format(msgs.locale, "settingsFileNamesAllMatch", nil)
 }
 
-// SettingsFileNamesMismatch says "{count, plural, one {# book has a transliterated or outdated name} other {# books have transliterated or outdated nam…"
+// SettingsFileNamesMismatch says "{count, plural, one {# book has a name that doesn’t follow this} other {# books have names that don’t follow this}}"
 // in the language the app shows.
 func SettingsFileNamesMismatch(count int) string {
 	return In(i18n.Locale()).SettingsFileNamesMismatch(count)
 }
 
-// SettingsFileNamesMismatch says "{count, plural, one {# book has a transliterated or outdated name} other {# books have transliterated or outdated nam…"
+// SettingsFileNamesMismatch says "{count, plural, one {# book has a name that doesn’t follow this} other {# books have names that don’t follow this}}"
 // in the language of msgs.
 func (msgs Messages) SettingsFileNamesMismatch(count int) string {
 	return Catalog.Format(msgs.locale, "settingsFileNamesMismatch", map[string]any{"count": count})

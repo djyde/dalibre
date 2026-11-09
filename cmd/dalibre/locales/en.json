@@ -522,10 +522,12 @@
   "settingsNoLibraryOpen": "No library is open",
   "settingsOpenAnotherLibrary": "Open another library…",
   "settingsFileNamesTitle": "File names",
-  "settingsFileNamesBody": "Dalibre names book folders and files by title and author as written, so 三体 stays 三体. calibre turns them into pinyin or plain Latin letters (San Ti), unless its NoTrans plugin is installed.",
+  "settingsFileNamesBody": "How Dalibre names book folders and files. The choice is saved in the library, so every computer that opens it follows it.",
+  "settingsFileNamesOriginal": "As written (三体)",
+  "settingsFileNamesASCII": "Latin letters, like calibre (San Ti)",
   "settingsFileNamesChecking": "Checking file names…",
-  "settingsFileNamesAllMatch": "Every book’s folder and files match its title and author.",
-  "settingsFileNamesMismatch": "{count, plural, one {# book has a transliterated or outdated name} other {# books have transliterated or outdated names}}",
+  "settingsFileNamesAllMatch": "Every book’s folder and files follow this.",
+  "settingsFileNamesMismatch": "{count, plural, one {# book has a name that doesn’t follow this} other {# books have names that don’t follow this}}",
   "@settingsFileNamesMismatch": {
     "placeholders": {
       "count": {

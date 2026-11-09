@@ -251,7 +251,10 @@ func (a *App) fileNamesGroup(c *ui.Context) {
 		a.checkFileNames()
 	}
 	ui.Column(c).Gap(theme.Space10).AlignItems(ui.Stretch).Children(func() {
-		heading(c, locales.SettingsFileNamesTitle(), locales.SettingsFileNamesBody())
+		ui.Row(c).Gap(theme.Space16).AlignItems(ui.Start).Children(func() {
+			heading(c, locales.SettingsFileNamesTitle(), locales.SettingsFileNamesBody())
+			a.fileNamesSelect(c)
+		})
 		ui.Row(c).Padding(theme.Space6, theme.Space6, theme.Space6, theme.Space12).Gap(theme.Space10).Radius(theme.RadiusMD).Background(pal().Subtle).AlignItems(ui.Center).Children(func() {
 			switch {
 			case fn.renaming:
@@ -270,7 +273,9 @@ func (a *App) fileNamesGroup(c *ui.Context) {
 				ui.Icon(c, icons.Alert).FontSize(16).TextColor(pal().Icon)
 				ui.Column(c).Grow(1).MinWidth(0).Gap(theme.Space2).Children(func() {
 					ui.Text(c, locales.SettingsFileNamesMismatch(len(fn.ids))).FontSize(12).FontWeight(500)
-					ui.Text(c, locales.SettingsFileNamesCalibreNote()).FontSize(12).TextColor(pal().TextTertiary)
+					if a.lib.Format().FileNames == calibre.FileNamesOriginal {
+						ui.Text(c, locales.SettingsFileNamesCalibreNote()).FontSize(12).TextColor(pal().TextTertiary)
+					}
 				})
 				if widgets.ButtonSized(c, widgets.Secondary, nil, locales.SettingsFileNamesRename(), theme.ControlS).Clicked() {
 					a.renameBooks()
@@ -278,6 +283,37 @@ func (a *App) fileNamesGroup(c *ui.Context) {
 			}
 		})
 	})
+}
+
+// fileNamesSelect picks how the library names book folders and files,
+// which is saved in the library itself.
+func (a *App) fileNamesSelect(c *ui.Context) {
+	values := []calibre.FileNames{calibre.FileNamesOriginal, calibre.FileNamesASCII}
+	names := []string{locales.SettingsFileNamesOriginal(), locales.SettingsFileNamesASCII()}
+	mode := a.lib.Format().FileNames
+	cur := names[0]
+	for i, v := range values {
+		if v == mode {
+			cur = names[i]
+		}
+	}
+	if !ui.Select(c, &cur, names).Width(240).Label(locales.SettingsFileNamesTitle()).Changed() {
+		return
+	}
+	for i, n := range names {
+		if n == cur && values[i] != mode {
+			lib, v := a.lib, values[i]
+			a.run(func() {
+				err := lib.SetFileNames(v)
+				a.post(func() {
+					if err != nil {
+						a.toastError(err)
+					}
+					a.fileNames.lib = nil // check again
+				})
+			})
+		}
+	}
 }
 
 // checkFileNames lists the books whose names don't match, in the
@@ -288,10 +324,11 @@ func (a *App) checkFileNames() {
 	a.run(func() {
 		books, err := lib.MisnamedBooks()
 		a.post(func() {
+			fn.checking = false
 			if fn.lib != lib || fn.version != version {
 				return // the library changed meanwhile; the next frame checks again
 			}
-			fn.checking, fn.err, fn.ids = false, err, nil
+			fn.err, fn.ids = err, nil
 			for _, b := range books {
 				fn.ids = append(fn.ids, b.ID)
 			}

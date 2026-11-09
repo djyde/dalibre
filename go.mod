@@ -6,6 +6,7 @@ require (
 	github.com/ebitengine/purego v0.11.1
 	github.com/egoist/mygo v0.8.3
 	github.com/modelcontextprotocol/go-sdk v1.8.0
+	github.com/mozillazg/go-unidecode v0.2.0
 	golang.org/x/image v0.47.0
 	golang.org/x/net v0.59.0
 	golang.org/x/text v0.43.0

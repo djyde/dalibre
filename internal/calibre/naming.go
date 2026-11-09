@@ -7,6 +7,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/mozillazg/go-unidecode"
 )
 
 // The rules below follow calibre's defaults (src/calibre/ebooks/metadata and
@@ -153,10 +155,14 @@ func sanitizeFileName(name string) string {
 }
 
 // filenamePart makes s safe as part of a file or folder name on every
-// filesystem. Unlike calibre's ascii_filename it keeps every script as
-// written: 三体 stays 三体 instead of becoming "San Ti", which is what
-// calibre's NoTrans plugin does too. calibre reads such paths fine.
-func filenamePart(s string) string {
+// filesystem. With FileNamesOriginal it keeps every script as written:
+// 三体 stays 三体, as calibre's NoTrans plugin does, and calibre reads such
+// paths fine. With FileNamesASCII it transliterates like calibre's
+// ascii_filename: 三体 → "San Ti".
+func filenamePart(s string, mode FileNames) string {
+	if mode == FileNamesASCII {
+		s = strings.ReplaceAll(unidecode.Unidecode(s), "?", "_")
+	}
 	return sanitizeFileName(strings.Join(strings.Fields(s), " "))
 }
 
@@ -192,12 +198,23 @@ func truncate(s string, n, maxBytes int) string {
 }
 
 // BookPath is the folder of a book relative to the library root:
-// "Author/Title (id)", always with forward slashes as calibre stores it.
+// "Author/Title (id)", always with forward slashes as calibre stores it,
+// with names as written.
 func BookPath(id int64, title, author string) string {
+	return bookPath(id, title, author, FileNamesOriginal)
+}
+
+// BookFileName is the base name, without extension, of a book's files:
+// "Title - Author", with names as written.
+func BookFileName(title, author string) string {
+	return bookFileName(title, author, FileNamesOriginal)
+}
+
+func bookPath(id int64, title, author string, mode FileNames) string {
 	idPart := fmt.Sprintf(" (%d)", id)
 	l := pathLimit() - len(idPart)/2 - 2
-	a := truncate(filenamePart(author), l, maxNameBytes)
-	t := strings.TrimRight(truncate(filenamePart(strings.TrimLeft(title, " ")), l, maxNameBytes-len(idPart)), " ")
+	a := truncate(filenamePart(author, mode), l, maxNameBytes)
+	t := strings.TrimRight(truncate(filenamePart(strings.TrimLeft(title, " "), mode), l, maxNameBytes-len(idPart)), " ")
 	if t == "" {
 		t = "Unknown"
 	}
@@ -211,9 +228,7 @@ func BookPath(id int64, title, author string) string {
 	return a + "/" + t + idPart
 }
 
-// BookFileName is the base name, without extension, of a book's files:
-// "Title - Author".
-func BookFileName(title, author string) string {
+func bookFileName(title, author string, mode FileNames) string {
 	const extlen = 14
 	var l int
 	if runtime.GOOS == "windows" {
@@ -223,8 +238,8 @@ func BookFileName(title, author string) string {
 	}
 	// Title, " - ", author and the extension share one name's bytes.
 	const partBytes = (maxNameBytes - 3 - extlen) / 2
-	a := truncate(filenamePart(author), l, partBytes)
-	t := strings.TrimRight(truncate(filenamePart(strings.TrimLeft(title, " ")), l, partBytes), " ")
+	a := truncate(filenamePart(author, mode), l, partBytes)
+	t := strings.TrimRight(truncate(filenamePart(strings.TrimLeft(title, " "), mode), l, partBytes), " ")
 	if t == "" {
 		t = "Unknown"
 	}

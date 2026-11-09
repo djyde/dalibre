@@ -24,8 +24,9 @@ const SchemaVersion = 28
 
 // Library is an open calibre library.
 type Library struct {
-	Root string
-	db   *sql.DB
+	Root   string
+	db     *sql.DB
+	format formatState
 }
 
 // ErrNotLibrary means the folder has no metadata.db.
@@ -67,7 +68,9 @@ func open(root string, readOnly bool) (*Library, error) {
 		db.Close()
 		return nil, err
 	}
-	return &Library{Root: root, db: db}, nil
+	l := &Library{Root: root, db: db}
+	l.loadFormat()
+	return l, nil
 }
 
 // Create makes an empty library in root, which must not hold one already.
@@ -94,7 +97,13 @@ func Create(root string) (*Library, error) {
 		db.Close()
 		return nil, err
 	}
-	return &Library{Root: root, db: db}, nil
+	// A library Dalibre makes is in Dalibre's format from the start.
+	l := &Library{Root: root, db: db}
+	if err := l.saveFormat(DefaultFormat()); err != nil {
+		db.Close()
+		return nil, err
+	}
+	return l, nil
 }
 
 // Close closes the database.
