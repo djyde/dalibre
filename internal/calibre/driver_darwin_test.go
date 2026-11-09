@@ -76,14 +76,33 @@ func TestNativeCancellation(t *testing.T) {
 	if lib.UUID() == "" {
 		t.Fatal("cancellation interrupted the next operation")
 	}
-	// The prepared-statement path must also honour cancellation.
-	stmt, err := lib.db.Prepare(`SELECT ?`)
+	// The prepared-statement path must interrupt a running query too.
+	stmt, err := lib.db.Prepare(`WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<?) SELECT sum(x) FROM n`)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer stmt.Close()
-	if err := stmt.QueryRowContext(ctx, 1).Scan(&result); !errors.Is(err, context.DeadlineExceeded) {
+	ctx2, cancel2 := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel2()
+	if err := stmt.QueryRowContext(ctx2, 1000000000).Scan(&result); !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("prepared cancellation: %v", err)
+	}
+	if err := stmt.QueryRow(3).Scan(&result); err != nil || result != 6 {
+		t.Fatalf("statement unusable after cancellation: %d, %v", result, err)
+	}
+}
+
+func TestNativeMultiStatementArgs(t *testing.T) {
+	lib := newTestLibrary(t)
+	if _, err := lib.db.Exec(`CREATE TEMP TABLE t(a, b); INSERT INTO t VALUES(?, 1); INSERT INTO t VALUES(?, ?)`, "x", "y", "z"); err != nil {
 		t.Fatal(err)
+	}
+	var got string
+	if err := lib.db.QueryRow(`SELECT group_concat(a || b, ',') FROM t`).Scan(&got); err != nil || got != "x1,yz" {
+		t.Fatalf("got %q, %v", got, err)
+	}
+	if _, err := lib.db.Exec(`SELECT 1; SELECT ?`, 1, 2); err == nil {
+		t.Fatal("extra arguments accepted")
 	}
 }
 

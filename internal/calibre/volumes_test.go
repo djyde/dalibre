@@ -3,11 +3,16 @@ package calibre
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
 func TestLibraryVolumePaths(t *testing.T) {
-	for _, name := range []string{"External Disk", "Books #1? & 100% 日本語"} {
+	names := []string{"External Disk", "Books #1 & 100% 日本語"}
+	if runtime.GOOS != "windows" { // Windows filenames can't hold '?'
+		names = append(names, "Books #1? & 100%")
+	}
+	for _, name := range names {
 		t.Run(name, func(t *testing.T) {
 			root := filepath.Join(t.TempDir(), name)
 			lib, err := Create(root)

@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-
-	_ "modernc.org/sqlite"
 )
 
 //go:embed metadata_sqlite.sql
@@ -47,7 +45,6 @@ func Open(root string) (*Library, error) { return open(root, false) }
 func OpenReadOnly(root string) (*Library, error) { return open(root, true) }
 
 func open(root string, readOnly bool) (*Library, error) {
-	registerFunctions()
 	dbPath := filepath.Join(root, "metadata.db")
 	if _, err := os.Stat(dbPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -66,7 +63,7 @@ func open(root string, readOnly bool) (*Library, error) {
 	if err != nil {
 		return nil, err
 	}
-	// One connection: calibre's triggers rely on the functions above, and
+	// One connection: calibre's triggers rely on sqlFuncs, and
 	// a single writer avoids SQLITE_BUSY between our own goroutines.
 	db.SetMaxOpenConns(1)
 	if err := db.Ping(); err != nil {
@@ -78,7 +75,6 @@ func open(root string, readOnly bool) (*Library, error) {
 
 // Create makes an empty library in root, which must not hold one already.
 func Create(root string) (*Library, error) {
-	registerFunctions()
 	if err := os.MkdirAll(root, 0o755); err != nil {
 		return nil, err
 	}

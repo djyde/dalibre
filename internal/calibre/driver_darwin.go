@@ -54,6 +54,7 @@ var native struct {
 	changes    func(uintptr) int32
 	busy       func(uintptr, int32) int32
 	interrupt  func(uintptr)
+	autocommit func(uintptr) int32
 	createFunc func(uintptr, string, int32, int32, uintptr, uintptr, uintptr, uintptr, uintptr) int32
 	userData   func(uintptr) uintptr
 	valueType  func(uintptr) int32
@@ -103,6 +104,7 @@ func loadNative() error {
 		purego.RegisterLibFunc(&native.changes, lib, "sqlite3_changes")
 		purego.RegisterLibFunc(&native.busy, lib, "sqlite3_busy_timeout")
 		purego.RegisterLibFunc(&native.interrupt, lib, "sqlite3_interrupt")
+		purego.RegisterLibFunc(&native.autocommit, lib, "sqlite3_get_autocommit")
 		purego.RegisterLibFunc(&native.createFunc, lib, "sqlite3_create_function_v2")
 		purego.RegisterLibFunc(&native.userData, lib, "sqlite3_user_data")
 		purego.RegisterLibFunc(&native.valueType, lib, "sqlite3_value_type")
@@ -222,7 +224,16 @@ func (c *nativeConn) Begin() (driver.Tx, error) {
 	}
 	return &nativeTx{c}, nil
 }
-func (t *nativeTx) Commit() error   { _, err := t.conn.exec("COMMIT", nil); return err }
+func (t *nativeTx) Commit() error {
+	_, err := t.conn.exec("COMMIT", nil)
+	if err != nil && native.autocommit(t.conn.db) == 0 {
+		// A failed COMMIT (e.g. SQLITE_BUSY) keeps the transaction and its
+		// locks; database/sql won't roll back, so the pooled connection
+		// would stay inside it.
+		t.conn.exec("ROLLBACK", nil)
+	}
+	return err
+}
 func (t *nativeTx) Rollback() error { _, err := t.conn.exec("ROLLBACK", nil); return err }
 
 func namedValues(args []driver.NamedValue) []driver.Value {
@@ -239,7 +250,7 @@ func (c *nativeConn) ExecContext(ctx context.Context, query string, args []drive
 	stop := c.watch(ctx)
 	defer stop()
 	result, err := c.exec(query, namedValues(args))
-	if ctx.Err() != nil {
+	if err != nil && ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 	return result, err
@@ -271,10 +282,12 @@ func (c *nativeConn) exec(query string, args []driver.Value) (driver.Result, err
 			return nil, err
 		}
 		if s.stmt != 0 {
-			if err := s.bind(args); err != nil {
+			n := min(s.NumInput(), len(args))
+			if err := s.bind(args[:n]); err != nil {
 				s.Close()
 				return nil, err
 			}
+			args = args[n:]
 			for {
 				rc := native.step(s.stmt)
 				if rc == 100 {
@@ -292,6 +305,9 @@ func (c *nativeConn) exec(query string, args []driver.Value) (driver.Result, err
 			}
 		}
 		query = rest
+	}
+	if len(args) != 0 {
+		return nil, fmt.Errorf("sqlite: %d unused arguments", len(args))
 	}
 	return nativeResult{native.lastID(c.db), int64(native.changes(c.db))}, nil
 }
@@ -410,7 +426,7 @@ func (s *nativeStmt) ExecContext(ctx context.Context, args []driver.NamedValue) 
 	stop := s.conn.watch(ctx)
 	defer stop()
 	result, err := s.Exec(namedValues(args))
-	if ctx.Err() != nil {
+	if err != nil && ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 	return result, err
@@ -488,52 +504,42 @@ func (r *nativeRows) Next(dest []driver.Value) error {
 var scalarCallback, stepCallback, finalCallback uintptr
 var nativeAggregates sync.Map // sqlite3_aggregate_context address -> *concatAgg
 
+// Each function's user data is its index in sqlFuncs.
+func nativeFunc(ctx uintptr) sqlFunc { return sqlFuncs[native.userData(ctx)] }
+
 func initNativeFunctions() {
 	scalarCallback = purego.NewCallback(func(ctx uintptr, n int32, argv unsafe.Pointer) {
-		switch native.userData(ctx) {
-		case 1:
-			resultNativeText(ctx, TitleSort(asString(nativeArgs(n, argv)[0])))
-		case 2:
-			resultNativeText(ctx, newUUID())
-		case 3:
-			native.resultInt(ctx, 1)
-		}
+		resultNative(ctx, nativeFunc(ctx).scalar(nativeArgs(n, argv)))
 	})
 	stepCallback = purego.NewCallback(func(ctx uintptr, n int32, argv unsafe.Pointer) {
 		key := native.aggContext(ctx, 1)
 		if key == 0 {
 			return
 		} // SQLite reports its allocation failure.
-		agg, _ := nativeAggregates.LoadOrStore(key, newNativeAggregate(native.userData(ctx)))
-		agg.(*concatAgg).Step(nil, nativeArgs(n, argv))
+		agg, ok := nativeAggregates.Load(key)
+		if !ok {
+			agg = nativeFunc(ctx).aggregate()
+			nativeAggregates.Store(key, agg)
+		}
+		agg.(*concatAgg).add(nativeArgs(n, argv))
 	})
 	finalCallback = purego.NewCallback(func(ctx uintptr) {
-		key := native.aggContext(ctx, 0)
-		agg, ok := nativeAggregates.LoadAndDelete(key)
+		agg, ok := nativeAggregates.LoadAndDelete(native.aggContext(ctx, 0))
 		if !ok {
 			native.resultNull(ctx)
 			return
 		}
-		v, _ := agg.(*concatAgg).WindowValue(nil)
-		if v == nil {
-			native.resultNull(ctx)
-		} else {
-			resultNativeText(ctx, asString(v))
-		}
+		resultNative(ctx, agg.(*concatAgg).value())
 	})
 }
-func newNativeAggregate(id uintptr) *concatAgg {
-	switch id {
-	case 5:
-		return &concatAgg{sep: ",", sorted: true}
-	case 6:
-		return &concatAgg{sep: "|", sorted: true}
-	case 7:
-		return &concatAgg{sep: "&", sorted: true}
-	case 8:
-		return &concatAgg{sep: ",", pair: true}
+func resultNative(ctx uintptr, v driver.Value) {
+	switch x := v.(type) {
+	case nil:
+		native.resultNull(ctx)
+	case int64:
+		native.resultInt(ctx, x)
 	default:
-		return &concatAgg{sep: ","}
+		resultNativeText(ctx, asString(x))
 	}
 }
 func resultNativeText(ctx uintptr, s string) {
@@ -557,23 +563,16 @@ func nativeArgs(n int32, argv unsafe.Pointer) []driver.Value {
 	return args
 }
 func (c *nativeConn) registerFunctions() error {
-	funcs := []struct {
-		name string
-		n    int32
-	}{
-		{"title_sort", 1}, {"uuid4", 0}, {"books_list_filter", 1},
-		{"concat", 1}, {"sortconcat", 2}, {"sortconcat_bar", 2}, {"sortconcat_amper", 2}, {"identifiers_concat", 2},
-	}
-	for i, f := range funcs {
+	for i, f := range sqlFuncs {
 		flags := int32(1) // SQLITE_UTF8
-		if i == 0 {
-			flags |= 0x800
-		} // SQLITE_DETERMINISTIC
+		if f.deterministic {
+			flags |= 0x800 // SQLITE_DETERMINISTIC
+		}
 		scalar, step, final := scalarCallback, uintptr(0), uintptr(0)
-		if i >= 3 {
+		if f.scalar == nil {
 			scalar, step, final = 0, stepCallback, finalCallback
 		}
-		if rc := native.createFunc(c.db, f.name, f.n, flags, uintptr(i+1), scalar, step, final, 0); rc != 0 {
+		if rc := native.createFunc(c.db, f.name, f.nargs, flags, uintptr(i), scalar, step, final, 0); rc != 0 {
 			return c.error(rc)
 		}
 	}
