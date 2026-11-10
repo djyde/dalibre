@@ -1,7 +1,8 @@
 // Package epub opens an e-book's files for the book editor: the files of
 // an EPUB (or KEPUB) zip, its spine in reading order with titles and word
 // counts, and edits kept in memory until Save writes the book back. A TXT
-// file opens as a book of one file.
+// file opens as a book of one file; an AZW3 opens as the files its KF8
+// records hold, and saves back to KF8.
 package epub
 
 import (
@@ -44,6 +45,7 @@ type Book struct {
 	mu      sync.Mutex
 	path    string
 	zipped  bool
+	k       *kf8   // an AZW3's KF8 records, which its files are rebuilt from
 	raw     []byte // the file as opened, for copying unchanged entries
 	files   []*entry
 	byName  map[string]*entry
@@ -66,7 +68,8 @@ type entry struct {
 // ErrNotEPUB means the file is not a zip with an OPF package.
 var ErrNotEPUB = errors.New("epub: not an EPUB")
 
-// Open opens the book at file: an EPUB or KEPUB zip, or a .txt file.
+// Open opens the book at file: an EPUB or KEPUB zip, an AZW3, or a .txt
+// file.
 func Open(file string) (*Book, error) {
 	raw, err := os.ReadFile(file)
 	if err != nil {
@@ -78,6 +81,12 @@ func Open(file string) (*Book, error) {
 		e := &entry{name: name, data: raw, read: true, media: "text/plain", size: int64(len(raw))}
 		b.files, b.byName[name] = []*entry{e}, e
 		b.spine = []Item{{Name: name, Title: strings.TrimSuffix(name, path.Ext(name)), Words: CountWords(string(raw))}}
+		return b, nil
+	}
+	if isMOBI(raw) {
+		if err := b.openKF8(); err != nil {
+			return nil, err
+		}
 		return b, nil
 	}
 	zr, err := zip.NewReader(bytes.NewReader(raw), int64(len(raw)))
@@ -112,9 +121,9 @@ func (b *Book) Size() int64 {
 // Path is the file the book was opened from.
 func (b *Book) Path() string { return b.path }
 
-// Zipped reports whether the book is a zip of files (an EPUB) rather than
-// one text file.
-func (b *Book) Zipped() bool { return b.zipped }
+// Packaged reports whether the book is a package of files (an EPUB or an
+// AZW3) rather than one text file.
+func (b *Book) Packaged() bool { return b.zipped || b.k != nil }
 
 // Spine returns the book's reading order.
 func (b *Book) Spine() []Item {
@@ -221,9 +230,16 @@ func (b *Book) Save() (int64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	var out bytes.Buffer
-	if !b.zipped {
+	switch {
+	case b.k != nil:
+		data, err := b.k.write(b)
+		if err != nil {
+			return 0, err
+		}
+		out.Write(data)
+	case !b.zipped:
 		out.Write(b.files[0].data)
-	} else {
+	default:
 		zw := zip.NewWriter(&out)
 		order := make([]*entry, 0, len(b.files))
 		if m := b.byName["mimetype"]; m != nil {
@@ -386,22 +402,13 @@ func (b *Book) readPackage() error {
 	if nav != "" {
 		b.navTitles(nav, titles)
 	}
+	var names []string
 	for _, ref := range pkg.Spine.Items {
-		name := byID[ref.IDRef]
-		e := b.byName[name]
-		if e == nil {
-			continue
+		if name := byID[ref.IDRef]; b.byName[name] != nil {
+			names = append(names, name)
 		}
-		data, _ := b.load(e)
-		title := titles[name]
-		if title == "" {
-			title = ownTitle(data)
-		}
-		if title == "" {
-			title = strings.TrimSuffix(path.Base(name), path.Ext(name))
-		}
-		b.spine = append(b.spine, Item{Name: name, Title: title, Words: countMarkupWords(data)})
 	}
+	b.setSpine(names, titles)
 	return nil
 }
 
@@ -487,17 +494,80 @@ func (b *Book) navTitles(name string, titles map[string]string) {
 	}
 }
 
-// ownTitle is a chapter's first heading, else its <title>.
-func ownTitle(data []byte) string {
-	if m := headRe.FindSubmatch(data); m != nil {
-		if t := clean(tagRe.ReplaceAllString(string(m[1]), " ")); t != "" {
-			return t
+// setSpine makes the spine of these files, titled by toc's entry, else
+// their first heading, else their <title> unless another file has the
+// same one (as in a book split by size, where every file's is the book's),
+// else their opening words, else their name.
+func (b *Book) setSpine(names []string, toc map[string]string) {
+	type page struct {
+		name, title, doc string
+		data             []byte
+	}
+	pages := make([]page, 0, len(names))
+	docs := map[string]int{}
+	for _, name := range names {
+		data, _ := b.load(b.byName[name])
+		p := page{name: name, title: toc[name], data: data}
+		if m := titleRe.FindSubmatch(data); m != nil {
+			p.doc = clean(string(m[1]))
+			docs[p.doc]++
+		}
+		pages = append(pages, p)
+	}
+	for _, p := range pages {
+		t := p.title
+		if t == "" {
+			t = firstHeading(p.data)
+		}
+		if t == "" && p.doc != "" && docs[p.doc] == 1 {
+			t = p.doc
+		}
+		if t == "" {
+			t = openingWords(p.data)
+		}
+		if t == "" {
+			t = strings.TrimSuffix(path.Base(p.name), path.Ext(p.name))
+		}
+		b.spine = append(b.spine, Item{Name: p.name, Title: unquote(t), Words: countMarkupWords(p.data)})
+	}
+}
+
+// unquote drops quotes around a whole title, as a cover page's "Cover".
+func unquote(t string) string {
+	for _, q := range [][2]string{{`"`, `"`}, {"“", "”"}, {"'", "'"}} {
+		if len(t) > len(q[0])+len(q[1]) && strings.HasPrefix(t, q[0]) && strings.HasSuffix(t, q[1]) &&
+			!strings.Contains(t[len(q[0]):len(t)-len(q[1])], q[0]) {
+			return t[len(q[0]) : len(t)-len(q[1])]
 		}
 	}
-	if m := titleRe.FindSubmatch(data); m != nil {
-		return clean(string(m[1]))
+	return t
+}
+
+func firstHeading(data []byte) string {
+	if m := headRe.FindSubmatch(data); m != nil {
+		return clean(tagRe.ReplaceAllString(string(m[1]), " "))
 	}
 	return ""
+}
+
+// openingWords is the start of a page's text, cut to about 24 characters.
+func openingWords(data []byte) string {
+	s := string(data)
+	if m := bodyRe.FindStringSubmatch(s); m != nil {
+		s = m[1]
+	}
+	s = clean(tagRe.ReplaceAllString(skipRe.ReplaceAllString(s, " "), " "))
+	if r := []rune(s); len(r) > 24 {
+		cut := 24
+		for i := 24; i > 12; i-- { // end at a space where there is one
+			if r[i] == ' ' {
+				cut = i
+				break
+			}
+		}
+		s = strings.TrimSpace(string(r[:cut])) + "…"
+	}
+	return s
 }
 
 func clean(s string) string { return strings.Join(strings.Fields(html.UnescapeString(s)), " ") }

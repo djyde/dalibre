@@ -76,17 +76,19 @@ func newTestEditor(t *testing.T) (*App, *bookEditor) {
 	return a, ed
 }
 
-func TestEditableFormat(t *testing.T) {
+func TestEditorFormat(t *testing.T) {
 	for _, c := range []struct {
 		formats []string
 		want    string
 	}{
 		{[]string{"MOBI", "EPUB"}, "EPUB"},
 		{[]string{"TXT", "KEPUB"}, "KEPUB"},
-		{[]string{"PDF", "AZW3"}, ""},
+		{[]string{"PDF", "AZW3"}, "AZW3"},
+		{[]string{"AZW3", "EPUB"}, "EPUB"},
+		{[]string{"PDF", "MOBI"}, ""},
 	} {
-		if got := editableFormat(&calibre.Book{Formats: c.formats}); got != c.want {
-			t.Errorf("editableFormat(%v) = %q, want %q", c.formats, got, c.want)
+		if got := editorFormat(&calibre.Book{Formats: c.formats}); got != c.want {
+			t.Errorf("editorFormat(%v) = %q, want %q", c.formats, got, c.want)
 		}
 	}
 }
@@ -122,6 +124,69 @@ func TestBookEditorView(t *testing.T) {
 		t.Errorf("no caret position; texts %q", tt.Texts())
 	}
 	shot(t, tt, "editor-edit")
+}
+
+// An AZW3 opens in the editor like an EPUB, and its edits save back into
+// the library's file.
+func TestBookEditorAZW3(t *testing.T) {
+	a := newTestApp(t)
+	b := a.books[0]
+	raw, err := os.ReadFile("../epub/testdata/alice.azw3")
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := filepath.Join(t.TempDir(), "Alice.azw3")
+	os.WriteFile(src, raw, 0o644)
+	if err := a.lib.AddFormat(b.ID, src); err != nil {
+		t.Fatal(err)
+	}
+	d, err := a.lib.Details(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var file string
+	for _, f := range d.Files {
+		if f.Format == "AZW3" {
+			file = f.Path
+		}
+	}
+	bk, err := epub.Open(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ed := a.newBookEditor(b, "AZW3", bk)
+	t.Cleanup(ed.closed)
+	ed.mode = modeEdit
+	ed.show("Text/part0004.xhtml")
+	tt := ui.NewTester(ed.view, 1280, 840)
+	tt.Frame()
+	for _, s := range []string{"Contents", "CHAPTER I. Down the Rabbit-Hole", "AZW3"} {
+		if !tt.HasText(s) {
+			t.Errorf("missing %q; texts %q", s, tt.Texts())
+		}
+	}
+	w := httptest.NewRecorder()
+	serveBookFile(w, httptest.NewRequest("GET", ed.pageURL("Text/part0004.xhtml"), nil))
+	if body := w.Body.String(); !strings.Contains(body, "Down the Rabbit-Hole") || !strings.Contains(body, "../Styles/flow0002.css") {
+		t.Errorf("served page = %.300s", body)
+	}
+	st := ed.state(ed.cur)
+	st.Buffer.Set(strings.Replace(st.Buffer.String(), "Alice was beginning", "Alice, edited, was beginning", 1))
+	tt.Frame()
+	if !tt.HasText("Save") || !tt.HasText("Revert") {
+		t.Errorf("an edited AZW3 offers no Save; texts %q", tt.Texts())
+	}
+	if !ed.save() {
+		t.Fatal("save failed")
+	}
+	again, err := epub.Open(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := again.Read("Text/part0004.xhtml"); !strings.Contains(string(got), "Alice, edited, was beginning") {
+		t.Error("the edit isn't in the saved file")
+	}
+	shot(t, tt, "editor-azw3")
 }
 
 func TestBookEditorServesEdits(t *testing.T) {

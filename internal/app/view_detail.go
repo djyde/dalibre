@@ -99,7 +99,7 @@ func (a *App) bookDetail(c *ui.Context, b *calibre.Book) {
 					if m.Item(locales.DetailMenuEditMetadata()).Icon(icons.Menu(icons.Pencil)).Trailing("Ctrl+I").Chosen() {
 						a.openEditor(b)
 					}
-					if editableFormat(b) != "" && m.Item(locales.EditorMenuEditBook()).Icon(icons.Menu(icons.File)).Trailing("Ctrl+E").Chosen() {
+					if editorFormat(b) != "" && m.Item(locales.EditorMenuEditBook()).Icon(icons.Menu(icons.File)).Trailing("Ctrl+E").Chosen() {
 						a.editBook(b, "")
 					}
 					a.pluginActions(m, []int64{b.ID})
@@ -234,7 +234,7 @@ func (a *App) bookDetail(c *ui.Context, b *calibre.Book) {
 				r.Background(pal().Hover)
 			}
 			r.OnClick(func() { a.openBook(b, f.Format) })
-			editable := isEditableFormat(f.Format)
+			editable := isEditorFormat(f.Format)
 			r.ContextMenu(func(m *ui.Menu) {
 				if m.Item(locales.CommonOpen()).Chosen() {
 					a.openBook(b, f.Format)

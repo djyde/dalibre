@@ -281,7 +281,7 @@ func (a *App) bookMenu(b *calibre.Book) func(m *ui.Menu) {
 			if m.Item(locales.BooksMenuEditMetadata()).Icon(icons.Menu(icons.Pencil)).Trailing("Ctrl+I").Chosen() {
 				a.openEditor(b)
 			}
-			if editableFormat(b) != "" && m.Item(locales.EditorMenuEditBook()).Icon(icons.Menu(icons.File)).Trailing("Ctrl+E").Chosen() {
+			if editorFormat(b) != "" && m.Item(locales.EditorMenuEditBook()).Icon(icons.Menu(icons.File)).Trailing("Ctrl+E").Chosen() {
 				a.editBook(b, "")
 			}
 		}
