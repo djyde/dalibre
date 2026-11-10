@@ -37,7 +37,7 @@
       "calibre": "Apple Books covers",
       "downloads": 2702,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.apple-books-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.apple-books-1.0.0.dalibre-plugin",
       "capabilities": {
         "metadata": {
           "fields": [
@@ -67,7 +67,7 @@
       "calibre": "Chinese Text Conversion",
       "downloads": 3712,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.chinese-convert-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.chinese-convert-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -104,7 +104,7 @@
       "calibre": "Clean Metadata",
       "downloads": 3522,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.clean-metadata-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.clean-metadata-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -143,7 +143,7 @@
       "calibre": "Count Pages",
       "downloads": 8412,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.count-pages-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.count-pages-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -184,7 +184,7 @@
       "calibre": "EpubMerge",
       "downloads": 9254,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.epub-merge-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.epub-merge-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -222,7 +222,7 @@
       "calibre": "EpubSplit",
       "downloads": 8669,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.epub-split-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.epub-split-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -261,7 +261,7 @@
       "calibre": "Extract ISBN",
       "downloads": 4036,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.extract-isbn-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.extract-isbn-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -302,7 +302,7 @@
       "calibre": "Find Duplicates",
       "downloads": 11688,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.find-duplicates-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.find-duplicates-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -354,7 +354,7 @@
       "calibre": "KoboTouchExtended",
       "downloads": 8162,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.kepub-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.kepub-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -391,7 +391,7 @@
       "calibre": "Manage Series",
       "downloads": 2991,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.manage-series-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.manage-series-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -433,7 +433,7 @@
       "calibre": "Modify ePub",
       "downloads": 5789,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.modify-epub-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.modify-epub-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -471,7 +471,7 @@
       "calibre": "Quality Check",
       "downloads": 7205,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.quality-check-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.quality-check-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -501,7 +501,7 @@
       "calibre": "Search The Internet",
       "downloads": 3511,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.search-internet-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.search-internet-1.0.0.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
@@ -579,7 +579,7 @@
       "calibre": "Wikidata",
       "downloads": 2544,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/marketplace/packages/org.randynamic.dalibre.wikidata-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.wikidata-1.0.0.dalibre-plugin",
       "capabilities": {
         "metadata": {
           "fields": [
