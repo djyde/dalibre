@@ -56,18 +56,18 @@
     {
       "id": "org.randynamic.dalibre.chinese-convert",
       "name": "Chinese Text Conversion",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "description": "Converts EPUBs between Simplified and Traditional Chinese, and their text direction",
       "author": "Randy",
       "license": "GPL-3.0-or-later",
       "icon": "layers",
       "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/chinese-convert",
-      "dalibre": ">=0.4.0",
+      "dalibre": ">=0.5.0",
       "category": "language",
       "calibre": "Chinese Text Conversion",
       "downloads": 3712,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.chinese-convert-1.0.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.chinese-convert-1.0.1.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
