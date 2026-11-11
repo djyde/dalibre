@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -137,6 +138,7 @@ func (a *App) bookDetail(c *ui.Context, b *calibre.Book) {
 				widgets.Stars(c, b.Rating, 13)
 			}
 		})
+		a.openButton(c, b, d)
 	})
 	widgets.Hairline(c)
 	// Details.
@@ -315,4 +317,77 @@ func htmlToText(s string) string {
 		lines[i] = strings.Join(strings.Fields(l), " ")
 	}
 	return strings.TrimSpace(reBlank.ReplaceAllString(strings.Join(lines, "\n"), "\n\n"))
+}
+
+// openButton is the book's main action (Figma, 19 · Open book). One file
+// opens straight away: in the editor when it's a format the editor opens,
+// else in the system's app for it. Several files open from a menu, the
+// editor's formats first.
+func (a *App) openButton(c *ui.Context, b *calibre.Book, d *calibre.Details) {
+	formats := openOrder(b.Formats)
+	if len(formats) == 0 {
+		return
+	}
+	if len(formats) == 1 {
+		f, icon := formats[0], icons.BookOpen
+		if !isEditorFormat(f) {
+			icon = icons.External
+		}
+		if widgets.Button(c.Key("open"), widgets.Primary, icon, locales.CommonOpen()).FillWidth().Clicked() {
+			a.openFormat(b, f)
+		}
+		return
+	}
+	sizes := map[string]int64{}
+	if d != nil {
+		for _, f := range d.Files {
+			sizes[f.Format] = f.Size
+		}
+	}
+	widgets.MenuButton(c.Key("open"), widgets.Primary, icons.BookOpen, locales.CommonOpen()).FillWidth().PopoverMenuButton(func(m *ui.Menu) {
+		for i, f := range formats {
+			editor := isEditorFormat(f)
+			if !editor && i > 0 && isEditorFormat(formats[i-1]) {
+				m.Separator()
+			}
+			icon := icons.BookOpen
+			if !editor {
+				icon = icons.External
+			}
+			it := m.Item(f).Icon(icons.Menu(icon))
+			if n, ok := sizes[f]; ok {
+				it.Trailing(humanSize(n))
+			}
+			if it.Chosen() {
+				a.openFormat(b, f)
+			}
+		}
+	})
+}
+
+// openOrder lists formats as Open offers them: the editor's, in the order
+// Edit book picks them, then the others as the book has them.
+func openOrder(formats []string) []string {
+	var out []string
+	for _, f := range editorFormats {
+		if slices.Contains(formats, f) {
+			out = append(out, f)
+		}
+	}
+	for _, f := range formats {
+		if !isEditorFormat(f) {
+			out = append(out, f)
+		}
+	}
+	return out
+}
+
+// openFormat opens a book's file: in the editor when it opens the format,
+// else in the system's app.
+func (a *App) openFormat(b *calibre.Book, format string) {
+	if isEditorFormat(format) {
+		a.editBook(b, format)
+		return
+	}
+	a.openBook(b, format)
 }

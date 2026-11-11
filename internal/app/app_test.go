@@ -500,3 +500,60 @@ func TestDialogClearsCaptionButtons(t *testing.T) {
 		t.Errorf("close button at y=%v, under the caption buttons (to y=%v)", r.Y, bar.Height)
 	}
 }
+
+// The detail panel's Open: one file opens straight away; several open
+// from a menu, the editor's formats first.
+func TestDetailOpen(t *testing.T) {
+	a := newTestApp(t)
+	tt := ui.NewTester(a.View, 1440, 900)
+	tt.Frame()
+	if err := tt.Click("Dune"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	dune := a.current()
+	sync := a.run
+	opened := 0
+	a.run = func(func()) { opened++ } // opening reaches for the file; don't
+	if err := tt.Click("Open"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if opened != 1 || tt.Menu() != nil {
+		t.Fatalf("one file: opened %d, menu %q", opened, tt.Menu())
+	}
+	shot(t, tt, "detail-open")
+
+	a.run = sync
+	f := filepath.Join(t.TempDir(), "dune.pdf")
+	os.WriteFile(f, []byte("pdf"), 0o644)
+	if err := a.lib.AddFormat(dune.ID, f); err != nil {
+		t.Fatal(err)
+	}
+	dune.Formats = []string{"PDF", "EPUB"}
+	delete(a.details, dune.ID)
+	delete(a.detailsReq, dune.ID)
+	tt.Frame()
+	if err := tt.Click("Open"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if got := strings.Join(tt.Menu(), "|"); got != "EPUB|-|PDF" {
+		t.Fatalf("menu %q", got)
+	}
+	shot(t, tt, "detail-open-menu")
+	a.run = func(func()) { opened++ }
+	if err := tt.ChooseMenuItem("PDF"); err != nil {
+		t.Fatal(err)
+	}
+	if opened != 2 {
+		t.Errorf("opened %d", opened)
+	}
+}
+
+func TestOpenOrder(t *testing.T) {
+	got := openOrder([]string{"PDF", "AZW3", "MOBI", "EPUB", "TXT"})
+	if strings.Join(got, " ") != "EPUB TXT AZW3 PDF MOBI" {
+		t.Errorf("order %q", got)
+	}
+}

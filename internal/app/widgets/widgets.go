@@ -29,6 +29,16 @@ func Button(c *ui.Context, v Variant, icon *ui.SVG, label string) ui.Element {
 }
 
 func ButtonSized(c *ui.Context, v Variant, icon *ui.SVG, label string, height float32) ui.Element {
+	return button(c, v, icon, label, height, nil)
+}
+
+// MenuButton is a Button with a chevron after its label, for a button
+// that opens a menu.
+func MenuButton(c *ui.Context, v Variant, icon *ui.SVG, label string) ui.Element {
+	return button(c, v, icon, label, theme.ControlM, icons.ChevronDown)
+}
+
+func button(c *ui.Context, v Variant, icon *ui.SVG, label string, height float32, trailing *ui.SVG) ui.Element {
 	b := ui.ButtonBase(c).Height(height).Radius(theme.RadiusSM).Gap(theme.Space6).AlignItems(ui.Center).Justify(ui.Center).Label(label)
 	pad := float32(theme.Space12)
 	if height < theme.ControlM {
@@ -77,6 +87,9 @@ func ButtonSized(c *ui.Context, v Variant, icon *ui.SVG, label string, height fl
 				fs = 12
 			}
 			ui.Text(c, label).FontSize(fs).FontWeight(500).SingleLine()
+		}
+		if trailing != nil {
+			ui.Icon(c, trailing).FontSize(14)
 		}
 	})
 	return b
