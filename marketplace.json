@@ -35,7 +35,7 @@
       "dalibre": ">=0.4.0",
       "category": "metadata",
       "calibre": "Apple Books covers",
-      "downloads": 2702,
+      "downloads": 2719,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.apple-books-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -65,7 +65,7 @@
       "dalibre": ">=0.5.0",
       "category": "language",
       "calibre": "Chinese Text Conversion",
-      "downloads": 3712,
+      "downloads": 3714,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.chinese-convert-1.0.1.dalibre-plugin",
       "capabilities": {
@@ -102,7 +102,7 @@
       "dalibre": ">=0.4.0",
       "category": "library",
       "calibre": "Clean Metadata",
-      "downloads": 3522,
+      "downloads": 3524,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.clean-metadata-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -141,7 +141,7 @@
       "dalibre": ">=0.4.0",
       "category": "library",
       "calibre": "Count Pages",
-      "downloads": 8413,
+      "downloads": 8421,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.count-pages-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -182,7 +182,7 @@
       "dalibre": ">=0.4.0",
       "category": "epub",
       "calibre": "EpubMerge",
-      "downloads": 9255,
+      "downloads": 9259,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.epub-merge-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -220,7 +220,7 @@
       "dalibre": ">=0.4.0",
       "category": "epub",
       "calibre": "EpubSplit",
-      "downloads": 8669,
+      "downloads": 8673,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.epub-split-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -259,7 +259,7 @@
       "dalibre": ">=0.4.0",
       "category": "metadata",
       "calibre": "Extract ISBN",
-      "downloads": 4037,
+      "downloads": 4038,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.extract-isbn-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -300,7 +300,7 @@
       "dalibre": ">=0.4.0",
       "category": "library",
       "calibre": "Find Duplicates",
-      "downloads": 11689,
+      "downloads": 11691,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.find-duplicates-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -352,7 +352,7 @@
       "dalibre": ">=0.4.0",
       "category": "epub",
       "calibre": "KoboTouchExtended",
-      "downloads": 8162,
+      "downloads": 8166,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.kepub-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -389,7 +389,7 @@
       "dalibre": ">=0.4.0",
       "category": "library",
       "calibre": "Manage Series",
-      "downloads": 2991,
+      "downloads": 2992,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.manage-series-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -431,7 +431,7 @@
       "dalibre": ">=0.4.0",
       "category": "epub",
       "calibre": "Modify ePub",
-      "downloads": 5789,
+      "downloads": 5791,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.modify-epub-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -469,7 +469,7 @@
       "dalibre": ">=0.4.0",
       "category": "library",
       "calibre": "Quality Check",
-      "downloads": 7205,
+      "downloads": 7208,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.quality-check-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -499,7 +499,7 @@
       "dalibre": ">=0.4.0",
       "category": "library",
       "calibre": "Search The Internet",
-      "downloads": 3511,
+      "downloads": 3517,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.search-internet-1.0.0.dalibre-plugin",
       "capabilities": {
@@ -577,7 +577,7 @@
       "dalibre": ">=0.4.0",
       "category": "metadata",
       "calibre": "Wikidata",
-      "downloads": 2544,
+      "downloads": 2547,
       "repo": "djyde/dalibre",
       "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.wikidata-1.0.0.dalibre-plugin",
       "capabilities": {
