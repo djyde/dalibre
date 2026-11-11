@@ -103,6 +103,7 @@ once, at install.
 | Hang or overload the app | Per-call deadline (60 s, 10 min for `process`; interrupts the script), 50 requests per call, 16 MB per fetch body, 64 MB of data, stack depth cap, 4 MB of scripts, results capped at 100. Calls into one plugin are serialized; the call's deadline also ends its fetches and wakes a loop waiting on a timer. A runtime that ran out of time is discarded and the plugin loaded afresh on its next call. |
 | Huge or hostile files | Downloads capped at 2 GB and streamed; covers 10 MB; packages 32 MB / 1000 files, zip-slip and non-regular entries refused. |
 | Change the library | A plugin never writes it. Hooks return the changes they want, which the host checks and writes, and only with `permissions.library: "write"`, shown as a warning at install. |
+| Run programs | Only the `tools` its manifest declares, each a build pinned by SHA-256 (or a package manager's install of the named package, or a file the user chose), shown at install as unsandboxed; through `dalibre.exec`, without a shell, with a minimal environment, and killed with its process group at the call's end. A changed build is a new permission. See [tools.md](tools.md). |
 | Gain permissions silently in an update | Granted permissions are stored per plugin; a version asking for more stays unloaded until the user grants again. |
 | Deface the host API | `dalibre`, its settings and info are frozen. |
 | Leak secrets through logs | Values of `secret` settings are masked in plugin logs. |
@@ -267,8 +268,10 @@ refused.
 - More capabilities: `metadata` (fetch metadata and covers for existing
   books, as calibre's metadata sources), `opds` (expose a source as OPDS),
   event hooks.
-- A subprocess or wasm runtime behind `"runtime"` in the manifest, for
-  plugins needing native code.
+- Tools: programs a plugin runs outside the sandbox (pandoc, a site's
+  CLI), pinned by hash and fetched or found by Dalibre; see
+  [tools.md](tools.md). A wasm runtime for native code that can stay
+  sandboxed.
 - A `dalibre-plugin test` harness with recorded HTTP fixtures, so
   authors can run their plugin in CI.
 

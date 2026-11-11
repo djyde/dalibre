@@ -1,6 +1,8 @@
 package plugin
 
 import (
+	"dalibre/internal/sysproxy"
+
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,7 +13,6 @@ import (
 	"net/http/cookiejar"
 	"net/netip"
 	"net/url"
-	"os"
 	"strings"
 	"syscall"
 	"time"
@@ -144,18 +145,19 @@ func (p *Plugin) httpClient(t http.RoundTripper) *http.Client {
 	}
 }
 
-func sandboxTransport(localNetwork bool) http.RoundTripper {
+// SystemTransport is a transport through the computer's proxy, as the
+// user set it in the system's settings or the environment.
+func SystemTransport() *http.Transport {
 	t := http.DefaultTransport.(*http.Transport).Clone()
-	// The user's proxy, as set in the environment, may be on this
-	// computer; it is dialed as is. Every other address is checked after
-	// name resolution, so a listed host can't be pointed at the local
-	// network.
-	proxies := map[string]bool{}
-	for _, k := range []string{"HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY", "all_proxy"} {
-		if u, err := url.Parse(os.Getenv(k)); err == nil && u.Host != "" {
-			proxies[u.Host] = true
-		}
-	}
+	t.Proxy = sysproxy.Proxy
+	return t
+}
+
+func sandboxTransport(localNetwork bool) http.RoundTripper {
+	t := SystemTransport()
+	// The user's proxy, as set for the computer, may be on this computer;
+	// it is dialed as is. Every other address is checked after name
+	// resolution, so a listed host can't be pointed at the local network.
 	open := &net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second}
 	checked := &net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second,
 		Control: func(network, address string, _ syscall.RawConn) error {
@@ -169,7 +171,7 @@ func sandboxTransport(localNetwork bool) http.RoundTripper {
 			return nil
 		}}
 	t.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-		if proxies[addr] {
+		if sysproxy.IsProxy(addr) {
 			return open.DialContext(ctx, network, addr)
 		}
 		return checked.DialContext(ctx, network, addr)

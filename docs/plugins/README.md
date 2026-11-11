@@ -42,6 +42,7 @@ limits of what the user granted.
 - [main.js](#mainjs): [`search`](#search), [filters](#filters), [`collections` and `list`](#collections-and-list), [`get`](#get), [`resolve`](#resolve), [`identify`](#identify), [`process`](#process), [`run`](#run)
 - [Runtime](#runtime): [what you can use](#what-you-can-use), [fetch](#fetch), [timers](#timers), [your folders](#your-folders), [the `dalibre` object](#the-dalibre-object), [errors](#errors), [TypeScript](#typescript-and-npm-packages)
 - [Permissions and limits](#permissions-and-limits)
+- [Tools](#tools): programs your plugin runs, [`dalibre.exec`](#dalibreexec), [`check`](#check)
 - [Testing](#testing)
 - [Publishing](#publishing)
 - [Compatibility](#compatibility)
@@ -131,6 +132,7 @@ runs it as it is. See [TypeScript and npm packages](#typescript-and-npm-packages
 | `permissions.hosts` | **Required for a source.** Every host your plugin reaches, through `fetch`, file downloads, covers **and redirects**. `*.example.com` matches any subdomain, not `example.com` itself. |
 | `permissions.library` | `"read"`: your plugin sees the details of the books it is asked about. **Required for a metadata source** and for [hooks](#hooks). `"write"`: your hooks may also change those details; the install dialog warns about it. |
 | `permissions.localNetwork` | Reach this computer and the local network: a home OPDS or Calibre server. Users are warned. Default `false`. |
+| `tools` | Programs your plugin runs outside its sandbox, such as pandoc or a site's CLI: see [Tools](#tools). |
 | `settings` | Values the user enters: up to 32. `type` is `text` (default), `secret` (masked, hidden in logs, and kept in the system's keychain rather than Dalibre's settings file), `file` (a file the user chooses, such as a key, copied into `/data`; its value is the path you read it at: `await readFile(dalibre.settings.keyFile)`), `toggle` (a switch: `"true"` or `"false"`), `select` (one of its `options`, `[{ value, title? }]`, 1 to 64) or `number`. Values are strings, the `default` where unset. `required` settings must be filled before your plugin is called. |
 
 Unknown fields are errors, so a misspelt one is caught by `check`, not
@@ -262,7 +264,8 @@ kept; formats and `extra` you leave out are kept from `item`.
 
 ### resolve
 
-`resolve(item, format) → { url, headers?, filename? }` is optional.
+`resolve(item, format) → { url, headers?, filename? }` or `{ path,
+filename? }` is optional.
 Without it, Dalibre downloads `format.url`. Export it when links expire,
 need a second request, or need headers:
 
@@ -287,6 +290,18 @@ Dalibre, not your script, downloads the file: it streams it to disk with
 progress and cancel, follows redirects within your hosts, refuses an
 HTML page (a login or error page) where a book was expected, and turns
 HTTP 401/403/404/429 into the errors below.
+
+A plugin whose [tool](#tools) downloads the book returns `{ path }`
+instead, a file in `/work` or `/data`; Dalibre moves it into the
+library:
+
+```js
+export async function resolve(item, format) {
+  const r = await dalibre.exec("zlib", ["download", item.id, "--dir", "/work/dl"]);
+  if (r.code !== 0) throw dalibre.error("unavailable", r.stderr.trim());
+  return { path: "/work/dl/" + r.stdout.trim() };
+}
+```
 
 ### identify
 
@@ -563,6 +578,7 @@ What only Dalibre can give you:
 | `dalibre.plugin` | `{ id, version }` from your manifest. |
 | `dalibre.api` | The plugin API version of the running Dalibre. |
 | `dalibre.form`, `dalibre.library`, `dalibre.progress`, `dalibre.interactive` | For an action while it runs; see [`run`](#run). |
+| `dalibre.exec(id, args, options?)` | Runs one of your [tools](#tools). |
 | `dalibre.html.tokens(html)`, `dalibre.html.escape(text)` | HTML and XHTML as tokens; see below. |
 
 Everything in the `dalibre` object is frozen.
@@ -664,6 +680,104 @@ declare:
 Calls into one plugin run one at a time; different plugins run in
 parallel. A plugin that throws or times out only fails that call; the
 next one runs normally (after a timeout, with the module loaded afresh).
+
+## Tools
+
+Some plugins are best written around a program that already does the
+work: pandoc to convert, a site's own CLI that knows its sign-in and
+mirrors. Declare it in `tools`, and Dalibre gets it and runs it for you.
+Users don't install anything by hand.
+
+```json
+"tools": {
+  "pandoc": {
+    "version": "3.6.4",
+    "min": "3.6",
+    "packages": { "brew": "pandoc", "winget": "JohnMacFarlane.Pandoc", "scoop": "main/pandoc" },
+    "platforms": {
+      "darwin-arm64": {
+        "url": "https://github.com/jgm/pandoc/releases/download/3.6.4/pandoc-3.6.4-arm64-macOS.zip",
+        "sha256": "88af17f1885afacb25f70ce4c8c44428feb6da860b6cf690e30da77998456c7f",
+        "size": 36441871,
+        "bin": "pandoc-3.6.4-arm64/bin/pandoc"
+      }
+    }
+  }
+}
+```
+
+Don't write it by hand: `dalibre-plugin tool add` fills it in from a
+GitHub release or a tap's formula, downloading each build once to hash
+it and find the program in it:
+
+```sh
+dalibre-plugin tool add . gh:jgm/pandoc@3.6.4 --brew pandoc --winget JohnMacFarlane.Pandoc --scoop main/pandoc --min 3.6
+dalibre-plugin tool add . brew:heartleo/tap/zlib
+```
+
+| Field | |
+|---|---|
+| key | The tool's id, for `dalibre.exec`. Lowercase, up to 4 tools. |
+| `version` | **Required.** The exact version Dalibre downloads. |
+| `min` | The oldest version you take from a package manager or a file the user chose. Default `version`. |
+| `packages` | Its names in Homebrew (`pandoc`, or a tap's `owner/tap/name`), winget (the id) and Scoop (`bucket/name`). Dalibre uses an install of exactly that package, never another program of the same name on `PATH`. |
+| `platforms` | **Required.** One build per platform: `darwin-arm64`, `darwin-amd64`, `linux-amd64`, `linux-arm64`, `windows-amd64`, `windows-arm64`. `url` is an https `.zip`, `.tar.gz` or the program itself; `sha256` its hash, which the download must match; `bin` the program's path in an archive. |
+
+When the user installs your plugin, each tool is the first thing it asks
+to do: "Run pandoc 3.6.4 on this computer", in the warning tone, since
+the program isn't sandboxed. Its menu says where the program comes from:
+the package manager's install when it already has an accepted version,
+else Dalibre's download, Homebrew / winget / Scoop when installed, or a
+file the user picks. Your plugin stays off until its tools are there.
+Only one program file is supported: no Node, Python or Java runtime. Bundle
+one into a single file (`bun build --compile`, `deno compile`,
+`pyinstaller`) if your tool needs it.
+
+**Updates.** The build is part of your version: an update that changes
+a tool's `url` or `sha256`, or adds one, waits for the user, as more
+hosts do. Tools must not update themselves.
+
+### dalibre.exec
+
+```js
+const { code, stdout, stderr } = await dalibre.exec("pandoc", ["/work/book.epub", "-t", "plain"], {
+  timeout: 120_000,
+  onLine: (stream, line) => console.log(line),
+});
+```
+
+- Only your declared tools. `args` go to the program as they are: no
+  shell, no globbing.
+- An argument that is a path in `/work` or `/data` becomes the real
+  file's path. The program runs in `/work`.
+- It gets only a program's usual environment (`PATH`, `HOME`, `LANG`…),
+  the user's proxy as `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` (read
+  from the system's settings, which an app doesn't otherwise see), and
+  `options.env`.
+- `options.stdin` is written to its input. Pass secrets this way:
+  arguments are visible to other programs.
+- `timeout` is 60 s by default, and never past your call's own time.
+  Output stops at 16 MB a stream.
+- A non-zero exit is a result (`code`), not an error. It rejects with
+  kind `timeout`, or `unavailable` when the program can't start.
+
+### check
+
+A tool may be there and still not ready: signed out, missing a part.
+Export `check()` and Dalibre calls it when your plugin loads; what it
+throws shows on your plugin's row and page.
+
+```js
+export async function check() {
+  const r = await dalibre.exec("zlib", ["profile", "--json"]);
+  if (r.code !== 0) throw dalibre.error("auth", "Sign in to Z-Library");
+}
+```
+
+To run your plugin's tools from the CLI, `dalibre-plugin` uses a package
+manager's install, or downloads the build once into its cache; `--tool
+id=path` runs a file instead. `check` downloads every platform's build
+and checks it against `plugin.json`.
 
 ## Testing
 

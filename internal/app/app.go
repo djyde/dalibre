@@ -15,6 +15,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/egoist/mygo/ui/markdown"
 
 	"dalibre/cmd/dalibre/locales"
 	"dalibre/internal/app/icons"
@@ -132,6 +133,11 @@ type App struct {
 	updatesChecking bool
 	github          *plugin.GitHub // nil is github.com
 	ghi             ghInstall      // the Install from GitHub sheet
+	tl              toolsState     // the plugins' tools
+	// ghMD renders the README in Install from GitHub; ghMDFor is the
+	// repository and version its links point at.
+	ghMD    markdown.Options
+	ghMDFor string
 	// au is updating Dalibre itself.
 	au appUpdateState
 	// feedbackOpen is whether the sidebar's Feedback menu shows.

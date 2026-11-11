@@ -104,13 +104,22 @@ declare namespace Dalibre {
     url?: string;
   }
 
-  /** Where the host downloads a file from. */
-  interface DownloadRequest {
-    url: string;
-    headers?: Record<string, string>;
-    /** The file's name; else the server's, else the title. The extension is fixed to the format. */
-    filename?: string;
-  }
+  /**
+   * Where the host downloads a file from: a url, or, for a file the
+   * plugin made (with a tool, say), its path in /work or /data.
+   */
+  type DownloadRequest =
+    | {
+        url: string;
+        headers?: Record<string, string>;
+        /** The file's name; else the server's, else the title. The extension is fixed to the format. */
+        filename?: string;
+      }
+    | {
+        /** The book's file, made by the plugin: "/work/book.epub". Dalibre moves it into the library. */
+        path: string;
+        filename?: string;
+      };
 
   /** Kinds the app tells the user about differently. */
   type ErrorKind =
@@ -305,6 +314,27 @@ declare namespace Dalibre {
     remember?: boolean;
   }
 
+  /** What dalibre.exec resolves to. */
+  interface ExecResult {
+    /** The tool's exit code: 0 when it says it succeeded. */
+    code: number;
+    /** What it printed, up to 16 MB each. */
+    stdout: string;
+    stderr: string;
+  }
+
+  /** dalibre.exec's options. */
+  interface ExecOptions {
+    /** More environment variables. */
+    env?: Record<string, string>;
+    /** Written to its input, then closed: pass secrets this way, not in args. */
+    stdin?: string;
+    /** In milliseconds; 60 s when left out, at most the call's own time. */
+    timeout?: number;
+    /** Each line it prints, as it prints it: for progress. */
+    onLine?(stream: "stdout" | "stderr", line: string): void;
+  }
+
   /** What a file type plugin exports, after calibre's file type plugins. */
   interface FileType {
     /** As files are added (unless onImport is false), and from the book menu. */
@@ -338,6 +368,16 @@ declare const dalibre: {
    * answers come from whoever started the action.
    */
   form(form: Dalibre.Form): Promise<Record<string, string | boolean | string[]>>;
+  /**
+   * Runs one of the tools in plugin.json's tools, outside the sandbox: id
+   * is its key, args its arguments, passed as they are (no shell). An
+   * argument that is a path in /work or /data is the real file's. It runs
+   * in /work, with only a program's usual environment, the computer's
+   * proxy (HTTP_PROXY, HTTPS_PROXY, NO_PROXY) and options.env. Rejects
+   * with kind "timeout" when it takes too long, "unavailable" when it
+   * can't start; a non-zero exit is a result, not an error.
+   */
+  exec(id: string, args: string[], options?: Dalibre.ExecOptions): Promise<Dalibre.ExecResult>;
   /** Whether dalibre.form would show in a window. */
   readonly interactive: boolean;
   /** In an action's run: the job's progress bar. total 0 when unknown. */

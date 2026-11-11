@@ -290,7 +290,7 @@ const addWait = 2 * time.Minute
 
 // pluginExports are the functions a plugin may export that agents are
 // told about.
-var pluginExports = []string{"search", "collections", "list", "get", "resolve", "identify", "process", "run"}
+var pluginExports = []string{"search", "collections", "list", "get", "resolve", "identify", "process", "run", "check"}
 
 // manifestInfo is a plugin as agents see it, from its manifest.
 func manifestInfo(m *plugin.Manifest, state string) mcp.PluginInfo {

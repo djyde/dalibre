@@ -118,6 +118,9 @@ type Manifest struct {
 	Capabilities Capabilities `json:"capabilities"`
 	Permissions  Permissions  `json:"permissions"`
 	Settings     []Setting    `json:"settings,omitempty"`
+	// Tools are programs the plugin runs outside its sandbox, by id
+	// (tools.go).
+	Tools map[string]Tool `json:"tools,omitempty"`
 }
 
 // Permissions are what a plugin may reach. The user grants them when the
@@ -568,6 +571,9 @@ func (m *Manifest) check() error {
 	}
 	if ft := m.Capabilities.FileType; ft != nil && len([]rune(ft.Title)) > 64 {
 		return errors.New("capabilities.fileType.title is over 64 characters")
+	}
+	if err := m.checkTools(); err != nil {
+		return err
 	}
 	if err := m.checkActions(); err != nil {
 		return fmt.Errorf("capabilities.%w", err)

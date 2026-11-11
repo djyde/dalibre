@@ -74,7 +74,8 @@ func granted(st *settings.PluginState, m *plugin.Manifest) bool {
 	if st == nil || st.Granted == nil {
 		return false
 	}
-	return plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library}.Covers(m.Permissions)
+	return plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library}.Covers(m.Permissions) &&
+		grantedTools(st.Granted, m)
 }
 
 // loadPlugins loads the built-in plugins and the enabled ones in the
@@ -85,6 +86,7 @@ func (a *App) loadPlugins() {
 		stop() // an action waiting on its form would keep its plugin from closing
 	}
 	dir, builtins, transport, store := a.pluginDir, a.builtins, a.pluginTransport, a.secrets
+	tools := a.toolStore()
 	if dir == "" && !builtins {
 		a.pluginsSettled()
 		return
@@ -103,6 +105,21 @@ func (a *App) loadPlugins() {
 		var errs []error
 		secrets := map[string]map[string]string{}
 		var moved []*plugin.Manifest
+		needTools := map[string][]string{}
+		places := map[string]map[string]toolPlace{}
+		// withTools finds m's tools: false when one is missing, and m
+		// can't load until it is here.
+		withTools := func(m *plugin.Manifest, st settings.PluginState) (map[string]string, bool) {
+			found, missing := locateTools(tools, m, st.Tools)
+			if len(missing) > 0 {
+				needTools[m.ID] = missing
+				return nil, false
+			}
+			if found != nil {
+				places[m.ID] = found
+			}
+			return toolPaths(found), true
+		}
 		// options are what m loads with: its values, secrets included.
 		options := func(m *plugin.Manifest, st settings.PluginState) plugin.Options {
 			values, sec, mv := pluginValues(store, m, st.Values)
@@ -157,7 +174,13 @@ func (a *App) loadPlugins() {
 					pending = append(pending, m)
 					return plugin.Options{}, false
 				}
-				return options(m, st), true
+				paths, ok := withTools(m, st)
+				if !ok {
+					return plugin.Options{}, false
+				}
+				o := options(m, st)
+				o.Tools = paths
+				return o, true
 			})
 			plugins = append(plugins, found...)
 			errs = append(errs, ferrs...)
@@ -190,7 +213,13 @@ func (a *App) loadPlugins() {
 				pending = append(pending, m)
 				continue
 			}
-			p, err := plugin.Load(st.Path, options(m, st))
+			paths, ok := withTools(m, st)
+			if !ok {
+				continue
+			}
+			o := options(m, st)
+			o.Tools = paths
+			p, err := plugin.Load(st.Path, o)
 			if err != nil {
 				errs = append(errs, err)
 				continue
@@ -217,7 +246,13 @@ func (a *App) loadPlugins() {
 			})
 			a.pluginsLoading = false
 			a.pluginErrs, a.pluginsPending, a.pluginsKnown = errs, pending, known
+			a.tl.missing, a.tl.places = needTools, places
 			a.setPlugins(plugins)
+			if a.tl.prune {
+				a.tl.prune = false
+				a.keepTools(known)
+			}
+			a.checkPlugins(plugins)
 			for _, err := range errs {
 				a.toastError(errors.New(locales.PluginsErrToast(err.Error())))
 			}
@@ -303,8 +338,11 @@ func (a *App) grantConsent() {
 	}
 	a.consent = nil
 	st := a.settings.Plugin(c.manifest.ID)
-	st.Granted = &settings.Grant{Hosts: slices.Clone(c.manifest.Permissions.Hosts), LocalNetwork: c.manifest.Permissions.LocalNetwork, Library: c.manifest.Permissions.Library}
+	st.Granted = grantFor(c.manifest)
 	a.saveSettings()
+	if len(c.manifest.Tools) > 0 {
+		a.getPickedTools(c.manifest)
+	}
 	if c.answered != nil {
 		c.answered(true)
 		return
@@ -431,6 +469,7 @@ func (a *App) uninstallPlugin(id string) {
 		return
 	}
 	dir := a.pluginDir
+	a.tl.prune = true // the builds only it declared go
 	a.run(func() {
 		err := plugin.Uninstall(dir, id)
 		a.post(func() {

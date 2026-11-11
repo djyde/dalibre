@@ -101,6 +101,9 @@ func (a *App) pluginStatus(k knownPlugin) (text string, tone ui.Color, loaded bo
 		if p.MissingSettings() != nil {
 			return locales.PluginsStatusNeeds(strings.Join(p.MissingSettings(), ", ")), pal().Warning.FG, true
 		}
+		if err := a.tl.checks[id]; err != nil {
+			return checkText(err), pal().Warning.FG, true
+		}
 		v := k.manifest.Version
 		switch {
 		case k.builtin:
@@ -114,6 +117,14 @@ func (a *App) pluginStatus(k knownPlugin) (text string, tone ui.Color, loaded bo
 	}
 	if slices.ContainsFunc(a.pluginsPending, func(m *plugin.Manifest) bool { return m.ID == id }) {
 		return locales.PluginsStatusNeedsReview(), pal().Warning.FG, false
+	}
+	if missing := a.tl.missing[id]; len(missing) > 0 {
+		for _, t := range missing {
+			if j := a.toolJobFor(id, t); j != nil && j.running {
+				return locales.ToolsStatusGetting(t), pal().TextAccent, false
+			}
+		}
+		return locales.ToolsStatusNeeds(strings.Join(missing, ", ")), pal().Warning.FG, false
 	}
 	if u := a.updates[id]; u != nil && loadedOK(a, id) {
 		return locales.PluginsStatusUpdate(k.manifest.Version, u.label), pal().TextAccent, true
@@ -195,6 +206,12 @@ func (a *App) pluginRow(c *ui.Context, k knownPlugin) {
 		case pending:
 			if widgets.ButtonSized(c, widgets.Secondary, nil, locales.PluginsReview(), theme.ControlS).Clicked() {
 				a.askConsent(m.ID)
+			}
+		case len(a.tl.missing[m.ID]) > 0:
+			if tone == pal().TextAccent {
+				ui.Spinner(c).Size(16, 16).Label(status)
+			} else {
+				ui.Icon(c, icons.Alert).FontSize(16).TextColor(pal().Warning.FG)
 			}
 		case a.updates[m.ID] != nil && loaded:
 			if a.updates[m.ID].busy {
@@ -366,9 +383,16 @@ func (a *App) pluginPane(c *ui.Context, k knownPlugin) {
 			ui.Text(c, note).FontSize(12).TextColor(pal().TextTertiary)
 		}
 	})
+	if err := a.tl.checks[m.ID]; err != nil && loaded {
+		ui.Row(c).Padding(theme.Space10, theme.Space12).Gap(theme.Space10).Radius(theme.RadiusMD).Background(pal().Warning.BG).AlignItems(ui.Start).Children(func() {
+			ui.Icon(c, icons.Alert).FontSize(14).TextColor(pal().Warning.FG)
+			ui.Text(c, checkText(err)).FontSize(12).TextColor(pal().Warning.FG).Grow(1)
+		})
+	}
 	if len(m.Settings) > 0 {
 		a.pluginSettingsForm(c, m, loaded)
 	}
+	a.toolsSection(c, m)
 	ui.Column(c).Gap(theme.Space8).AlignItems(ui.Stretch).Children(func() {
 		widgets.Overline(c, locales.PluginsCanAccess())
 		for _, h := range m.Permissions.Hosts {
@@ -690,6 +714,14 @@ func (a *App) consentDialog(c *ui.Context) {
 				overline = locales.PluginsConsentAsksMore()
 			}
 			widgets.Overline(c, overline)
+			var hadTools map[string]string
+			if st := a.settings.Plugins[m.ID]; had != nil && st != nil && st.Granted != nil {
+				hadTools = st.Granted.Tools
+				if hadTools == nil {
+					hadTools = map[string]string{}
+				}
+			}
+			a.toolPermissions(c, m, hadTools)
 			for _, h := range m.Permissions.Hosts {
 				if had != nil && slices.Contains(had.Hosts, h) {
 					continue
@@ -711,6 +743,9 @@ func (a *App) consentDialog(c *ui.Context) {
 			if m.Permissions.Library != "" {
 				sandbox = locales.PluginsConsentSandboxLibrary()
 			}
+			if len(m.Tools) > 0 {
+				sandbox = locales.ToolsSandboxNote(strings.Join(m.ToolIDs(), ", "))
+			}
 			ui.Text(c, sandbox).FontSize(12).TextColor(pal().TextTertiary)
 			if m.Homepage != "" {
 				ui.Text(c, m.Homepage).FontSize(12).TextColor(pal().TextTertiary).Selectable()
@@ -725,7 +760,7 @@ func (a *App) consentDialog(c *ui.Context) {
 		if had != nil || ask.archive == "" {
 			label = locales.PluginsConsentAllow()
 		}
-		if widgets.Button(c, widgets.Primary, nil, label).Clicked() {
+		if widgets.Button(c, widgets.Primary, nil, label).Disabled(len(m.Tools) > 0 && !a.picksReady(m)).Clicked() {
 			a.grantConsent()
 		}
 	})
@@ -735,6 +770,15 @@ func (a *App) consentDialog(c *ui.Context) {
 			ask.answered(false)
 		}
 	}
+}
+
+// checkText is what a plugin's check() said is missing.
+func checkText(err error) string {
+	var pe *plugin.Error
+	if errors.As(err, &pe) {
+		return pe.Msg
+	}
+	return err.Error()
 }
 
 // libraryReadDetail: see locales.PluginsLibraryReadDetail.

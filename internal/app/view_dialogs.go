@@ -27,6 +27,7 @@ func (a *App) dialogs(c *ui.Context) {
 	a.settingsDialog(c)
 	a.pluginsDialog(c)
 	a.consentDialog(c)
+	a.toolInstallDialog(c)
 	a.notLibrarySheet(c)
 	a.createLibrarySheet(c)
 	a.importReviewSheet(c)

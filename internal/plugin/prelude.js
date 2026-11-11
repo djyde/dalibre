@@ -9,8 +9,8 @@
 (() => {
   "use strict";
   const hostLog = __host_log, hostSettle = __host_settle, hostInfo = __host_info;
-  const hostAsk = __host_ask, hostFlag = __host_flag, hostProgress = __host_progress, hostHTML = __host_html;
-  for (const k of ["__host_log", "__host_settle", "__host_info", "__host_ask", "__host_flag", "__host_progress", "__host_html"]) delete globalThis[k];
+  const hostAsk = __host_ask, hostExec = __host_exec, hostFlag = __host_flag, hostProgress = __host_progress, hostHTML = __host_html;
+  for (const k of ["__host_log", "__host_settle", "__host_info", "__host_ask", "__host_exec", "__host_flag", "__host_progress", "__host_html"]) delete globalThis[k];
   const { parse, stringify } = JSON;
   const { freeze, defineProperty, keys } = Object;
   const resolved = Promise.resolve.bind(Promise), rejected = Promise.reject.bind(Promise);
@@ -61,6 +61,28 @@
     return r.value;
   }
 
+  // The onLine functions of the dalibre.exec calls running, by id.
+  const lineFns = new Map();
+  let lineSeq = 0;
+
+  // exec runs one of the plugin's tools: { code, stdout, stderr }.
+  async function exec(id, args, options) {
+    const o = options ?? {};
+    let lid = "";
+    if (typeof o.onLine === "function") {
+      lid = String(++lineSeq);
+      lineFns.set(lid, o.onLine);
+    }
+    const opts = { env: o.env ?? null, stdin: o.stdin === undefined ? null : String(o.stdin), timeout: Number(o.timeout) || 0 };
+    try {
+      const r = parse(await hostExec(String(id), stringify(Array.from(args ?? [], String)), stringify(opts), lid));
+      if (!r.ok) throw error(r.kind, r.message);
+      return r.value;
+    } finally {
+      if (lid) lineFns.delete(lid);
+    }
+  }
+
   const dalibre = freeze({
     api,
     plugin: freeze(plugin),
@@ -70,6 +92,7 @@
     // whoever started the action.
     get interactive() { return hostFlag("interactive") === "1"; },
     form(spec) { return ask("form", spec); },
+    exec,
     progress(done, total) { hostProgress(Math.trunc(Number(done)) || 0, Math.trunc(Number(total)) || 0); },
     html: freeze({
       tokens(s) { return parse(hostHTML(String(s))); },
@@ -148,5 +171,11 @@
     report(p);
   });
 
-  return { load: globalThis.__dalibre_load, call: globalThis.__dalibre_call };
+  // __dalibre_line gives a line a tool printed to its exec's onLine.
+  fixed("__dalibre_line", (id, stream, line) => {
+    const fn = lineFns.get(id);
+    if (fn) try { fn(stream, line); } catch (e) { log("warn")("onLine threw:", e); }
+  });
+
+  return { load: globalThis.__dalibre_load, call: globalThis.__dalibre_call, line: globalThis.__dalibre_line };
 })();

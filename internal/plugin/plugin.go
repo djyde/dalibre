@@ -69,9 +69,10 @@ type Plugin struct {
 	taps     map[int]func(line string) // Tap's listeners
 	tapSeq   int
 
-	dataDir  string       // the plugin's own folder, the root of its node:fs; "" for none
-	requests atomic.Int32 // fetches made by the call in progress
-	workMu   sync.Mutex   // one Process at a time: it owns /work
+	dataDir  string            // the plugin's own folder, the root of its node:fs; "" for none
+	tools    map[string]string // its tools' executables, by id
+	requests atomic.Int32      // fetches made by the call in progress
+	workMu   sync.Mutex        // one Process at a time: it owns /work
 
 	mu       sync.Mutex // guards the fields below and the runtime
 	rt       *moejs.Runtime
@@ -80,6 +81,7 @@ type Plugin struct {
 	nodeAPI  *node.API                // node:fs, node:buffer
 	load     moejs.Value              // the prelude's load(main)
 	invokeFn moejs.Value              // the prelude's call(name, args)
+	lineFn   moejs.Value              // the prelude's line(id, stream, line), for dalibre.exec's onLine
 	modules  map[string]*moejs.Module // compiled, by path in the plugin's folder
 	exported []string                 // the functions the script exports
 	ctx      context.Context          // of the call in progress
@@ -109,6 +111,9 @@ type Options struct {
 	// runs, and work/ at /work, the files it is handed. It is made when
 	// needed. When "", the script has no node:fs and can't process files.
 	DataDir string
+	// Tools are the executables of the manifest's tools, by id, for
+	// dalibre.exec. A tool missing here can't be run.
+	Tools map[string]string
 }
 
 // Load reads the plugin in dir and runs its script, which defines the
@@ -159,6 +164,7 @@ func load(m *Manifest, fsys fs.FS, dir string, opts Options) (*Plugin, error) {
 	p.client = p.httpClient(opts.Transport)
 	p.authorize = opts.Authorize
 	p.dataDir = opts.DataDir
+	p.tools = opts.Tools
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -254,9 +260,11 @@ func (p *Plugin) start() error {
 			return err
 		}
 	}
-	if err := rt.SetGlobal("__host_ask", moejs.NativeFunc(p.hostAsk)); err != nil {
-		p.stop()
-		return err
+	for name, fn := range map[string]moejs.NativeFunc{"__host_ask": p.hostAsk, "__host_exec": p.hostExec} {
+		if err := rt.SetGlobal(name, fn); err != nil {
+			p.stop()
+			return err
+		}
 	}
 	entry, err := rt.RunScript(script)
 	if err == nil {
@@ -264,6 +272,9 @@ func (p *Plugin) start() error {
 	}
 	if err == nil {
 		p.invokeFn, err = rt.Get(entry, "call")
+	}
+	if err == nil {
+		p.lineFn, err = rt.Get(entry, "line")
 	}
 	if err != nil {
 		p.stop()
@@ -341,7 +352,7 @@ func (p *Plugin) stop() {
 	}
 	p.loop, p.web, p.nodeAPI = nil, nil, nil
 	p.rt, p.modules = nil, nil
-	p.load, p.invokeFn = moejs.Undefined(), moejs.Undefined()
+	p.load, p.invokeFn, p.lineFn = moejs.Undefined(), moejs.Undefined(), moejs.Undefined()
 }
 
 // resolveModule compiles the module an import names in the code of

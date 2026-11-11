@@ -376,8 +376,8 @@ dialog and returns the user's last answers to it, or the fields' own
 - Over MCP: `convert_book`.
 
 A converter is the heaviest thing a plugin does. One needing native code
-(KFX Output needs Kindle Previewer) waits for the subprocess or wasm
-runtime in design.md.
+(KFX Output needs Kindle Previewer) declares it as a tool; see
+[tools.md](tools.md).
 
 UI to draw (Figma): Convert to in the book menu, the route choice in
 Settings › Plugins.
@@ -487,6 +487,7 @@ only allows *proposing* changes without a confirmation per book.
 | `library: "write"` | may change books without asking each time | warning tone |
 | a `"library"` action | sees every book's details when the user runs it | "Your whole library's details, when you run Find duplicates" |
 | `device` | reads and writes a reader it recognises | "Can read and change a Kobo you connect" |
+| a `tools` entry | runs that program, unsandboxed ([tools.md](tools.md)) | first row, warning tone: "Run pandoc 3.6.4 on this computer", with where it comes from |
 
 Capabilities are listed in the dialog ("Adds to Dalibre: Get books,
 Metadata") so the user sees what installing changes. An update that adds

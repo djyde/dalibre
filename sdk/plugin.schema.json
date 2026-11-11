@@ -3,58 +3,147 @@
   "title": "Dalibre plugin manifest (plugin API 1)",
   "type": "object",
   "additionalProperties": false,
-  "required": ["id", "name", "version", "api", "capabilities", "permissions"],
+  "required": [
+    "id",
+    "name",
+    "version",
+    "api",
+    "capabilities",
+    "permissions"
+  ],
   "properties": {
-    "$schema": { "type": "string" },
+    "$schema": {
+      "type": "string"
+    },
     "id": {
       "description": "Unique, permanent id: lowercase letters, digits and '-', in dot-separated parts. Prefer a domain you own, reversed: \"com.example.books\".",
-      "type": "string", "maxLength": 64,
+      "type": "string",
+      "maxLength": 64,
       "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$"
     },
-    "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
     "version": {
       "description": "Semantic version of the plugin.",
       "type": "string",
       "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
     },
-    "api": { "description": "The plugin API the plugin is written for.", "const": 1 },
-    "description": { "type": "string" },
-    "author": { "type": "string" },
-    "homepage": { "type": "string", "format": "uri" },
-    "license": { "description": "An SPDX identifier, as \"MIT\".", "type": "string" },
-    "main": { "description": "The main module, a .js, .mjs, .ts or .mts file relative to plugin.json. Default main.js.", "type": "string", "pattern": "\\.m?[jt]s$" },
+    "api": {
+      "description": "The plugin API the plugin is written for.",
+      "const": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "author": {
+      "type": "string"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri"
+    },
+    "license": {
+      "description": "An SPDX identifier, as \"MIT\".",
+      "type": "string"
+    },
+    "main": {
+      "description": "The main module, a .js, .mjs, .ts or .mts file relative to plugin.json. Default main.js.",
+      "type": "string",
+      "pattern": "\\.m?[jt]s$"
+    },
     "icon": {
       "description": "The plugin's icon, from Dalibre's set.",
-      "enum": ["globe", "library", "book-open", "database", "network", "building", "bookmark", "layers"]
+      "enum": [
+        "globe",
+        "library",
+        "book-open",
+        "database",
+        "network",
+        "building",
+        "bookmark",
+        "layers"
+      ]
     },
     "capabilities": {
       "description": "What the plugin adds to Dalibre.",
       "oneOf": [
-        { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["source", "bookSource", "metadata"] } },
         {
-          "type": "object", "additionalProperties": false, "minProperties": 1,
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "source",
+              "bookSource",
+              "metadata"
+            ]
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
           "properties": {
             "bookSource": {
               "description": "A catalogue in Dalibre's Get books page. Export search; with collections, also collections and list.",
-              "type": "object", "additionalProperties": false,
+              "type": "object",
+              "additionalProperties": false,
               "properties": {
-                "collections": { "description": "Lists to browse while the search box is empty.", "type": "boolean" },
+                "collections": {
+                  "description": "Lists to browse while the search box is empty.",
+                  "type": "boolean"
+                },
                 "filters": {
-                  "type": "array", "maxItems": 4,
+                  "type": "array",
+                  "maxItems": 4,
                   "items": {
-                    "type": "object", "additionalProperties": false, "required": ["key", "title", "type", "options"],
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "key",
+                      "title",
+                      "type",
+                      "options"
+                    ],
                     "properties": {
-                      "key": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$" },
-                      "title": { "type": "string", "minLength": 1 },
-                      "type": { "enum": ["select", "language"] },
-                      "default": { "type": "string" },
+                      "key": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "type": {
+                        "enum": [
+                          "select",
+                          "language"
+                        ]
+                      },
+                      "default": {
+                        "type": "string"
+                      },
                       "options": {
-                        "type": "array", "minItems": 1, "maxItems": 64,
+                        "type": "array",
+                        "minItems": 1,
+                        "maxItems": 64,
                         "items": {
-                          "type": "object", "additionalProperties": false, "required": ["value"],
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "value"
+                          ],
                           "properties": {
-                            "value": { "type": "string" },
-                            "title": { "description": "Required for select; a language's name is Dalibre's.", "type": "string" }
+                            "value": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "description": "Required for select; a language's name is Dalibre's.",
+                              "type": "string"
+                            }
                           }
                         }
                       }
@@ -65,45 +154,150 @@
             },
             "metadata": {
               "description": "Looks up books' details for Fetch metadata in Edit metadata. Export identify; needs permissions.library \"read\".",
-              "type": "object", "additionalProperties": false,
+              "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "fields": {
                   "description": "The fields the source can fill, shown to the user.",
-                  "type": "array", "uniqueItems": true,
-                  "items": { "enum": ["title", "authors", "series", "tags", "publisher", "pubdate", "language", "identifiers", "cover", "description"] }
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "enum": [
+                      "title",
+                      "authors",
+                      "series",
+                      "tags",
+                      "publisher",
+                      "pubdate",
+                      "language",
+                      "identifiers",
+                      "cover",
+                      "description"
+                    ]
+                  }
                 }
               }
             },
             "fileType": {
               "description": "Works on books' files: each file Dalibre adds, and the books the user runs it on from the book menu. Export process.",
-              "type": "object", "additionalProperties": false,
+              "type": "object",
+              "additionalProperties": false,
               "properties": {
-                "title": { "description": "What running it is called in the book menu, as \"Clean up EPUB\". Default: the plugin's name.", "type": "string", "maxLength": 64 },
-                "onImport": { "description": "false to run only from the book menu, not on the files Dalibre adds. Default true.", "type": "boolean" },
-                "onPostImport": { "description": "Call postimport after a file was added to a book, as calibre's on_postimport. Needs permissions.library.", "type": "boolean" },
-                "onPostAdd": { "description": "Call postadd after a book was added, as calibre's on_postadd. Needs permissions.library.", "type": "boolean" },
-                "onPostDelete": { "description": "Call postdelete after a format was removed, as calibre's on_postdelete. Needs permissions.library.", "type": "boolean" }
+                "title": {
+                  "description": "What running it is called in the book menu, as \"Clean up EPUB\". Default: the plugin's name.",
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "onImport": {
+                  "description": "false to run only from the book menu, not on the files Dalibre adds. Default true.",
+                  "type": "boolean"
+                },
+                "onPostImport": {
+                  "description": "Call postimport after a file was added to a book, as calibre's on_postimport. Needs permissions.library.",
+                  "type": "boolean"
+                },
+                "onPostAdd": {
+                  "description": "Call postadd after a book was added, as calibre's on_postadd. Needs permissions.library.",
+                  "type": "boolean"
+                },
+                "onPostDelete": {
+                  "description": "Call postdelete after a format was removed, as calibre's on_postdelete. Needs permissions.library.",
+                  "type": "boolean"
+                }
               }
             },
             "actions": {
               "description": "What the user runs on the books chosen, or on the whole library. Export run(action, input); needs permissions.library.",
-              "type": "array", "minItems": 1, "maxItems": 16,
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
               "items": {
-                "type": "object", "additionalProperties": false, "required": ["id", "title", "scope"],
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "title",
+                  "scope"
+                ],
                 "properties": {
-                  "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" },
-                  "title": { "description": "As the menu or the sidebar names it; end it in … when it asks something first: \"Find duplicates…\".", "type": "string", "minLength": 1, "maxLength": 64 },
-                  "icon": { "enum": ["puzzle", "sparkle", "copy", "check", "check-circle", "x", "layers", "file", "pencil", "tag", "search", "trash", "refresh", "replace", "bookmark", "book-open", "library", "database", "globe", "external"] },
-                  "scope": { "description": "\"books\": runs on the books chosen, from the book menu. \"library\": runs on every book, from the sidebar's Tools.", "enum": ["books", "library"] },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{0,31}$"
+                  },
+                  "title": {
+                    "description": "As the menu or the sidebar names it; end it in … when it asks something first: \"Find duplicates…\".",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "icon": {
+                    "enum": [
+                      "puzzle",
+                      "sparkle",
+                      "copy",
+                      "check",
+                      "check-circle",
+                      "x",
+                      "layers",
+                      "file",
+                      "pencil",
+                      "tag",
+                      "search",
+                      "trash",
+                      "refresh",
+                      "replace",
+                      "bookmark",
+                      "book-open",
+                      "library",
+                      "database",
+                      "globe",
+                      "external"
+                    ]
+                  },
+                  "scope": {
+                    "description": "\"books\": runs on the books chosen, from the book menu. \"library\": runs on every book, from the sidebar's Tools.",
+                    "enum": [
+                      "books",
+                      "library"
+                    ]
+                  },
                   "books": {
                     "description": "How many books a \"books\" action takes.",
-                    "type": "object", "additionalProperties": false,
-                    "properties": { "min": { "type": "integer", "minimum": 0 }, "max": { "type": "integer", "minimum": 0 } }
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "min": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "max": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
                   },
-                  "formats": { "description": "The formats a \"books\" action works on, upper case: every book must have one.", "type": "array", "items": { "type": "string", "pattern": "^[A-Z0-9_]+$" } },
-                  "files": { "description": "Give a \"books\" action a copy of each book's file, in /work.", "type": "boolean" },
-                  "covers": { "description": "Give a \"books\" action a copy of each book's cover, in /work, for the books that have one.", "type": "boolean" },
-                  "in": { "description": "\"results\": show the action only among the books this plugin's own results list.", "enum": ["results"] }
+                  "formats": {
+                    "description": "The formats a \"books\" action works on, upper case: every book must have one.",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^[A-Z0-9_]+$"
+                    }
+                  },
+                  "files": {
+                    "description": "Give a \"books\" action a copy of each book's file, in /work.",
+                    "type": "boolean"
+                  },
+                  "covers": {
+                    "description": "Give a \"books\" action a copy of each book's cover, in /work, for the books that have one.",
+                    "type": "boolean"
+                  },
+                  "in": {
+                    "description": "\"results\": show the action only among the books this plugin's own results list.",
+                    "enum": [
+                      "results"
+                    ]
+                  }
                 }
               }
             }
@@ -112,12 +306,20 @@
       ]
     },
     "permissions": {
-      "type": "object", "additionalProperties": false, "required": ["hosts"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hosts"
+      ],
       "properties": {
         "hosts": {
           "description": "Every host the plugin fetches or downloads from, redirects included. \"*.example.com\" matches subdomains.",
-          "type": "array", "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$" }
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$"
+          }
         },
         "localNetwork": {
           "description": "Reach this computer and the local network, as a home OPDS server. Users are warned.",
@@ -125,27 +327,306 @@
         },
         "library": {
           "description": "\"read\": see the details of the books the plugin is asked about; metadata sources, file type hooks and actions need it. \"write\": also lets hooks and actions change those details without asking.",
-          "enum": ["read", "write"]
+          "enum": [
+            "read",
+            "write"
+          ]
         }
       }
     },
     "settings": {
-      "type": "array", "maxItems": 32,
+      "type": "array",
+      "maxItems": 32,
       "items": {
-        "type": "object", "additionalProperties": false, "required": ["key", "title"],
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "title"
+        ],
         "properties": {
-          "key": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$" },
-          "title": { "type": "string", "minLength": 1 },
-          "type": { "enum": ["text", "secret", "file", "toggle", "select", "number"] },
-          "description": { "type": "string" },
-          "default": { "description": "A toggle's is \"true\" or \"false\"; a select's, one of its options' values.", "type": "string" },
-          "required": { "type": "boolean" },
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "enum": [
+              "text",
+              "secret",
+              "file",
+              "toggle",
+              "select",
+              "number"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "default": {
+            "description": "A toggle's is \"true\" or \"false\"; a select's, one of its options' values.",
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
           "options": {
             "description": "A select's choices.",
-            "type": "array", "minItems": 1, "maxItems": 64,
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 64,
             "items": {
-              "type": "object", "additionalProperties": false, "required": ["value"],
-              "properties": { "value": { "type": "string" }, "title": { "type": "string" } }
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "value"
+              ],
+              "properties": {
+                "value": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "maxProperties": 4,
+      "description": "Programs the plugin runs outside its sandbox, with dalibre.exec, by id. Dalibre downloads the build named, or uses a package manager's or a file the user chooses. See docs/plugins/README.md#tools.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]{0,31}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "platforms"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "The exact version Dalibre downloads, as \"3.6.4\"."
+          },
+          "min": {
+            "type": "string",
+            "description": "The oldest version taken from a package manager or a file the user chose; version when left out."
+          },
+          "homepage": {
+            "type": "string",
+            "format": "uri"
+          },
+          "license": {
+            "type": "string",
+            "description": "An SPDX id."
+          },
+          "packages": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "Its names in package managers that may have installed it, fully qualified.",
+            "properties": {
+              "brew": {
+                "type": "string",
+                "description": "\"pandoc\", or a tap's \"owner/tap/name\"."
+              },
+              "winget": {
+                "type": "string",
+                "description": "A package id, as \"JohnMacFarlane.Pandoc\"."
+              },
+              "scoop": {
+                "type": "string",
+                "description": "bucket/name, as \"main/pandoc\"."
+              }
+            }
+          },
+          "platforms": {
+            "type": "object",
+            "additionalProperties": false,
+            "minProperties": 1,
+            "description": "Its builds, by platform.",
+            "properties": {
+              "darwin-arm64": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "sha256"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https://",
+                    "description": "An https URL of a .zip, .tar.gz or .tgz, or of the executable itself."
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The file's SHA-256: Dalibre refuses a download that isn't this build."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Bytes, shown when the user installs."
+                  },
+                  "bin": {
+                    "type": "string",
+                    "description": "The executable's path inside the archive, with '/'; left out when url is the executable."
+                  }
+                }
+              },
+              "darwin-amd64": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "sha256"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https://",
+                    "description": "An https URL of a .zip, .tar.gz or .tgz, or of the executable itself."
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The file's SHA-256: Dalibre refuses a download that isn't this build."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Bytes, shown when the user installs."
+                  },
+                  "bin": {
+                    "type": "string",
+                    "description": "The executable's path inside the archive, with '/'; left out when url is the executable."
+                  }
+                }
+              },
+              "linux-amd64": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "sha256"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https://",
+                    "description": "An https URL of a .zip, .tar.gz or .tgz, or of the executable itself."
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The file's SHA-256: Dalibre refuses a download that isn't this build."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Bytes, shown when the user installs."
+                  },
+                  "bin": {
+                    "type": "string",
+                    "description": "The executable's path inside the archive, with '/'; left out when url is the executable."
+                  }
+                }
+              },
+              "linux-arm64": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "sha256"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https://",
+                    "description": "An https URL of a .zip, .tar.gz or .tgz, or of the executable itself."
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The file's SHA-256: Dalibre refuses a download that isn't this build."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Bytes, shown when the user installs."
+                  },
+                  "bin": {
+                    "type": "string",
+                    "description": "The executable's path inside the archive, with '/'; left out when url is the executable."
+                  }
+                }
+              },
+              "windows-amd64": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "sha256"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https://",
+                    "description": "An https URL of a .zip, .tar.gz or .tgz, or of the executable itself."
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The file's SHA-256: Dalibre refuses a download that isn't this build."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Bytes, shown when the user installs."
+                  },
+                  "bin": {
+                    "type": "string",
+                    "description": "The executable's path inside the archive, with '/'; left out when url is the executable."
+                  }
+                }
+              },
+              "windows-arm64": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "sha256"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "pattern": "^https://",
+                    "description": "An https URL of a .zip, .tar.gz or .tgz, or of the executable itself."
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$",
+                    "description": "The file's SHA-256: Dalibre refuses a download that isn't this build."
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Bytes, shown when the user installs."
+                  },
+                  "bin": {
+                    "type": "string",
+                    "description": "The executable's path inside the archive, with '/'; left out when url is the executable."
+                  }
+                }
+              }
             }
           }
         }

@@ -7648,3 +7648,579 @@ func PluginsWriteOne() string { return In(i18n.Locale()).PluginsWriteOne() }
 func (msgs Messages) PluginsWriteOne() string {
 	return Catalog.Format(msgs.locale, "pluginsWriteOne", nil)
 }
+
+// ToolsTitle says "TOOLS"
+// in the language the app shows.
+func ToolsTitle() string { return In(i18n.Locale()).ToolsTitle() }
+
+// ToolsTitle says "TOOLS"
+// in the language of msgs.
+func (msgs Messages) ToolsTitle() string {
+	return Catalog.Format(msgs.locale, "toolsTitle", nil)
+}
+
+// ToolsRun says "Run {tool} {version} on this computer"
+// in the language the app shows.
+func ToolsRun(tool string, version string) string { return In(i18n.Locale()).ToolsRun(tool, version) }
+
+// ToolsRun says "Run {tool} {version} on this computer"
+// in the language of msgs.
+func (msgs Messages) ToolsRun(tool string, version string) string {
+	return Catalog.Format(msgs.locale, "toolsRun", map[string]any{"tool": tool, "version": version})
+}
+
+// ToolsNotSandboxed says "Not sandboxed: it can read and write your files."
+// in the language the app shows.
+func ToolsNotSandboxed() string { return In(i18n.Locale()).ToolsNotSandboxed() }
+
+// ToolsNotSandboxed says "Not sandboxed: it can read and write your files."
+// in the language of msgs.
+func (msgs Messages) ToolsNotSandboxed() string {
+	return Catalog.Format(msgs.locale, "toolsNotSandboxed", nil)
+}
+
+// ToolsInstallsWith says "Dalibre installs it with {command}."
+// in the language the app shows.
+func ToolsInstallsWith(command string) string { return In(i18n.Locale()).ToolsInstallsWith(command) }
+
+// ToolsInstallsWith says "Dalibre installs it with {command}."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallsWith(command string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallsWith", map[string]any{"command": command})
+}
+
+// ToolsNoBuildChoose says "There’s no {tool} for this computer to download. Choose one you have, or the plugin stays off."
+// in the language the app shows.
+func ToolsNoBuildChoose(tool string) string { return In(i18n.Locale()).ToolsNoBuildChoose(tool) }
+
+// ToolsNoBuildChoose says "There’s no {tool} for this computer to download. Choose one you have, or the plugin stays off."
+// in the language of msgs.
+func (msgs Messages) ToolsNoBuildChoose(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsNoBuildChoose", map[string]any{"tool": tool})
+}
+
+// ToolsSourceLabel says "Where {tool} comes from: {source}"
+// in the language the app shows.
+func ToolsSourceLabel(tool string, source string) string {
+	return In(i18n.Locale()).ToolsSourceLabel(tool, source)
+}
+
+// ToolsSourceLabel says "Where {tool} comes from: {source}"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceLabel(tool string, source string) string {
+	return Catalog.Format(msgs.locale, "toolsSourceLabel", map[string]any{"tool": tool, "source": source})
+}
+
+// ToolsSourceDownload says "Download"
+// in the language the app shows.
+func ToolsSourceDownload() string { return In(i18n.Locale()).ToolsSourceDownload() }
+
+// ToolsSourceDownload says "Download"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceDownload() string {
+	return Catalog.Format(msgs.locale, "toolsSourceDownload", nil)
+}
+
+// ToolsSourceDownloadSize says "Download · {size}"
+// in the language the app shows.
+func ToolsSourceDownloadSize(size string) string {
+	return In(i18n.Locale()).ToolsSourceDownloadSize(size)
+}
+
+// ToolsSourceDownloadSize says "Download · {size}"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceDownloadSize(size string) string {
+	return Catalog.Format(msgs.locale, "toolsSourceDownloadSize", map[string]any{"size": size})
+}
+
+// ToolsSourceInstalled says "Installed · {manager}"
+// in the language the app shows.
+func ToolsSourceInstalled(manager string) string {
+	return In(i18n.Locale()).ToolsSourceInstalled(manager)
+}
+
+// ToolsSourceInstalled says "Installed · {manager}"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceInstalled(manager string) string {
+	return Catalog.Format(msgs.locale, "toolsSourceInstalled", map[string]any{"manager": manager})
+}
+
+// ToolsChooseFile says "Choose file…"
+// in the language the app shows.
+func ToolsChooseFile() string { return In(i18n.Locale()).ToolsChooseFile() }
+
+// ToolsChooseFile says "Choose file…"
+// in the language of msgs.
+func (msgs Messages) ToolsChooseFile() string {
+	return Catalog.Format(msgs.locale, "toolsChooseFile", nil)
+}
+
+// ToolsChooseFileTitle says "Choose {tool}"
+// in the language the app shows.
+func ToolsChooseFileTitle(tool string) string { return In(i18n.Locale()).ToolsChooseFileTitle(tool) }
+
+// ToolsChooseFileTitle says "Choose {tool}"
+// in the language of msgs.
+func (msgs Messages) ToolsChooseFileTitle(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsChooseFileTitle", map[string]any{"tool": tool})
+}
+
+// ToolsDownloadTitle says "Download with Dalibre"
+// in the language the app shows.
+func ToolsDownloadTitle() string { return In(i18n.Locale()).ToolsDownloadTitle() }
+
+// ToolsDownloadTitle says "Download with Dalibre"
+// in the language of msgs.
+func (msgs Messages) ToolsDownloadTitle() string {
+	return Catalog.Format(msgs.locale, "toolsDownloadTitle", nil)
+}
+
+// ToolsDownloadDetail says "From {host}. Only Dalibre uses it, and it goes with the plugin."
+// in the language the app shows.
+func ToolsDownloadDetail(host string) string { return In(i18n.Locale()).ToolsDownloadDetail(host) }
+
+// ToolsDownloadDetail says "From {host}. Only Dalibre uses it, and it goes with the plugin."
+// in the language of msgs.
+func (msgs Messages) ToolsDownloadDetail(host string) string {
+	return Catalog.Format(msgs.locale, "toolsDownloadDetail", map[string]any{"host": host})
+}
+
+// ToolsInstallWith says "Install with {manager}"
+// in the language the app shows.
+func ToolsInstallWith(manager string) string { return In(i18n.Locale()).ToolsInstallWith(manager) }
+
+// ToolsInstallWith says "Install with {manager}"
+// in the language of msgs.
+func (msgs Messages) ToolsInstallWith(manager string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallWith", map[string]any{"manager": manager})
+}
+
+// ToolsInstallWithDetail says "Dalibre runs {command}. You can use it in Terminal too, and it updates with the others."
+// in the language the app shows.
+func ToolsInstallWithDetail(command string) string {
+	return In(i18n.Locale()).ToolsInstallWithDetail(command)
+}
+
+// ToolsInstallWithDetail says "Dalibre runs {command}. You can use it in Terminal too, and it updates with the others."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallWithDetail(command string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallWithDetail", map[string]any{"command": command})
+}
+
+// ToolsInstallWithWingetDetail says "Dalibre runs winget for you, accepting the package’s license. You can use it in Terminal too."
+// in the language the app shows.
+func ToolsInstallWithWingetDetail() string { return In(i18n.Locale()).ToolsInstallWithWingetDetail() }
+
+// ToolsInstallWithWingetDetail says "Dalibre runs winget for you, accepting the package’s license. You can use it in Terminal too."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallWithWingetDetail() string {
+	return Catalog.Format(msgs.locale, "toolsInstallWithWingetDetail", nil)
+}
+
+// ToolsUseInstalled says "Use {manager}’s {tool} {version}"
+// in the language the app shows.
+func ToolsUseInstalled(manager string, tool string, version string) string {
+	return In(i18n.Locale()).ToolsUseInstalled(manager, tool, version)
+}
+
+// ToolsUseInstalled says "Use {manager}’s {tool} {version}"
+// in the language of msgs.
+func (msgs Messages) ToolsUseInstalled(manager string, tool string, version string) string {
+	return Catalog.Format(msgs.locale, "toolsUseInstalled", map[string]any{"manager": manager, "tool": tool, "version": version})
+}
+
+// ToolsUseMine says "Use a {tool} I have…"
+// in the language the app shows.
+func ToolsUseMine(tool string) string { return In(i18n.Locale()).ToolsUseMine(tool) }
+
+// ToolsUseMine says "Use a {tool} I have…"
+// in the language of msgs.
+func (msgs Messages) ToolsUseMine(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsUseMine", map[string]any{"tool": tool})
+}
+
+// ToolsUseMineDetail says "Choose its file. It must be {min} or later."
+// in the language the app shows.
+func ToolsUseMineDetail(min string) string { return In(i18n.Locale()).ToolsUseMineDetail(min) }
+
+// ToolsUseMineDetail says "Choose its file. It must be {min} or later."
+// in the language of msgs.
+func (msgs Messages) ToolsUseMineDetail(min string) string {
+	return Catalog.Format(msgs.locale, "toolsUseMineDetail", map[string]any{"min": min})
+}
+
+// ToolsSandboxNote says "The plugin runs sandboxed. {tools} runs as any app you install does."
+// in the language the app shows.
+func ToolsSandboxNote(tools string) string { return In(i18n.Locale()).ToolsSandboxNote(tools) }
+
+// ToolsSandboxNote says "The plugin runs sandboxed. {tools} runs as any app you install does."
+// in the language of msgs.
+func (msgs Messages) ToolsSandboxNote(tools string) string {
+	return Catalog.Format(msgs.locale, "toolsSandboxNote", map[string]any{"tools": tools})
+}
+
+// ToolsSectionNote says "{tools} runs outside the sandbox. Uninstalling the plugin removes only what Dalibre downloaded."
+// in the language the app shows.
+func ToolsSectionNote(tools string) string { return In(i18n.Locale()).ToolsSectionNote(tools) }
+
+// ToolsSectionNote says "{tools} runs outside the sandbox. Uninstalling the plugin removes only what Dalibre downloaded."
+// in the language of msgs.
+func (msgs Messages) ToolsSectionNote(tools string) string {
+	return Catalog.Format(msgs.locale, "toolsSectionNote", map[string]any{"tools": tools})
+}
+
+// ToolsDownloading says "Downloading from {host} · {progress}"
+// in the language the app shows.
+func ToolsDownloading(host string, progress string) string {
+	return In(i18n.Locale()).ToolsDownloading(host, progress)
+}
+
+// ToolsDownloading says "Downloading from {host} · {progress}"
+// in the language of msgs.
+func (msgs Messages) ToolsDownloading(host string, progress string) string {
+	return Catalog.Format(msgs.locale, "toolsDownloading", map[string]any{"host": host, "progress": progress})
+}
+
+// ToolsRunning says "Running {command} · {elapsed}"
+// in the language the app shows.
+func ToolsRunning(command string, elapsed string) string {
+	return In(i18n.Locale()).ToolsRunning(command, elapsed)
+}
+
+// ToolsRunning says "Running {command} · {elapsed}"
+// in the language of msgs.
+func (msgs Messages) ToolsRunning(command string, elapsed string) string {
+	return Catalog.Format(msgs.locale, "toolsRunning", map[string]any{"command": command, "elapsed": elapsed})
+}
+
+// ToolsFailed says "Couldn’t get it: {error}"
+// in the language the app shows.
+func ToolsFailed(error string) string { return In(i18n.Locale()).ToolsFailed(error) }
+
+// ToolsFailed says "Couldn’t get it: {error}"
+// in the language of msgs.
+func (msgs Messages) ToolsFailed(error string) string {
+	return Catalog.Format(msgs.locale, "toolsFailed", map[string]any{"error": error})
+}
+
+// ToolsFromDownload says "Downloaded by Dalibre · {size}"
+// in the language the app shows.
+func ToolsFromDownload(size string) string { return In(i18n.Locale()).ToolsFromDownload(size) }
+
+// ToolsFromDownload says "Downloaded by Dalibre · {size}"
+// in the language of msgs.
+func (msgs Messages) ToolsFromDownload(size string) string {
+	return Catalog.Format(msgs.locale, "toolsFromDownload", map[string]any{"size": size})
+}
+
+// ToolsFromFile says "Your file · {path}"
+// in the language the app shows.
+func ToolsFromFile(path string) string { return In(i18n.Locale()).ToolsFromFile(path) }
+
+// ToolsFromFile says "Your file · {path}"
+// in the language of msgs.
+func (msgs Messages) ToolsFromFile(path string) string {
+	return Catalog.Format(msgs.locale, "toolsFromFile", map[string]any{"path": path})
+}
+
+// ToolsFromManager says "From {manager} · {path}"
+// in the language the app shows.
+func ToolsFromManager(manager string, path string) string {
+	return In(i18n.Locale()).ToolsFromManager(manager, path)
+}
+
+// ToolsFromManager says "From {manager} · {path}"
+// in the language of msgs.
+func (msgs Messages) ToolsFromManager(manager string, path string) string {
+	return Catalog.Format(msgs.locale, "toolsFromManager", map[string]any{"manager": manager, "path": path})
+}
+
+// ToolsMissing says "Not on this computer yet: {plugin} stays off until it is."
+// in the language the app shows.
+func ToolsMissing(plugin string) string { return In(i18n.Locale()).ToolsMissing(plugin) }
+
+// ToolsMissing says "Not on this computer yet: {plugin} stays off until it is."
+// in the language of msgs.
+func (msgs Messages) ToolsMissing(plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsMissing", map[string]any{"plugin": plugin})
+}
+
+// ToolsWaiting says "Looking for it…"
+// in the language the app shows.
+func ToolsWaiting() string { return In(i18n.Locale()).ToolsWaiting() }
+
+// ToolsWaiting says "Looking for it…"
+// in the language of msgs.
+func (msgs Messages) ToolsWaiting() string {
+	return Catalog.Format(msgs.locale, "toolsWaiting", nil)
+}
+
+// ToolsShowOutput says "Show output"
+// in the language the app shows.
+func ToolsShowOutput() string { return In(i18n.Locale()).ToolsShowOutput() }
+
+// ToolsShowOutput says "Show output"
+// in the language of msgs.
+func (msgs Messages) ToolsShowOutput() string {
+	return Catalog.Format(msgs.locale, "toolsShowOutput", nil)
+}
+
+// ToolsTryAgain says "Try again"
+// in the language the app shows.
+func ToolsTryAgain() string { return In(i18n.Locale()).ToolsTryAgain() }
+
+// ToolsTryAgain says "Try again"
+// in the language of msgs.
+func (msgs Messages) ToolsTryAgain() string {
+	return Catalog.Format(msgs.locale, "toolsTryAgain", nil)
+}
+
+// ToolsGet says "Get it"
+// in the language the app shows.
+func ToolsGet() string { return In(i18n.Locale()).ToolsGet() }
+
+// ToolsGet says "Get it"
+// in the language of msgs.
+func (msgs Messages) ToolsGet() string {
+	return Catalog.Format(msgs.locale, "toolsGet", nil)
+}
+
+// ToolsChange says "Change"
+// in the language the app shows.
+func ToolsChange() string { return In(i18n.Locale()).ToolsChange() }
+
+// ToolsChange says "Change"
+// in the language of msgs.
+func (msgs Messages) ToolsChange() string {
+	return Catalog.Format(msgs.locale, "toolsChange", nil)
+}
+
+// ToolsChangeLabel says "Change where {tool} comes from"
+// in the language the app shows.
+func ToolsChangeLabel(tool string) string { return In(i18n.Locale()).ToolsChangeLabel(tool) }
+
+// ToolsChangeLabel says "Change where {tool} comes from"
+// in the language of msgs.
+func (msgs Messages) ToolsChangeLabel(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsChangeLabel", map[string]any{"tool": tool})
+}
+
+// ToolsInstallingTitle says "Installing “{plugin}”"
+// in the language the app shows.
+func ToolsInstallingTitle(plugin string) string {
+	return In(i18n.Locale()).ToolsInstallingTitle(plugin)
+}
+
+// ToolsInstallingTitle says "Installing “{plugin}”"
+// in the language of msgs.
+func (msgs Messages) ToolsInstallingTitle(plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallingTitle", map[string]any{"plugin": plugin})
+}
+
+// ToolsInstallingBody says "The plugin is installed. It turns on when {tool} is ready."
+// in the language the app shows.
+func ToolsInstallingBody(tool string) string { return In(i18n.Locale()).ToolsInstallingBody(tool) }
+
+// ToolsInstallingBody says "The plugin is installed. It turns on when {tool} is ready."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallingBody(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallingBody", map[string]any{"tool": tool})
+}
+
+// ToolsRunningLabel says "Running"
+// in the language the app shows.
+func ToolsRunningLabel() string { return In(i18n.Locale()).ToolsRunningLabel() }
+
+// ToolsRunningLabel says "Running"
+// in the language of msgs.
+func (msgs Messages) ToolsRunningLabel() string {
+	return Catalog.Format(msgs.locale, "toolsRunningLabel", nil)
+}
+
+// ToolsRunningCommand says "Running {command}…"
+// in the language the app shows.
+func ToolsRunningCommand(command string) string {
+	return In(i18n.Locale()).ToolsRunningCommand(command)
+}
+
+// ToolsRunningCommand says "Running {command}…"
+// in the language of msgs.
+func (msgs Messages) ToolsRunningCommand(command string) string {
+	return Catalog.Format(msgs.locale, "toolsRunningCommand", map[string]any{"command": command})
+}
+
+// ToolsCloseKeepsGoing says "You can close this. It keeps going in the background, and Plugins shows its progress."
+// in the language the app shows.
+func ToolsCloseKeepsGoing() string { return In(i18n.Locale()).ToolsCloseKeepsGoing() }
+
+// ToolsCloseKeepsGoing says "You can close this. It keeps going in the background, and Plugins shows its progress."
+// in the language of msgs.
+func (msgs Messages) ToolsCloseKeepsGoing() string {
+	return Catalog.Format(msgs.locale, "toolsCloseKeepsGoing", nil)
+}
+
+// ToolsInstallFailedTitle says "{manager} couldn’t install {tool}"
+// in the language the app shows.
+func ToolsInstallFailedTitle(manager string, tool string) string {
+	return In(i18n.Locale()).ToolsInstallFailedTitle(manager, tool)
+}
+
+// ToolsInstallFailedTitle says "{manager} couldn’t install {tool}"
+// in the language of msgs.
+func (msgs Messages) ToolsInstallFailedTitle(manager string, tool string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallFailedTitle", map[string]any{"manager": manager, "tool": tool})
+}
+
+// ToolsInstallFailedBody says "{plugin} stays off until it has the tool. Dalibre can download it itself instead."
+// in the language the app shows.
+func ToolsInstallFailedBody(plugin string) string {
+	return In(i18n.Locale()).ToolsInstallFailedBody(plugin)
+}
+
+// ToolsInstallFailedBody says "{plugin} stays off until it has the tool. Dalibre can download it itself instead."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallFailedBody(plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallFailedBody", map[string]any{"plugin": plugin})
+}
+
+// ToolsWhatItSaid says "What {manager} said"
+// in the language the app shows.
+func ToolsWhatItSaid(manager string) string { return In(i18n.Locale()).ToolsWhatItSaid(manager) }
+
+// ToolsWhatItSaid says "What {manager} said"
+// in the language of msgs.
+func (msgs Messages) ToolsWhatItSaid(manager string) string {
+	return Catalog.Format(msgs.locale, "toolsWhatItSaid", map[string]any{"manager": manager})
+}
+
+// ToolsCopyLog says "Copy log"
+// in the language the app shows.
+func ToolsCopyLog() string { return In(i18n.Locale()).ToolsCopyLog() }
+
+// ToolsCopyLog says "Copy log"
+// in the language of msgs.
+func (msgs Messages) ToolsCopyLog() string {
+	return Catalog.Format(msgs.locale, "toolsCopyLog", nil)
+}
+
+// ToolsDownloadInstead says "Download with Dalibre · {size}"
+// in the language the app shows.
+func ToolsDownloadInstead(size string) string { return In(i18n.Locale()).ToolsDownloadInstead(size) }
+
+// ToolsDownloadInstead says "Download with Dalibre · {size}"
+// in the language of msgs.
+func (msgs Messages) ToolsDownloadInstead(size string) string {
+	return Catalog.Format(msgs.locale, "toolsDownloadInstead", map[string]any{"size": size})
+}
+
+// ToolsStop says "Stop"
+// in the language the app shows.
+func ToolsStop() string { return In(i18n.Locale()).ToolsStop() }
+
+// ToolsStop says "Stop"
+// in the language of msgs.
+func (msgs Messages) ToolsStop() string {
+	return Catalog.Format(msgs.locale, "toolsStop", nil)
+}
+
+// ToolsClose says "Close"
+// in the language the app shows.
+func ToolsClose() string { return In(i18n.Locale()).ToolsClose() }
+
+// ToolsClose says "Close"
+// in the language of msgs.
+func (msgs Messages) ToolsClose() string {
+	return Catalog.Format(msgs.locale, "toolsClose", nil)
+}
+
+// ToolsReady says "{tool} is ready: {plugin} is on"
+// in the language the app shows.
+func ToolsReady(tool string, plugin string) string { return In(i18n.Locale()).ToolsReady(tool, plugin) }
+
+// ToolsReady says "{tool} is ready: {plugin} is on"
+// in the language of msgs.
+func (msgs Messages) ToolsReady(tool string, plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsReady", map[string]any{"tool": tool, "plugin": plugin})
+}
+
+// ToolsFileGone says "{path} isn’t there any more"
+// in the language the app shows.
+func ToolsFileGone(path string) string { return In(i18n.Locale()).ToolsFileGone(path) }
+
+// ToolsFileGone says "{path} isn’t there any more"
+// in the language of msgs.
+func (msgs Messages) ToolsFileGone(path string) string {
+	return Catalog.Format(msgs.locale, "toolsFileGone", map[string]any{"path": path})
+}
+
+// ToolsNoBuild says "There’s no {tool} for this computer to download"
+// in the language the app shows.
+func ToolsNoBuild(tool string) string { return In(i18n.Locale()).ToolsNoBuild(tool) }
+
+// ToolsNoBuild says "There’s no {tool} for this computer to download"
+// in the language of msgs.
+func (msgs Messages) ToolsNoBuild(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsNoBuild", map[string]any{"tool": tool})
+}
+
+// ToolsInstalledNotFound says "{manager} finished, but Dalibre can’t find {tool} {min} or later from it"
+// in the language the app shows.
+func ToolsInstalledNotFound(manager string, tool string, min string) string {
+	return In(i18n.Locale()).ToolsInstalledNotFound(manager, tool, min)
+}
+
+// ToolsInstalledNotFound says "{manager} finished, but Dalibre can’t find {tool} {min} or later from it"
+// in the language of msgs.
+func (msgs Messages) ToolsInstalledNotFound(manager string, tool string, min string) string {
+	return Catalog.Format(msgs.locale, "toolsInstalledNotFound", map[string]any{"manager": manager, "tool": tool, "min": min})
+}
+
+// ToolsStatusGetting says "Getting {tool}…"
+// in the language the app shows.
+func ToolsStatusGetting(tool string) string { return In(i18n.Locale()).ToolsStatusGetting(tool) }
+
+// ToolsStatusGetting says "Getting {tool}…"
+// in the language of msgs.
+func (msgs Messages) ToolsStatusGetting(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsStatusGetting", map[string]any{"tool": tool})
+}
+
+// ToolsStatusNeeds says "Needs {tools}"
+// in the language the app shows.
+func ToolsStatusNeeds(tools string) string { return In(i18n.Locale()).ToolsStatusNeeds(tools) }
+
+// ToolsStatusNeeds says "Needs {tools}"
+// in the language of msgs.
+func (msgs Messages) ToolsStatusNeeds(tools string) string {
+	return Catalog.Format(msgs.locale, "toolsStatusNeeds", map[string]any{"tools": tools})
+}
+
+// GithubInstallBody says "Install from a release or a branch. Read what it does before you install it."
+// in the language the app shows.
+func GithubInstallBody() string { return In(i18n.Locale()).GithubInstallBody() }
+
+// GithubInstallBody says "Install from a release or a branch. Read what it does before you install it."
+// in the language of msgs.
+func (msgs Messages) GithubInstallBody() string {
+	return Catalog.Format(msgs.locale, "githubInstallBody", nil)
+}
+
+// GithubNoReadme says "This repository has no README."
+// in the language the app shows.
+func GithubNoReadme() string { return In(i18n.Locale()).GithubNoReadme() }
+
+// GithubNoReadme says "This repository has no README."
+// in the language of msgs.
+func (msgs Messages) GithubNoReadme() string {
+	return Catalog.Format(msgs.locale, "githubNoReadme", nil)
+}
+
+// GithubNotAPlugin says "No plugin chosen yet."
+// in the language the app shows.
+func GithubNotAPlugin() string { return In(i18n.Locale()).GithubNotAPlugin() }
+
+// GithubNotAPlugin says "No plugin chosen yet."
+// in the language of msgs.
+func (msgs Messages) GithubNotAPlugin() string {
+	return Catalog.Format(msgs.locale, "githubNotAPlugin", nil)
+}

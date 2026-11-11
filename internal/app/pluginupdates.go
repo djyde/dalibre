@@ -51,6 +51,9 @@ type ghInstall struct {
 	ref       string // the tag, or the commit
 	detail    string // "released 3 days ago · test-1.1.0.dalibre-plugin"
 	keep      bool   // keep it up to date
+	// readme is the repository's README at what is chosen.
+	readme        string
+	readmeLoading bool
 }
 
 func (a *App) gh() *plugin.GitHub {
@@ -166,6 +169,10 @@ func (a *App) ghChoose(tag, branch string) {
 		if err == nil {
 			m, err = plugin.Inspect(archive)
 		}
+		readme := ""
+		if err == nil {
+			readme, _ = gh.Readme(ctx, repo, ref) // a missing README is no failure
+		}
 		a.post(func() {
 			if a.ghi.repo != repo || a.ghi.tag != tag || a.ghi.branch != branch || !a.ghi.preparing {
 				if archive != "" {
@@ -181,7 +188,7 @@ func (a *App) ghChoose(tag, branch string) {
 				g.err = locales.PluginsNotAPlugin(err.Error())
 				return
 			}
-			g.archive, g.manifest, g.ref, g.detail = archive, m, ref, detail
+			g.archive, g.manifest, g.ref, g.detail, g.readme = archive, m, ref, detail, readme
 		})
 	})
 }
@@ -195,7 +202,10 @@ func (a *App) ghInstallChosen() {
 	}
 	m := g.manifest
 	st := a.settings.Plugin(m.ID)
-	st.Granted = &settings.Grant{Hosts: slices.Clone(m.Permissions.Hosts), LocalNetwork: m.Permissions.LocalNetwork, Library: m.Permissions.Library}
+	st.Granted = grantFor(m)
+	if len(m.Tools) > 0 {
+		a.getPickedTools(m)
+	}
 	src := &settings.PluginSource{Repo: g.repo.String(), Branch: g.branch, Ref: g.ref, Auto: g.keep}
 	archive := g.archive
 	g.archive = "" // finishInstall removes it

@@ -45,6 +45,9 @@ const usage = `dalibre-plugin is for writing Dalibre plugins.
   dalibre-plugin run <dir> <action> [file…] [--library DIR [--book ID…]] [--answer key=value] [-o DIR] [--json]
                                                       run an action: on the files, as books, or on a
                                                       calibre library's books
+  dalibre-plugin tool add <dir> <brew:owner/tap/name | gh:owner/repo@tag> [--id ID] [--bin NAME]
+                    [--brew F] [--winget ID] [--scoop B/N] [--min V]
+                                                      declare a program the plugin runs (tools)
   dalibre-plugin pack <dir> [-o DIR]                  make <id>-<version>.dalibre-plugin
   dalibre-plugin install <package> [--yes]            install into Dalibre's plugins folder
   dalibre-plugin uninstall <id>
@@ -53,6 +56,10 @@ const usage = `dalibre-plugin is for writing Dalibre plugins.
 
   dalibre-plugin docs [topic…] [--all]                the plugin API's guide: its topics, or one
   dalibre-plugin types [Name…] [--all]                the API's types, from dalibre.d.ts
+
+search, list, get, download, identify, process and run take --tool id=path to run
+a tool from a file; otherwise a package manager's install, or the build, downloaded
+once into the cache.
 
 search, list, get, download, identify and process take --set key=value for the
 plugin's settings (a file setting takes a file's path, copied into the plugin's
@@ -88,7 +95,7 @@ func main() {
 	cmds := map[string]func(context.Context, []string) error{
 		"init": cmdInit, "check": cmdCheck, "dev": cmdDev, "docs": cmdDocs, "types": cmdTypes, "search": cmdSearch, "download": cmdDownload,
 		"collections": cmdCollections, "list": cmdListCollection, "get": cmdGet, "identify": cmdIdentify, "process": cmdProcess, "run": cmdRun,
-		"pack": cmdPack, "install": cmdInstall, "uninstall": cmdUninstall, "installed": cmdList,
+		"pack": cmdPack, "tool": cmdTool, "install": cmdInstall, "uninstall": cmdUninstall, "installed": cmdList,
 	}
 	cmd, ok := cmds[os.Args[1]]
 	if !ok {
@@ -136,6 +143,9 @@ func parse(fs *flag.FlagSet, args []string, want ...string) []string {
 }
 
 type setFlags map[string]string
+
+// toolFlag is --tool id=path, for every command that runs a plugin.
+var toolFlag = setFlags{}
 
 func (s setFlags) String() string { return "" }
 func (s setFlags) Set(v string) error {
@@ -187,7 +197,11 @@ func load(dir string, set setFlags) (*plugin.Plugin, error) {
 		}
 		values[k] = v
 	}
-	return plugin.Load(dir, plugin.Options{Settings: values, DataDir: own, Logf: func(f string, a ...any) {
+	tools, err := toolPaths(context.Background(), m, toolFlag)
+	if err != nil {
+		return nil, err
+	}
+	return plugin.Load(dir, plugin.Options{Settings: values, DataDir: own, Tools: tools, Logf: func(f string, a ...any) {
 		fmt.Fprintf(os.Stderr, f+"\n", a...)
 	}})
 }
@@ -213,7 +227,7 @@ func cmdInit(_ context.Context, args []string) error {
 	return nil
 }
 
-func cmdCheck(_ context.Context, args []string) error {
+func cmdCheck(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("check", flag.ExitOnError)
 	dir := parse(fs, args, "dir")[0]
 	p, err := plugin.Load(dir, plugin.Options{DataDir: filepath.Join(dir, ".data"), Logf: func(string, ...any) {}})
@@ -245,6 +259,12 @@ func cmdCheck(_ context.Context, args []string) error {
 	for _, d := range m.Asks() {
 		fmt.Println("  " + d)
 	}
+	for _, id := range m.ToolIDs() {
+		fmt.Printf("  Run %s %s on this computer (not sandboxed)\n", id, m.Tools[id].Version)
+	}
+	if err := checkTools(ctx, m); err != nil {
+		return err
+	}
 	if m.Description == "" {
 		fmt.Println("warning: no description; users see it before installing")
 	}
@@ -265,6 +285,7 @@ func cmdSearch(ctx context.Context, args []string) error {
 	asJSON := fs.Bool("json", false, "print the results as JSON")
 	set, filters := setFlags{}, setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	fs.Var(filters, "filter", "a filter's value, as key=value (repeatable)")
 	pos := parse(fs, args, "dir", "text")
 	p, err := load(pos[0], set)
@@ -305,6 +326,7 @@ func cmdCollections(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("collections", flag.ExitOnError)
 	set := setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	p, err := load(parse(fs, args, "dir")[0], set)
 	if err != nil {
 		return err
@@ -329,6 +351,7 @@ func cmdListCollection(ctx context.Context, args []string) error {
 	asJSON := fs.Bool("json", false, "print the results as JSON")
 	set, filters := setFlags{}, setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	fs.Var(filters, "filter", "a filter's value, as key=value (repeatable)")
 	pos := parse(fs, args, "dir", "collection")
 	p, err := load(pos[0], set)
@@ -357,6 +380,7 @@ func cmdGet(ctx context.Context, args []string) error {
 	asJSON := fs.Bool("json", false, "print the result as JSON")
 	set, filters := setFlags{}, setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	fs.Var(filters, "filter", "a filter's value, as key=value (repeatable)")
 	pos := parse(fs, args, "dir", "text")
 	p, err := load(pos[0], set)
@@ -405,6 +429,7 @@ func cmdIdentify(ctx context.Context, args []string) error {
 	asJSON := fs.Bool("json", false, "print the candidates as JSON")
 	set := setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	var pos []string
 	for rest := args; ; {
 		if err := fs.Parse(rest); err != nil {
@@ -532,6 +557,7 @@ func cmdProcess(ctx context.Context, args []string) error {
 	out := fs.String("o", ".", "the folder to save the new file in")
 	set := setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	pos := parse(fs, args, "dir", "file")
 	p, err := load(pos[0], set)
 	if err != nil {
@@ -595,6 +621,7 @@ func cmdRun(ctx context.Context, args []string) error {
 	fs.Var(&bookIDs, "book", "with --library, a book to run on, by its id (repeatable)")
 	set, answer := setFlags{}, setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	fs.Var(answer, "answer", "an answer to a form's field, as key=value: true, a text, or a JSON list (repeatable)")
 	var pos []string
 	for rest := args; ; {
@@ -799,6 +826,7 @@ func cmdDownload(ctx context.Context, args []string) error {
 	out := fs.String("o", ".", "the folder to save in")
 	set := setFlags{}
 	fs.Var(set, "set", "a setting, as key=value (repeatable)")
+	fs.Var(toolFlag, "tool", "run tool id from a file, as id=path (repeatable)")
 	pos := parse(fs, args, "dir", "text")
 	p, err := load(pos[0], set)
 	if err != nil {

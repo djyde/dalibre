@@ -32,6 +32,9 @@ type Settings struct {
 	GetBooksSource string `json:"getBooksSource,omitempty"`
 	// Plugins are what the user decided about each plugin, by id.
 	Plugins map[string]*PluginState `json:"plugins,omitempty"`
+	// ToolSource is where the user last chose to get a plugin's tool from
+	// ("download", "brew", …): the choice offered first next time.
+	ToolSource string `json:"toolSource,omitempty"`
 	// UpdatesChecked is when plugins installed from GitHub were last
 	// checked for updates.
 	UpdatesChecked time.Time `json:"updatesChecked,omitzero"`
@@ -170,6 +173,18 @@ type PluginState struct {
 	// as the folder is, instead of from a copy in the plugins folder, and
 	// reloads when the folder's files change. "" for an installed plugin.
 	Path string `json:"path,omitempty"`
+	// Tools are where each of the plugin's tools comes from, by tool id;
+	// a tool missing here was never chosen.
+	Tools map[string]*ToolChoice `json:"tools,omitempty"`
+}
+
+// ToolChoice is where a plugin's tool comes from: Source is "download"
+// (Dalibre's own download of the pinned build), a package manager
+// ("brew", "winget", "scoop"), or "file", with Path the file the user
+// chose.
+type ToolChoice struct {
+	Source string `json:"source"`
+	Path   string `json:"path,omitempty"`
 }
 
 // PluginSource is the GitHub repository a plugin came from, and what of
@@ -193,6 +208,9 @@ type Grant struct {
 	Hosts        []string `json:"hosts"`
 	LocalNetwork bool     `json:"localNetwork,omitempty"`
 	Library      string   `json:"library,omitempty"`
+	// Tools are the tools the user let it run, as plugin.Tool.Identity
+	// names them, by id: a version and a build.
+	Tools map[string]string `json:"tools,omitempty"`
 }
 
 // Plugin returns the state of plugin id, creating it.
