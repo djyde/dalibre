@@ -201,7 +201,9 @@ func TestBookEditorServesEdits(t *testing.T) {
 	if !strings.Contains(body, "universally acknowledged") || !strings.Contains(body, ":where(body)") {
 		t.Fatalf("page = %s", body)
 	}
-	if csp := w.Header().Get("Content-Security-Policy"); !strings.Contains(csp, "script-src 'none'") {
+	// 'self' lets the book's images, styles and fonts load where WebView2
+	// serves the scheme from http://<token>.dalibre-book.localhost/.
+	if csp := w.Header().Get("Content-Security-Policy"); !strings.Contains(csp, "script-src 'none'") || !strings.Contains(csp, "img-src 'self'") || !strings.Contains(csp, "style-src 'self'") || !strings.Contains(csp, "font-src 'self'") {
 		t.Errorf("CSP = %q", csp)
 	}
 	if ct := w.Header().Get("Content-Type"); !strings.HasPrefix(ct, "application/xhtml+xml") {

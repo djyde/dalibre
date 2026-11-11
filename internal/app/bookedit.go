@@ -121,7 +121,10 @@ const bookCSS = `<style>
 :where(img,svg,video){max-width:100%;height:auto}
 </style>`
 
-const bookCSP = "default-src " + bookScheme + ": data:; script-src 'none'; object-src 'none'; style-src " + bookScheme + ": 'unsafe-inline'; img-src " + bookScheme + ": data:; font-src " + bookScheme + ": data:"
+// bookCSP lets a page load only its own book. 'self' is needed beside the
+// scheme: WebView2 serves dalibre-book://<token>/ from
+// http://<token>.dalibre-book.localhost/, which the scheme alone doesn't match.
+const bookCSP = "default-src 'self' " + bookScheme + ": data:; script-src 'none'; object-src 'none'; style-src 'self' " + bookScheme + ": 'unsafe-inline'; img-src 'self' " + bookScheme + ": data:; font-src 'self' " + bookScheme + ": data:"
 
 func serveBookFile(w http.ResponseWriter, r *http.Request) {
 	bookPages.Lock()
