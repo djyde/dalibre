@@ -154,15 +154,24 @@ func sanitizeFileName(name string) string {
 	return one
 }
 
-// asciiFilename transliterates to ASCII (三体 → "San Ti") and makes the
-// result safe on every filesystem, like calibre's ascii_filename.
-func asciiFilename(s string) string {
-	a := strings.ReplaceAll(unidecode.Unidecode(s), "?", "_")
-	return sanitizeFileName(strings.Join(strings.Fields(a), " "))
+// filenamePart makes s safe as part of a file or folder name on every
+// filesystem. With FileNamesOriginal it keeps every script as written:
+// 三体 stays 三体, as calibre's NoTrans plugin does, and calibre reads such
+// paths fine. With FileNamesASCII it transliterates like calibre's
+// ascii_filename: 三体 → "San Ti".
+func filenamePart(s string, mode FileNames) string {
+	if mode == FileNamesASCII {
+		s = strings.ReplaceAll(unidecode.Unidecode(s), "?", "_")
+	}
+	return sanitizeFileName(strings.Join(strings.Fields(s), " "))
 }
 
 var windowsReserved = wordSet("CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
 	"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9")
+
+// maxNameBytes keeps every folder and file name under the 255 bytes most
+// filesystems allow, with room to spare.
+const maxNameBytes = 240
 
 func pathLimit() int {
 	if runtime.GOOS == "windows" {
@@ -171,20 +180,41 @@ func pathLimit() int {
 	return 100
 }
 
-func truncate(s string, n int) string {
-	if len(s) <= n {
-		return s
+// truncate cuts s to at most n characters, as calibre counts its path
+// limits, and to at most maxBytes bytes of UTF-8, since most filesystems
+// cap a name at 255 bytes and a CJK character takes three. It never cuts a
+// character in half.
+func truncate(s string, n, maxBytes int) string {
+	count := 0
+	for i := 0; i < len(s); {
+		_, size := utf8.DecodeRuneInString(s[i:])
+		if count == n || i+size > maxBytes {
+			return s[:i]
+		}
+		count++
+		i += size
 	}
-	return s[:n] // ASCII after asciiFilename, so byte slicing is safe
+	return s
 }
 
 // BookPath is the folder of a book relative to the library root:
-// "Author/Title (id)", always with forward slashes as calibre stores it.
+// "Author/Title (id)", always with forward slashes as calibre stores it,
+// with names as written.
 func BookPath(id int64, title, author string) string {
+	return bookPath(id, title, author, FileNamesOriginal)
+}
+
+// BookFileName is the base name, without extension, of a book's files:
+// "Title - Author", with names as written.
+func BookFileName(title, author string) string {
+	return bookFileName(title, author, FileNamesOriginal)
+}
+
+func bookPath(id int64, title, author string, mode FileNames) string {
 	idPart := fmt.Sprintf(" (%d)", id)
 	l := pathLimit() - len(idPart)/2 - 2
-	a := truncate(asciiFilename(author), l)
-	t := strings.TrimRight(truncate(asciiFilename(strings.TrimLeft(title, " ")), l), " ")
+	a := truncate(filenamePart(author, mode), l, maxNameBytes)
+	t := strings.TrimRight(truncate(filenamePart(strings.TrimLeft(title, " "), mode), l, maxNameBytes-len(idPart)), " ")
 	if t == "" {
 		t = "Unknown"
 	}
@@ -198,9 +228,7 @@ func BookPath(id int64, title, author string) string {
 	return a + "/" + t + idPart
 }
 
-// BookFileName is the base name, without extension, of a book's files:
-// "Title - Author".
-func BookFileName(title, author string) string {
+func bookFileName(title, author string, mode FileNames) string {
 	const extlen = 14
 	var l int
 	if runtime.GOOS == "windows" {
@@ -208,8 +236,10 @@ func BookFileName(title, author string) string {
 	} else {
 		l = (pathLimit() - extlen - 2) / 2
 	}
-	a := truncate(asciiFilename(author), l)
-	t := strings.TrimRight(truncate(asciiFilename(strings.TrimLeft(title, " ")), l), " ")
+	// Title, " - ", author and the extension share one name's bytes.
+	const partBytes = (maxNameBytes - 3 - extlen) / 2
+	a := truncate(filenamePart(author, mode), l, partBytes)
+	t := strings.TrimRight(truncate(filenamePart(strings.TrimLeft(title, " "), mode), l, partBytes), " ")
 	if t == "" {
 		t = "Unknown"
 	}

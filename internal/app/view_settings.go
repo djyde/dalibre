@@ -13,6 +13,7 @@ import (
 	"dalibre/internal/app/icons"
 	"dalibre/internal/app/theme"
 	"dalibre/internal/app/widgets"
+	"dalibre/internal/calibre"
 	"dalibre/internal/plugin"
 	"dalibre/internal/settings"
 )
@@ -215,6 +216,139 @@ func (a *App) libraryPane(c *ui.Context) {
 			if widgets.Button(c, widgets.Secondary, icons.Folder, locales.SettingsOpenAnotherLibrary()).Clicked() {
 				a.chooseLibrary()
 			}
+		})
+		if a.lib != nil {
+			a.fileNamesGroup(c)
+		}
+	})
+}
+
+// fileNamesState is Settings › Library's check of the books' folder and
+// file names, and the renaming of those that don't match.
+type fileNamesState struct {
+	lib      *calibre.Library // the library checked
+	version  int              // a.version when checked
+	checking bool
+	err      error
+	ids      []int64 // the misnamed books
+	renaming bool
+	done     int
+}
+
+// fileNamesGroup finds the books whose names calibre transliterated
+// (Liu Ci Xin/San Ti for 刘慈欣's 三体) and renames them on request.
+func (a *App) fileNamesGroup(c *ui.Context) {
+	fn := &a.fileNames
+	if !fn.checking && !fn.renaming && (fn.lib != a.lib || fn.version != a.version) {
+		a.checkFileNames()
+	}
+	ui.Column(c).Gap(theme.Space10).AlignItems(ui.Stretch).Children(func() {
+		ui.Row(c).Gap(theme.Space16).AlignItems(ui.Start).Children(func() {
+			heading(c, locales.SettingsFileNamesTitle(), locales.SettingsFileNamesBody())
+			a.fileNamesSelect(c)
+		})
+		ui.Row(c).Padding(theme.Space6, theme.Space6, theme.Space6, theme.Space12).Gap(theme.Space10).Radius(theme.RadiusMD).Background(pal().Subtle).AlignItems(ui.Center).Children(func() {
+			switch {
+			case fn.renaming:
+				ui.Spinner(c).Size(14, 14).Label(locales.SettingsFileNamesRenaming(fn.done, len(fn.ids)))
+				ui.Text(c, locales.SettingsFileNamesRenaming(fn.done, len(fn.ids))).FontSize(12).TextColor(pal().TextSecondary).Grow(1)
+			case fn.checking:
+				ui.Spinner(c).Size(14, 14).Label(locales.SettingsFileNamesChecking())
+				ui.Text(c, locales.SettingsFileNamesChecking()).FontSize(12).TextColor(pal().TextSecondary).Grow(1)
+			case fn.err != nil:
+				ui.Icon(c, icons.Alert).FontSize(16).TextColor(pal().Danger.FG)
+				ui.Text(c, fn.err.Error()).FontSize(12).TextColor(pal().Danger.FG).Grow(1)
+			case len(fn.ids) == 0:
+				ui.Icon(c, icons.CheckCircle).FontSize(16).TextColor(pal().Success.FG)
+				ui.Text(c, locales.SettingsFileNamesAllMatch()).FontSize(12).TextColor(pal().TextSecondary).Grow(1)
+			default:
+				ui.Icon(c, icons.Alert).FontSize(16).TextColor(pal().Icon)
+				ui.Column(c).Grow(1).MinWidth(0).Gap(theme.Space2).Children(func() {
+					ui.Text(c, locales.SettingsFileNamesMismatch(len(fn.ids))).FontSize(12).FontWeight(500)
+					if a.lib.Format().FileNames == calibre.FileNamesOriginal {
+						ui.Text(c, locales.SettingsFileNamesCalibreNote()).FontSize(12).TextColor(pal().TextTertiary)
+					}
+				})
+				if widgets.ButtonSized(c, widgets.Secondary, nil, locales.SettingsFileNamesRename(), theme.ControlS).Clicked() {
+					a.renameBooks()
+				}
+			}
+		})
+	})
+}
+
+// fileNamesSelect picks how the library names book folders and files,
+// which is saved in the library itself.
+func (a *App) fileNamesSelect(c *ui.Context) {
+	values := []calibre.FileNames{calibre.FileNamesOriginal, calibre.FileNamesASCII}
+	names := []string{locales.SettingsFileNamesOriginal(), locales.SettingsFileNamesASCII()}
+	mode := a.lib.Format().FileNames
+	cur := names[0]
+	for i, v := range values {
+		if v == mode {
+			cur = names[i]
+		}
+	}
+	if !ui.Select(c, &cur, names).Width(240).Label(locales.SettingsFileNamesTitle()).Changed() {
+		return
+	}
+	for i, n := range names {
+		if n == cur && values[i] != mode {
+			lib, v := a.lib, values[i]
+			a.run(func() {
+				err := lib.SetFileNames(v)
+				a.post(func() {
+					if err != nil {
+						a.toastError(err)
+					}
+					a.fileNames.lib = nil // check again
+				})
+			})
+		}
+	}
+}
+
+// checkFileNames lists the books whose names don't match, in the
+// background.
+func (a *App) checkFileNames() {
+	fn, lib, version := &a.fileNames, a.lib, a.version
+	fn.lib, fn.version, fn.checking = lib, version, true
+	a.run(func() {
+		books, err := lib.MisnamedBooks()
+		a.post(func() {
+			fn.checking = false
+			if fn.lib != lib || fn.version != version {
+				return // the library changed meanwhile; the next frame checks again
+			}
+			fn.err, fn.ids = err, nil
+			for _, b := range books {
+				fn.ids = append(fn.ids, b.ID)
+			}
+		})
+	})
+}
+
+// renameBooks gives the misnamed books the names their titles and authors
+// give, then reads the library again.
+func (a *App) renameBooks() {
+	fn, lib := &a.fileNames, a.lib
+	ids := fn.ids
+	fn.renaming, fn.done = true, 0
+	a.run(func() {
+		n, err := lib.RenameBooks(ids, func(done int) {
+			a.post(func() { fn.done = done })
+		})
+		a.post(func() {
+			fn.renaming = false
+			fn.lib = nil // check again
+			a.reload(func() {
+				if err != nil {
+					a.toastError(err)
+				}
+				if n > 0 {
+					a.toast("%s", locales.AppToastRenamedBooks(n))
+				}
+			})
 		})
 	})
 }

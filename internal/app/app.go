@@ -84,7 +84,9 @@ type App struct {
 	fetch      fetchState // the Edit metadata dialog's Fetch metadata step
 	deleteOpen bool
 	deleteIDs  []int64
-	jobsOpen   bool
+	// fileNames is Settings › Library's check of the books' file names.
+	fileNames fileNamesState
+	jobsOpen  bool
 	// sharingOpen shows the Sharing popover, agentsOpen the AI agents one.
 	sharingOpen, agentsOpen bool
 	// agentsCall is the call whose arguments the AI agents popover shows.
