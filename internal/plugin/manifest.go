@@ -140,7 +140,15 @@ type Permissions struct {
 	// type plugin's hooks need; LibraryWrite also lets its hooks change
 	// those details, without asking each time.
 	Library string `json:"library,omitempty"`
+	// Covers, when CoversAny, lets the books' covers the plugin returns
+	// come from any https host, not only Hosts: for a source whose covers
+	// are on mirrors and CDNs that can't be listed. Dalibre fetches them
+	// itself, without the plugin's credentials, and takes only images.
+	CoverHosts string `json:"covers,omitempty"`
 }
+
+// CoversAny is permissions.covers for covers from any https host.
+const CoversAny = "any"
 
 // Library access a plugin may ask for.
 const (
@@ -581,6 +589,9 @@ func (m *Manifest) check() error {
 	if len(m.Hooks()) > 0 && !m.Permissions.CanRead() {
 		return errors.New(`a file type plugin's hooks see the books they run for: they need permissions.library "read" (or "write" to change them)`)
 	}
+	if c := m.Permissions.CoverHosts; c != "" && c != CoversAny {
+		return fmt.Errorf(`permissions.covers %q must be "any" (or left out)`, c)
+	}
 	if l := m.Permissions.Library; l != "" && l != LibraryRead && l != LibraryWrite {
 		return fmt.Errorf(`permissions.library %q must be "read" or "write" (or left out)`, l)
 	}
@@ -746,6 +757,9 @@ func (p Permissions) Covers(want Permissions) bool {
 	if want.LocalNetwork && !p.LocalNetwork {
 		return false
 	}
+	if want.CoverHosts == CoversAny && p.CoverHosts != CoversAny {
+		return false
+	}
 	switch want.Library {
 	case LibraryRead:
 		if !p.CanRead() {
@@ -776,6 +790,9 @@ func (p Permissions) Describe() []string {
 	}
 	if p.LocalNetwork {
 		out = append(out, "Connect to this computer and your local network")
+	}
+	if p.CoverHosts == CoversAny {
+		out = append(out, "Load book covers from any website")
 	}
 	switch p.Library {
 	case LibraryRead:

@@ -1067,5 +1067,7 @@
   "toolsStatusNeeds": "Braucht {tools}",
   "githubInstallBody": "Aus einem Release oder Branch installieren. Lesen Sie vor der Installation, was es tut.",
   "githubNoReadme": "Dieses Repository hat keine README.",
-  "githubNotAPlugin": "Noch kein Plugin gewählt."
+  "githubNotAPlugin": "Noch kein Plugin gewählt.",
+  "pluginsCoversAny": "Buchcover von jeder Website laden",
+  "pluginsCoversAnyDetail": "Nur Bilder, ohne Ihr Konto oder das des Plugins; nie von Ihrem Computer oder Netzwerk."
 }

@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -241,5 +242,54 @@ func TestResolvePath(t *testing.T) {
 	}
 	if data, _ := os.ReadFile(file); string(data) != "made\n" || filepath.Dir(file) != out || filepath.Ext(file) != ".epub" {
 		t.Errorf("file %s: %q", file, data)
+	}
+}
+
+// With permissions.covers "any", covers come from any https host, as
+// images only and without the plugin's credentials; without it, only
+// from its hosts.
+func TestCoversAny(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("cdn.mirror.example/c.jpg", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "" {
+			t.Error("sent the plugin's credentials to another host")
+		}
+		w.Header().Set("Content-Type", "image/jpeg")
+		w.Write([]byte("jpeg"))
+	})
+	mux.HandleFunc("cdn.mirror.example/page", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte("<html>"))
+	})
+	load := func(covers string) *Plugin {
+		m := `{"id":"src","name":"Src","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["books.example"]` + covers + `}}`
+		p, err := Load(write(t, m, `export async function search() { return { items: [] }; }`), Options{
+			Transport: serve{mux}, Logf: t.Logf, Authorize: func(r *http.Request) { r.Header.Set("Authorization", "secret") }})
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(p.Close)
+		return p
+	}
+	ctx := context.Background()
+	if _, err := load("").Cover(ctx, Result{Cover: "https://cdn.mirror.example/c.jpg"}); !errors.Is(err, ErrHostNotAllowed) {
+		t.Errorf("without covers: %v", err)
+	}
+	p := load(`,"covers":"any"`)
+	if data, err := p.Cover(ctx, Result{Cover: "https://cdn.mirror.example/c.jpg"}); err != nil || string(data) != "jpeg" {
+		t.Errorf("any: %q %v", data, err)
+	}
+	if _, err := p.Cover(ctx, Result{Cover: "http://cdn.mirror.example/c.jpg"}); err == nil {
+		t.Error("took a cover over http from another host")
+	}
+	if _, err := p.Cover(ctx, Result{Cover: "https://cdn.mirror.example/page"}); err == nil {
+		t.Error("took a web page as a cover")
+	}
+	granted := Permissions{Hosts: []string{"books.example"}}
+	if granted.Covers(p.Manifest.Permissions) {
+		t.Error("covers from anywhere is a new permission")
+	}
+	if _, err := ParseManifest([]byte(`{"id":"x","name":"X","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["e.com"],"covers":"all"}}`)); err == nil {
+		t.Error("accepted covers \"all\"")
 	}
 }

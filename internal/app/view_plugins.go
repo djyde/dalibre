@@ -398,6 +398,7 @@ func (a *App) pluginPane(c *ui.Context, k knownPlugin) {
 		for _, h := range m.Permissions.Hosts {
 			permissionItem(c.Key(h), icons.Globe, h, "", false)
 		}
+		coversPermission(c, m, nil)
 		if m.Permissions.LocalNetwork {
 			permissionItem(c, icons.Network, locales.PluginsLocalNetwork(), locales.PluginsLocalNetworkDetail(), true)
 		}
@@ -685,7 +686,7 @@ func (a *App) consentDialog(c *ui.Context) {
 	// For an update, only what is new is asked.
 	var had *plugin.Permissions
 	if st := a.settings.Plugins[m.ID]; st != nil && st.Granted != nil {
-		had = &plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library}
+		had = &plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, CoverHosts: st.Granted.Covers}
 	}
 	title := locales.PluginsConsentInstallTitle(m.Name)
 	if had != nil {
@@ -728,6 +729,7 @@ func (a *App) consentDialog(c *ui.Context) {
 				}
 				permissionItem(c.Key(h), icons.Globe, locales.PluginsConsentConnect(h), "", false)
 			}
+			coversPermission(c, m, had)
 			if m.Permissions.LocalNetwork && (had == nil || !had.LocalNetwork) {
 				permissionItem(c, icons.Network, locales.PluginsConsentLocal(),
 					locales.PluginsConsentLocalDetail(), true)

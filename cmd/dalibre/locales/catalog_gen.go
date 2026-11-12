@@ -8224,3 +8224,23 @@ func GithubNotAPlugin() string { return In(i18n.Locale()).GithubNotAPlugin() }
 func (msgs Messages) GithubNotAPlugin() string {
 	return Catalog.Format(msgs.locale, "githubNotAPlugin", nil)
 }
+
+// PluginsCoversAny says "Load book covers from any website"
+// in the language the app shows.
+func PluginsCoversAny() string { return In(i18n.Locale()).PluginsCoversAny() }
+
+// PluginsCoversAny says "Load book covers from any website"
+// in the language of msgs.
+func (msgs Messages) PluginsCoversAny() string {
+	return Catalog.Format(msgs.locale, "pluginsCoversAny", nil)
+}
+
+// PluginsCoversAnyDetail says "Only images, without your account or the plugin’s; never from your computer or network."
+// in the language the app shows.
+func PluginsCoversAnyDetail() string { return In(i18n.Locale()).PluginsCoversAnyDetail() }
+
+// PluginsCoversAnyDetail says "Only images, without your account or the plugin’s; never from your computer or network."
+// in the language of msgs.
+func (msgs Messages) PluginsCoversAnyDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsCoversAnyDetail", nil)
+}

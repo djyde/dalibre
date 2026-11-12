@@ -1067,5 +1067,7 @@
   "toolsStatusNeeds": "{tools} 필요",
   "githubInstallBody": "릴리스나 브랜치에서 설치합니다. 설치하기 전에 무엇을 하는지 읽어 보세요.",
   "githubNoReadme": "이 저장소에는 README가 없습니다.",
-  "githubNotAPlugin": "아직 선택한 플러그인이 없습니다."
+  "githubNotAPlugin": "아직 선택한 플러그인이 없습니다.",
+  "pluginsCoversAny": "모든 웹사이트에서 책 표지 불러오기",
+  "pluginsCoversAnyDetail": "이미지만 불러오며 내 계정이나 플러그인의 자격 증명은 쓰지 않고, 내 컴퓨터나 네트워크에는 접속하지 않습니다."
 }

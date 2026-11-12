@@ -1097,5 +1097,7 @@
   "toolsStatusNeeds": "Needs {tools}",
   "githubInstallBody": "Install from a release or a branch. Read what it does before you install it.",
   "githubNoReadme": "This repository has no README.",
-  "githubNotAPlugin": "No plugin chosen yet."
+  "githubNotAPlugin": "No plugin chosen yet.",
+  "pluginsCoversAny": "Load book covers from any website",
+  "pluginsCoversAnyDetail": "Only images, without your account or the plugin’s; never from your computer or network."
 }

@@ -877,5 +877,7 @@
   "toolsStatusNeeds": "需要 {tools}",
   "githubInstallBody": "从发布版本或分支安装。安装前先看看它做什么。",
   "githubNoReadme": "这个仓库没有 README。",
-  "githubNotAPlugin": "还没有选择插件。"
+  "githubNotAPlugin": "还没有选择插件。",
+  "pluginsCoversAny": "从任意网站加载书籍封面",
+  "pluginsCoversAnyDetail": "只加载图片，不带你的账号或插件的凭据；不会访问你的电脑或局域网。"
 }

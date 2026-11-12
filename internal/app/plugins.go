@@ -74,7 +74,7 @@ func granted(st *settings.PluginState, m *plugin.Manifest) bool {
 	if st == nil || st.Granted == nil {
 		return false
 	}
-	return plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library}.Covers(m.Permissions) &&
+	return plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, CoverHosts: st.Granted.Covers}.Covers(m.Permissions) &&
 		grantedTools(st.Granted, m)
 }
 

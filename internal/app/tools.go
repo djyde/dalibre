@@ -11,7 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/egoist/mygo/ui"
+
 	"dalibre/cmd/dalibre/locales"
+	"dalibre/internal/app/icons"
 	"dalibre/internal/plugin"
 	"dalibre/internal/plugin/pkgmgr"
 	"dalibre/internal/settings"
@@ -156,7 +159,7 @@ func grantedTools(g *settings.Grant, m *plugin.Manifest) bool {
 // grantFor is what the user grants plugin m by installing it.
 func grantFor(m *plugin.Manifest) *settings.Grant {
 	return &settings.Grant{Hosts: slices.Clone(m.Permissions.Hosts), LocalNetwork: m.Permissions.LocalNetwork,
-		Library: m.Permissions.Library, Tools: m.ToolIdentities()}
+		Library: m.Permissions.Library, Covers: m.Permissions.CoverHosts, Tools: m.ToolIdentities()}
 }
 
 // pickTools starts the choices of where m's tools come from, for the
@@ -440,3 +443,12 @@ func shortPath(p string) string {
 
 // commandLine is a package manager's command, as shown.
 func commandLine(mgr, pkg string) string { return strings.Join(pkgmgr.Command(mgr, pkg), " ") }
+
+// coversPermission shows that m may load covers from any website: on its
+// page, and when asking (consent), unless had already allows it.
+func coversPermission(c *ui.Context, m *plugin.Manifest, had *plugin.Permissions) {
+	if m.Permissions.CoverHosts != plugin.CoversAny || had != nil && had.CoverHosts == plugin.CoversAny {
+		return
+	}
+	permissionItem(c, icons.Image, locales.PluginsCoversAny(), locales.PluginsCoversAnyDetail(), false)
+}

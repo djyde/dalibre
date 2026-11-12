@@ -1067,5 +1067,7 @@
   "toolsStatusNeeds": "Necesita {tools}",
   "githubInstallBody": "Instala desde una versión o una rama. Lee qué hace antes de instalarlo.",
   "githubNoReadme": "Este repositorio no tiene README.",
-  "githubNotAPlugin": "Aún no has elegido un plugin."
+  "githubNotAPlugin": "Aún no has elegido un plugin.",
+  "pluginsCoversAny": "Cargar portadas de libros de cualquier sitio web",
+  "pluginsCoversAnyDetail": "Solo imágenes, sin tu cuenta ni la del plugin; nunca desde tu ordenador o tu red."
 }

@@ -877,5 +877,7 @@
   "toolsStatusNeeds": "{tools} が必要",
   "githubInstallBody": "リリースまたはブランチからインストールします。インストール前に何をするか確認してください。",
   "githubNoReadme": "このリポジトリには README がありません。",
-  "githubNotAPlugin": "まだプラグインが選ばれていません。"
+  "githubNotAPlugin": "まだプラグインが選ばれていません。",
+  "pluginsCoversAny": "任意のウェブサイトから表紙を読み込む",
+  "pluginsCoversAnyDetail": "画像のみ。あなたやプラグインのアカウントは使わず、このコンピュータやネットワークには接続しません。"
 }

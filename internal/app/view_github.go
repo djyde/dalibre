@@ -313,6 +313,7 @@ func (a *App) ghFound(c *ui.Context) {
 		for _, h := range m.Permissions.Hosts {
 			permissionItem(c.Key(h), icons.Globe, locales.SettingsConnectTo(h), "", false)
 		}
+		coversPermission(c, m, nil)
 		if m.Permissions.LocalNetwork {
 			permissionItem(c, icons.Network, locales.SettingsConnectLocal(), locales.SettingsConnectLocalNote(), true)
 		}

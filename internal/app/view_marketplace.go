@@ -232,6 +232,7 @@ func (a *App) listingPane(c *ui.Context, l *plugin.Listing) {
 		if len(m.Permissions.Hosts) == 0 && !m.Permissions.LocalNetwork {
 			permissionItem(c, icons.ShieldCheck, locales.MarketNoInternet(), "", false)
 		}
+		coversPermission(c, m, nil)
 		if m.Permissions.LocalNetwork {
 			permissionItem(c, icons.Network, locales.PluginsLocalNetwork(), locales.PluginsLocalNetworkDetail(), true)
 		}

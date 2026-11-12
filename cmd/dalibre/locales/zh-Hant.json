@@ -877,5 +877,7 @@
   "toolsStatusNeeds": "需要 {tools}",
   "githubInstallBody": "從發佈版本或分支安裝。安裝前先看看它做什麼。",
   "githubNoReadme": "這個儲存庫沒有 README。",
-  "githubNotAPlugin": "還沒有選擇外掛。"
+  "githubNotAPlugin": "還沒有選擇外掛。",
+  "pluginsCoversAny": "從任意網站載入書籍封面",
+  "pluginsCoversAnyDetail": "只載入圖片，不帶你的帳號或外掛的憑證；不會存取你的電腦或區域網路。"
 }

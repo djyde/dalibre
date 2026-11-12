@@ -577,18 +577,30 @@ func (p *Plugin) moveMade(req Request, r Result, format, dir string) (string, er
 	return dst, nil
 }
 
-// Cover fetches r's cover image, from a host the plugin may reach.
+// Cover fetches r's cover image, from a host the plugin may reach, or,
+// with permissions.covers "any", from any https host.
 func (p *Plugin) Cover(ctx context.Context, r Result) ([]byte, error) {
 	if r.Cover == "" {
 		return nil, nil
 	}
-	resp, err := p.get(ctx, r.Cover, nil)
+	var resp *http.Response
+	var err error
+	if u, perr := url.Parse(r.Cover); perr == nil && p.Manifest.Permissions.CoverHosts == CoversAny && !p.Manifest.Permissions.allows(u.Hostname()) {
+		resp, err = p.anyCover(ctx, u)
+	} else {
+		resp, err = p.get(ctx, r.Cover, nil)
+	}
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return nil, fmt.Errorf("cover %s: %s", resp.Request.URL.Redacted(), resp.Status)
+	}
+	if p.Manifest.Permissions.CoverHosts == CoversAny {
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type")); ct != "" && !strings.HasPrefix(ct, "image/") && ct != "application/octet-stream" {
+			return nil, fmt.Errorf("cover %s is %s, not an image", resp.Request.URL.Redacted(), ct)
+		}
 	}
 	data, err := io.ReadAll(io.LimitReader(resp.Body, MaxCover+1))
 	if err != nil {
@@ -598,6 +610,38 @@ func (p *Plugin) Cover(ctx context.Context, r Result) ([]byte, error) {
 		return nil, fmt.Errorf("cover %s is over %d MB", resp.Request.URL.Redacted(), MaxCover>>20)
 	}
 	return data, nil
+}
+
+// anyCover requests a cover from any https host, as permissions.covers
+// "any" allows: without the plugin's credentials or cookies, following
+// redirects only over https, and still never to this computer or the
+// local network unless the plugin may reach them.
+func (p *Plugin) anyCover(ctx context.Context, u *url.URL) (*http.Response, error) {
+	https := func(u *url.URL) error {
+		if u.Scheme != "https" || u.User != nil || u.Hostname() == "" {
+			return fmt.Errorf("%w: a cover from another host must be an https URL", ErrHostNotAllowed)
+		}
+		return nil
+	}
+	if err := https(u); err != nil {
+		return nil, err
+	}
+	client := &http.Client{
+		Transport: p.client.Transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= MaxRedirects {
+				return errors.New("too many redirects")
+			}
+			return https(req.URL)
+		},
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("Accept", "image/*")
+	return client.Do(req)
 }
 
 // get makes a GET request the plugin may make, outside its script.

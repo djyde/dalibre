@@ -1067,5 +1067,7 @@
   "toolsStatusNeeds": "Requiert {tools}",
   "githubInstallBody": "Installez depuis une version ou une branche. Lisez ce qu’il fait avant de l’installer.",
   "githubNoReadme": "Ce dépôt n’a pas de README.",
-  "githubNotAPlugin": "Aucun plugin choisi pour l’instant."
+  "githubNotAPlugin": "Aucun plugin choisi pour l’instant.",
+  "pluginsCoversAny": "Charger des couvertures depuis n’importe quel site",
+  "pluginsCoversAnyDetail": "Seulement des images, sans votre compte ni celui du plugin ; jamais depuis votre ordinateur ou votre réseau."
 }
