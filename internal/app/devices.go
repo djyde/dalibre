@@ -136,15 +136,30 @@ func (a *App) devicesChanged() {
 			a.toastError(errors.New(locales.DeviceOpenFailed("Kindle", err.Error())))
 		}
 	}
-	if v := ds.view; v != nil {
-		if !slices.Contains(ds.list, v.dev) {
-			ds.view = nil
-			if a.page == pageDevice {
-				a.page = pageLibrary
-			}
-			a.toastError(errors.New(locales.WirelessLost(v.info.Name)))
+	if v := ds.view; v != nil && !slices.Contains(ds.list, v.dev) {
+		// The same reader opened again keeps its page; one gone closes it.
+		if d := sameReader(ds.list, v.dev); d != nil {
+			v.dev, v.info = d, d.Info()
+			a.loadDeviceBooks(v)
+			return
+		}
+		ds.view = nil
+		if a.page == pageDevice {
+			a.page = pageLibrary
+		}
+		a.toastError(errors.New(locales.WirelessLost(v.info.Name)))
+	}
+}
+
+// sameReader is the reader of list that is d, opened again: on the same
+// storage, with the same id; nil when there is none.
+func sameReader(list []device.Device, d device.Device) device.Device {
+	for _, x := range list {
+		if x.Info().ID == d.Info().ID && x.Storage().ID() == d.Storage().ID() {
+			return x
 		}
 	}
+	return nil
 }
 
 // availableName is what a reader that isn't mounted is called: its
@@ -192,8 +207,13 @@ func (a *App) devices() []device.Device {
 
 // openDevice shows the reader's page.
 func (a *App) openDevice(d device.Device) {
-	if a.dev == nil || !slices.Contains(a.dev.list, d) {
+	if a.dev == nil || d == nil {
 		return
+	}
+	if !slices.Contains(a.dev.list, d) {
+		if d = sameReader(a.dev.list, d); d == nil {
+			return
+		}
 	}
 	a.closeResults()
 	if v := a.dev.view; v == nil || v.dev != d {

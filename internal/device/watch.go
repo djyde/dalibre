@@ -22,6 +22,10 @@ type Watcher struct {
 	// connects, goes, or fails to open.
 	OnChange func()
 
+	// scanning lets one scan run at a time: two at once would both open a
+	// reader that just came, and keep one while Connect returns the other.
+	scanning sync.Mutex
+
 	mu      sync.Mutex
 	devices map[string]Device // by storage ID
 	// failed are the storages a driver recognised but couldn't open, by
@@ -59,6 +63,8 @@ func (w *Watcher) Run(ctx context.Context, every time.Duration) {
 
 // Scan looks at the sources once.
 func (w *Watcher) Scan(ctx context.Context) {
+	w.scanning.Lock()
+	defer w.scanning.Unlock()
 	present := map[string]Storage{}
 	available := map[string]Available{}
 	for _, src := range w.Sources {
