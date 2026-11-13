@@ -40,9 +40,17 @@ func (a *App) view(c *ui.Context) {
 	}
 	a.welcome.missing = nil // looked at again when the welcome screen next shows
 
+	dv := a.deviceView()
+	if a.page == pageDevice && dv == nil {
+		a.page = pageLibrary // the reader went
+	}
 	root := ui.Row(c).Fill().AlignItems(ui.Stretch).Background(pal().BgApp).TextColor(pal().Text)
 	if files := root.DroppedFiles(); files != nil && a.lib != nil {
-		a.importFiles(files)
+		if dv != nil {
+			a.sendFilesToReader(dv.dev, files)
+		} else {
+			a.importFiles(files)
+		}
 	}
 	dragOver := root.FileDragOver() && a.lib != nil
 	root.Children(func() {
@@ -50,20 +58,26 @@ func (a *App) view(c *ui.Context) {
 		// The toolbar heads the middle column only; the detail panel runs
 		// the window's full height beside it, as in Figma.
 		ui.Column(c.Key("main")).Grow(1).MinWidth(0).ClipX().Bind(&a.mainBox).AlignItems(ui.Stretch).Children(func() {
-			switch a.page {
-			case pageGetBooks:
+			// What the sidebar chose this frame shows already.
+			dv := a.deviceView()
+			switch {
+			case a.page == pageGetBooks:
 				a.getBooksToolbar(c)
-			case pageCatalog:
+			case a.page == pageCatalog:
 				a.catalogToolbar(c)
+			case dv != nil:
+				a.deviceToolbar(c, dv)
 			default:
 				a.toolbar(c)
 			}
 			ui.Column(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {
-				switch a.page {
-				case pageGetBooks:
+				switch {
+				case a.page == pageGetBooks:
 					a.getBooksContent(c)
-				case pageCatalog:
+				case a.page == pageCatalog:
 					a.catalogContent(c)
+				case dv != nil:
+					a.deviceContent(c, dv)
 				default:
 					a.mainContent(c)
 				}
@@ -73,7 +87,11 @@ func (a *App) view(c *ui.Context) {
 			a.detailPanel(c)
 		}
 		if dragOver {
-			a.dropOverlay(c)
+			if dv := a.deviceView(); dv != nil {
+				a.deviceDropOverlay(c, dv)
+			} else {
+				a.dropOverlay(c)
+			}
 		}
 	})
 	a.dialogs(c)
@@ -111,16 +129,20 @@ func (a *App) shortcuts(c *ui.Context) {
 		a.settings.HideDetail = !a.settings.HideDetail
 		a.saveSettings()
 	})
-	if !c.FocusTakesText() && a.page == pageLibrary {
+	if !c.FocusTakesText() && (a.page == pageLibrary || a.page == pageDevice) {
 		if c.Shortcut(0, ui.KeyDelete) || c.Shortcut(0, ui.KeyBackspace) {
-			a.askDelete(a.selectedIDs())
+			if v := a.deviceView(); v != nil {
+				a.askRemoveFromReader(v, v.selectedIDs())
+			} else if a.page == pageLibrary {
+				a.askDelete(a.selectedIDs())
+			}
 		}
 	}
 }
 
 func (a *App) anyDialog() bool {
 	return a.editOpen || a.deleteOpen || a.welcome.notLib.open || a.welcome.create.open || a.settingsOpen || a.consent != nil ||
-		a.act.form != nil || a.act.review != nil
+		a.act.form != nil || a.act.review != nil || a.dev != nil && a.dev.view != nil && a.dev.view.deleteOpen
 }
 
 // ---- Sidebar
@@ -142,6 +164,10 @@ func (a *App) sidebar(c *ui.Context) {
 		ui.Box(c).Padding(0, theme.Space8, theme.Space8, theme.Space8).Children(func() { a.librarySwitcher(c) })
 		ui.Scroll(c).Grow(1).Padding(theme.Space8, theme.Space8, theme.Space16, theme.Space8).Gap(theme.Space20).AlignItems(ui.Stretch).Children(func() {
 			if a.lib == nil {
+				return
+			}
+			if v := a.deviceView(); v != nil {
+				a.deviceNav(c, v)
 				return
 			}
 			defer a.getBooksNav(c)
@@ -177,7 +203,7 @@ func (a *App) setQuery(shelf catalog.Shelf, f catalog.Filter) {
 }
 
 func (a *App) navItem(c *ui.Context, key string, icon *ui.SVG, label string, count int, selected bool, iconColor *ui.Color, onClick func()) {
-	if key != "getbooks" && !strings.HasPrefix(key, "catalog:") && !strings.HasPrefix(key, "settings:") && a.page != pageLibrary {
+	if key != "getbooks" && !strings.HasPrefix(key, "catalog:") && !strings.HasPrefix(key, "settings:") && !strings.HasPrefix(key, "device:") && a.page != pageLibrary {
 		selected = false
 	}
 	if a.act.results != nil && a.page == pageLibrary && !strings.HasPrefix(key, "tool:") {
@@ -266,6 +292,10 @@ func (a *App) librarySwitcher(c *ui.Context) {
 		name = filepath.Base(a.lib.Root)
 		sub = locales.CommonBookCount(a.counts.All)
 	}
+	dv := a.deviceView()
+	if dv != nil {
+		name, sub = dv.info.Name, a.deviceSubtitle(dv.dev)
+	}
 	b := ui.ButtonBase(c).Padding(theme.Space8).Gap(theme.Space10).AlignItems(ui.Center).Radius(theme.RadiusMD).
 		Background(pal().SurfaceRaised).Border(1, pal().BorderSubtle).Shadow(0, 1, 2, 0, ui.RGBA(26, 23, 18, 0.05)).Label(locales.CommonLibrary())
 	if b.Hovered() {
@@ -280,14 +310,21 @@ func (a *App) librarySwitcher(c *ui.Context) {
 		}
 		for _, r := range recent {
 			open := a.lib != nil && r == a.lib.Root
-			item := m.Item(filepath.Base(r)).ID(r).Subtitle(r).Checked(open).Content(func(x ui.MenuItemContent) {
+			item := m.Item(filepath.Base(r)).ID(r).Subtitle(r).Checked(open && dv == nil).Content(func(x ui.MenuItemContent) {
 				a.recentLibraryRow(x, r)
 			})
-			if item.Chosen() && !open {
-				a.openLibrary(r)
+			if item.Chosen() {
+				if !open {
+					a.openLibrary(r)
+				}
+				if a.page == pageDevice {
+					a.page = pageLibrary
+				}
 			}
 		}
-		if len(recent) > 0 {
+		// The readers plugged in are libraries too.
+		a.deviceSwitcherItems(m)
+		if len(recent) > 0 || len(a.devices()) > 0 || a.dev != nil && len(a.dev.available) > 0 {
 			m.Separator()
 		}
 		if m.Item(locales.MainOpenLibraryMenu()).Chosen() {
@@ -299,6 +336,10 @@ func (a *App) librarySwitcher(c *ui.Context) {
 	})
 	b.Children(func() {
 		ui.Box(c).Size(28, 28).Radius(theme.RadiusSM).Background(pal().Inverse).Center().Children(func() {
+			if dv != nil {
+				ui.Icon(c, icons.Tablet).FontSize(16).TextColor(pal().TextOnInverse)
+				return
+			}
 			ui.Text(c, "D").FontWeight(700).FontSize(16).TextColor(pal().TextOnInverse)
 		})
 		ui.Column(c).Grow(1).MinWidth(0).Children(func() {
@@ -441,26 +482,31 @@ func (a *App) toolbar(c *ui.Context) {
 // listControls are the toolbar's controls for the list of books: search,
 // grid or list, and the order.
 func (a *App) listControls(c *ui.Context) {
-	ui.SearchField(c, &a.query.Search).Placeholder(locales.MainSearchPlaceholder()).Label(locales.MainSearchLabel()).Width(260).Shrink(1).MinWidth(104).Bind(&a.searchFocus).OnChange(func() {
-		a.curID = 0
-	})
+	a.queryControls(c, &a.query, a.saveSettings, func() { a.curID = 0 })
+}
+
+// queryControls are the search field, grid or list, and the order, of the
+// list of books q selects: sorted is told when the order changes, searched
+// when the search does.
+func (a *App) queryControls(c *ui.Context, q *catalog.Query, sorted, searched func()) {
+	ui.SearchField(c, &q.Search).Placeholder(locales.MainSearchPlaceholder()).Label(locales.MainSearchLabel()).Width(260).Shrink(1).MinWidth(104).Bind(&a.searchFocus).OnChange(searched)
 	a.viewToggle(c)
-	sort := widgets.IconButton(c, icons.Sort, locales.MainSortButton(sortLabel(a.query.Sort)), false)
+	sort := widgets.IconButton(c, icons.Sort, locales.MainSortButton(sortLabel(q.Sort)), false)
 	sort.PopoverMenuButton(func(m *ui.Menu) {
 		for _, k := range catalog.SortKeys {
-			if m.Item(sortLabel(k.Key)).Radio(a.query.Sort == k.Key).Chosen() {
-				a.query.Sort = k.Key
-				a.saveSettings()
+			if m.Item(sortLabel(k.Key)).Radio(q.Sort == k.Key).Chosen() {
+				q.Sort = k.Key
+				sorted()
 			}
 		}
 		m.Separator()
-		if m.Item(locales.MainSortAscending()).Radio(!a.query.Descending).Chosen() {
-			a.query.Descending = false
-			a.saveSettings()
+		if m.Item(locales.MainSortAscending()).Radio(!q.Descending).Chosen() {
+			q.Descending = false
+			sorted()
 		}
-		if m.Item(locales.MainSortDescending()).Radio(a.query.Descending).Chosen() {
-			a.query.Descending = true
-			a.saveSettings()
+		if m.Item(locales.MainSortDescending()).Radio(q.Descending).Chosen() {
+			q.Descending = true
+			sorted()
 		}
 	})
 }
@@ -528,9 +574,9 @@ func (a *App) mainContent(c *ui.Context) {
 	}
 	a.syncCur(shown)
 	if a.settings.ListView {
-		a.listView(c, shown)
+		a.listView(c, a.libraryShelf(), shown)
 	} else {
-		a.gridView(c, shown)
+		a.gridView(c, a.libraryShelf(), shown)
 	}
 	a.adoptCur()
 }

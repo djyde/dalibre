@@ -67,6 +67,8 @@ internal/
   catalog/            search, filters, sorting and sidebar counts (no UI)
   plugin/             plugins: manifest, sandboxed JS runtime, consent, packages
   mcp/                the MCP server: tools, call log, stdio bridge
+  device/             readers plugged in (docs/devices.md): storages, the
+                      watcher, calibre's on-device library (usbms), Kindle
   settings/           user settings persisted as JSON
   thumbs/             on-disk cover thumbnails
   app/                state, actions and views of the window

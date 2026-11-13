@@ -1099,5 +1099,44 @@
   "githubNoReadme": "This repository has no README.",
   "githubNotAPlugin": "No plugin chosen yet.",
   "pluginsCoversAny": "Load book covers from any website",
-  "pluginsCoversAnyDetail": "Only images, without your account or the plugin’s; never from your computer or network."
+  "pluginsCoversAnyDetail": "Only images, without your account or the plugin’s; never from your computer or network.",
+  "deviceConnected": "{device} connected",
+  "deviceShow": "Show",
+  "deviceFree": "{size} free",
+  "deviceEject": "Eject",
+  "deviceEjectTooltip": "Eject {device} so it can be unplugged",
+  "deviceEjected": "{device} can be unplugged",
+  "deviceOpenFailed": "Couldn’t read {device}: {error}",
+  "deviceSending": "Sending to {device}",
+  "deviceAddToLibrary": "Add to library",
+  "deviceAdding": "Adding to library",
+  "deviceAdded": "Added {count, plural, one {# book} other {# books}} to the library",
+  "@deviceAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceInLibrary": "In your library",
+  "deviceNotInLibrary": "Not in your library",
+  "deviceShowInLibrary": "Show in library",
+  "deviceRemoveBookTitle": "Remove “{title}” from {device}?",
+  "deviceRemoveBooksTitle": "Remove {count, plural, one {# book} other {# books}} from {device}?",
+  "@deviceRemoveBooksTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceRemoveBody": "The files are deleted from the reader, with the notes and reading position it keeps for them. Books in your library stay there.",
+  "deviceEmptyTitle": "No books on {device}",
+  "deviceEmptyHint": "Send books to it from your library’s book menu, or drop files here.",
+  "deviceDropTitle": "Drop to send to {device}",
+  "deviceDropHint": "Files of formats the reader doesn’t take are left out.",
+  "deviceFile": "File",
+  "deviceNotMounted": "Not mounted",
+  "deviceMounting": "Mounting…",
+  "deviceMountFailed": "Couldn’t mount {device}: {error}"
 }

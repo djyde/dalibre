@@ -164,6 +164,9 @@ type App struct {
 	mcpSrv *mcpState
 	// device is the wireless connection readers connect to.
 	device *deviceState
+	// dev is the readers plugged in, each a library of its own; nil, as
+	// in tests, watches for none.
+	dev *devicesState
 	// secrets keeps passwords: the system's credential store; nil in tests
 	// until they set one.
 	secrets secretStore
@@ -265,6 +268,7 @@ func (a *App) Attach(win *mygo.Window) {
 	a.applyShare()
 	a.applyMCP()
 	a.applyDevice()
+	a.startDevices()
 	a.checkUpdates(false)
 	a.au.updater = mygoUpdater{}
 	a.au.relaunch = mygo.App.Relaunch
@@ -426,6 +430,9 @@ func (a *App) setBooks(books []*calibre.Book) {
 	a.counts = catalog.Tally(books, a.booksTime)
 	// Books edited while a reader is connected reach it.
 	a.syncDevice()
+	if a.dev != nil && a.dev.view != nil {
+		a.matchDeviceBooks(a.dev.view)
+	}
 	a.version++
 }
 

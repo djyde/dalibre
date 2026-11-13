@@ -25,6 +25,9 @@ func (a *App) detailShown() bool {
 	if a.settings.HideDetail {
 		return false
 	}
+	if v := a.deviceView(); v != nil {
+		return len(v.selectedIDs()) > 0
+	}
 	if a.page != pageLibrary {
 		return a.gb.selected != nil && a.pluginByID(a.gb.selected.source) != nil
 	}
@@ -42,6 +45,10 @@ func (a *App) detailPanelOf(c *ui.Context, pg page, b *calibre.Book, ids []int64
 		if bar.Right > 0 {
 			// Room for the caption buttons over the panel, to drag by.
 			ui.Box(c).Height(bar.Height).DragWindow()
+		}
+		if v := a.deviceView(); pg == pageDevice && v != nil {
+			a.deviceDetail(c, v)
+			return
 		}
 		if pg != pageLibrary {
 			a.resultDetail(c)

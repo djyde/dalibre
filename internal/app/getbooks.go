@@ -35,6 +35,7 @@ const (
 	pageLibrary page = iota
 	pageGetBooks
 	pageCatalog // an OPDS catalog's feeds
+	pageDevice  // a reader plugged in: its library (devices.go)
 )
 
 type getBooksState struct {
