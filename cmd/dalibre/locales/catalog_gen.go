@@ -8244,3 +8244,229 @@ func PluginsCoversAnyDetail() string { return In(i18n.Locale()).PluginsCoversAny
 func (msgs Messages) PluginsCoversAnyDetail() string {
 	return Catalog.Format(msgs.locale, "pluginsCoversAnyDetail", nil)
 }
+
+// DeviceConnected says "{device} connected"
+// in the language the app shows.
+func DeviceConnected(device string) string { return In(i18n.Locale()).DeviceConnected(device) }
+
+// DeviceConnected says "{device} connected"
+// in the language of msgs.
+func (msgs Messages) DeviceConnected(device string) string {
+	return Catalog.Format(msgs.locale, "deviceConnected", map[string]any{"device": device})
+}
+
+// DeviceShow says "Show"
+// in the language the app shows.
+func DeviceShow() string { return In(i18n.Locale()).DeviceShow() }
+
+// DeviceShow says "Show"
+// in the language of msgs.
+func (msgs Messages) DeviceShow() string {
+	return Catalog.Format(msgs.locale, "deviceShow", nil)
+}
+
+// DeviceFree says "{size} free"
+// in the language the app shows.
+func DeviceFree(size string) string { return In(i18n.Locale()).DeviceFree(size) }
+
+// DeviceFree says "{size} free"
+// in the language of msgs.
+func (msgs Messages) DeviceFree(size string) string {
+	return Catalog.Format(msgs.locale, "deviceFree", map[string]any{"size": size})
+}
+
+// DeviceEject says "Eject"
+// in the language the app shows.
+func DeviceEject() string { return In(i18n.Locale()).DeviceEject() }
+
+// DeviceEject says "Eject"
+// in the language of msgs.
+func (msgs Messages) DeviceEject() string {
+	return Catalog.Format(msgs.locale, "deviceEject", nil)
+}
+
+// DeviceEjectTooltip says "Eject {device} so it can be unplugged"
+// in the language the app shows.
+func DeviceEjectTooltip(device string) string { return In(i18n.Locale()).DeviceEjectTooltip(device) }
+
+// DeviceEjectTooltip says "Eject {device} so it can be unplugged"
+// in the language of msgs.
+func (msgs Messages) DeviceEjectTooltip(device string) string {
+	return Catalog.Format(msgs.locale, "deviceEjectTooltip", map[string]any{"device": device})
+}
+
+// DeviceEjected says "{device} can be unplugged"
+// in the language the app shows.
+func DeviceEjected(device string) string { return In(i18n.Locale()).DeviceEjected(device) }
+
+// DeviceEjected says "{device} can be unplugged"
+// in the language of msgs.
+func (msgs Messages) DeviceEjected(device string) string {
+	return Catalog.Format(msgs.locale, "deviceEjected", map[string]any{"device": device})
+}
+
+// DeviceOpenFailed says "Couldn’t read {device}: {error}"
+// in the language the app shows.
+func DeviceOpenFailed(device string, error string) string {
+	return In(i18n.Locale()).DeviceOpenFailed(device, error)
+}
+
+// DeviceOpenFailed says "Couldn’t read {device}: {error}"
+// in the language of msgs.
+func (msgs Messages) DeviceOpenFailed(device string, error string) string {
+	return Catalog.Format(msgs.locale, "deviceOpenFailed", map[string]any{"device": device, "error": error})
+}
+
+// DeviceSending says "Sending to {device}"
+// in the language the app shows.
+func DeviceSending(device string) string { return In(i18n.Locale()).DeviceSending(device) }
+
+// DeviceSending says "Sending to {device}"
+// in the language of msgs.
+func (msgs Messages) DeviceSending(device string) string {
+	return Catalog.Format(msgs.locale, "deviceSending", map[string]any{"device": device})
+}
+
+// DeviceAddToLibrary says "Add to library"
+// in the language the app shows.
+func DeviceAddToLibrary() string { return In(i18n.Locale()).DeviceAddToLibrary() }
+
+// DeviceAddToLibrary says "Add to library"
+// in the language of msgs.
+func (msgs Messages) DeviceAddToLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceAddToLibrary", nil)
+}
+
+// DeviceAdding says "Adding to library"
+// in the language the app shows.
+func DeviceAdding() string { return In(i18n.Locale()).DeviceAdding() }
+
+// DeviceAdding says "Adding to library"
+// in the language of msgs.
+func (msgs Messages) DeviceAdding() string {
+	return Catalog.Format(msgs.locale, "deviceAdding", nil)
+}
+
+// DeviceAdded says "Added {count, plural, one {# book} other {# books}} to the library"
+// in the language the app shows.
+func DeviceAdded(count int) string { return In(i18n.Locale()).DeviceAdded(count) }
+
+// DeviceAdded says "Added {count, plural, one {# book} other {# books}} to the library"
+// in the language of msgs.
+func (msgs Messages) DeviceAdded(count int) string {
+	return Catalog.Format(msgs.locale, "deviceAdded", map[string]any{"count": count})
+}
+
+// DeviceInLibrary says "In your library"
+// in the language the app shows.
+func DeviceInLibrary() string { return In(i18n.Locale()).DeviceInLibrary() }
+
+// DeviceInLibrary says "In your library"
+// in the language of msgs.
+func (msgs Messages) DeviceInLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceInLibrary", nil)
+}
+
+// DeviceNotInLibrary says "Not in your library"
+// in the language the app shows.
+func DeviceNotInLibrary() string { return In(i18n.Locale()).DeviceNotInLibrary() }
+
+// DeviceNotInLibrary says "Not in your library"
+// in the language of msgs.
+func (msgs Messages) DeviceNotInLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceNotInLibrary", nil)
+}
+
+// DeviceShowInLibrary says "Show in library"
+// in the language the app shows.
+func DeviceShowInLibrary() string { return In(i18n.Locale()).DeviceShowInLibrary() }
+
+// DeviceShowInLibrary says "Show in library"
+// in the language of msgs.
+func (msgs Messages) DeviceShowInLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceShowInLibrary", nil)
+}
+
+// DeviceRemoveBookTitle says "Remove “{title}” from {device}?"
+// in the language the app shows.
+func DeviceRemoveBookTitle(title string, device string) string {
+	return In(i18n.Locale()).DeviceRemoveBookTitle(title, device)
+}
+
+// DeviceRemoveBookTitle says "Remove “{title}” from {device}?"
+// in the language of msgs.
+func (msgs Messages) DeviceRemoveBookTitle(title string, device string) string {
+	return Catalog.Format(msgs.locale, "deviceRemoveBookTitle", map[string]any{"title": title, "device": device})
+}
+
+// DeviceRemoveBooksTitle says "Remove {count, plural, one {# book} other {# books}} from {device}?"
+// in the language the app shows.
+func DeviceRemoveBooksTitle(count int, device string) string {
+	return In(i18n.Locale()).DeviceRemoveBooksTitle(count, device)
+}
+
+// DeviceRemoveBooksTitle says "Remove {count, plural, one {# book} other {# books}} from {device}?"
+// in the language of msgs.
+func (msgs Messages) DeviceRemoveBooksTitle(count int, device string) string {
+	return Catalog.Format(msgs.locale, "deviceRemoveBooksTitle", map[string]any{"count": count, "device": device})
+}
+
+// DeviceRemoveBody says "The files are deleted from the reader, with the notes and reading position it keeps for them. Books in your library s…"
+// in the language the app shows.
+func DeviceRemoveBody() string { return In(i18n.Locale()).DeviceRemoveBody() }
+
+// DeviceRemoveBody says "The files are deleted from the reader, with the notes and reading position it keeps for them. Books in your library s…"
+// in the language of msgs.
+func (msgs Messages) DeviceRemoveBody() string {
+	return Catalog.Format(msgs.locale, "deviceRemoveBody", nil)
+}
+
+// DeviceEmptyTitle says "No books on {device}"
+// in the language the app shows.
+func DeviceEmptyTitle(device string) string { return In(i18n.Locale()).DeviceEmptyTitle(device) }
+
+// DeviceEmptyTitle says "No books on {device}"
+// in the language of msgs.
+func (msgs Messages) DeviceEmptyTitle(device string) string {
+	return Catalog.Format(msgs.locale, "deviceEmptyTitle", map[string]any{"device": device})
+}
+
+// DeviceEmptyHint says "Send books to it from your library’s book menu, or drop files here."
+// in the language the app shows.
+func DeviceEmptyHint() string { return In(i18n.Locale()).DeviceEmptyHint() }
+
+// DeviceEmptyHint says "Send books to it from your library’s book menu, or drop files here."
+// in the language of msgs.
+func (msgs Messages) DeviceEmptyHint() string {
+	return Catalog.Format(msgs.locale, "deviceEmptyHint", nil)
+}
+
+// DeviceDropTitle says "Drop to send to {device}"
+// in the language the app shows.
+func DeviceDropTitle(device string) string { return In(i18n.Locale()).DeviceDropTitle(device) }
+
+// DeviceDropTitle says "Drop to send to {device}"
+// in the language of msgs.
+func (msgs Messages) DeviceDropTitle(device string) string {
+	return Catalog.Format(msgs.locale, "deviceDropTitle", map[string]any{"device": device})
+}
+
+// DeviceDropHint says "Files of formats the reader doesn’t take are left out."
+// in the language the app shows.
+func DeviceDropHint() string { return In(i18n.Locale()).DeviceDropHint() }
+
+// DeviceDropHint says "Files of formats the reader doesn’t take are left out."
+// in the language of msgs.
+func (msgs Messages) DeviceDropHint() string {
+	return Catalog.Format(msgs.locale, "deviceDropHint", nil)
+}
+
+// DeviceFile says "File"
+// in the language the app shows.
+func DeviceFile() string { return In(i18n.Locale()).DeviceFile() }
+
+// DeviceFile says "File"
+// in the language of msgs.
+func (msgs Messages) DeviceFile() string {
+	return Catalog.Format(msgs.locale, "deviceFile", nil)
+}

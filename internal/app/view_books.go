@@ -30,11 +30,36 @@ const (
 	coverMinH, coverMaxH = 160, 210
 )
 
-func (a *App) gridView(c *ui.Context, shown []*calibre.Book) {
-	a.grid.Key = func(i int) any { return shown[i].ID }
-	a.grid.Selection = &a.chosen
-	a.grid.Selected = &a.cur
-	a.grid.Label = func(i int) string { return shown[i].Title }
+// shelf is a list of books the grid and the list show: the library's, or
+// a reader's. It holds where their state is and what a book does.
+type shelf struct {
+	grid      *ui.GridState
+	table     *ui.ListState
+	tableSort *ui.SortOrder
+	chosen    *ui.Selection[int64]
+	cur       *int
+	query     *catalog.Query
+	// sorted is told when the list's header changed the order.
+	sorted func()
+	menu   func(b *calibre.Book) func(m *ui.Menu)
+	cover  func(b *calibre.Book, height int) *ui.Bitmap
+	open   func(b *calibre.Book)
+}
+
+// libraryShelf is the library's books.
+func (a *App) libraryShelf() shelf {
+	return shelf{
+		grid: &a.grid, table: &a.table, tableSort: &a.tableSort, chosen: &a.chosen, cur: &a.cur, query: &a.query,
+		sorted: a.saveSettings, menu: a.bookMenu, cover: a.cover,
+		open: func(*calibre.Book) { a.openBook(a.current(), "") },
+	}
+}
+
+func (a *App) gridView(c *ui.Context, s shelf, shown []*calibre.Book) {
+	s.grid.Key = func(i int) any { return shown[i].ID }
+	s.grid.Selection = s.chosen
+	s.grid.Selected = s.cur
+	s.grid.Label = func(i int) string { return shown[i].Title }
 	// The grid tints and outlines its chosen cells; on the shelf a book
 	// shows it by being pulled out instead, so its cells stay clear.
 	base := c.Theme()
@@ -43,25 +68,27 @@ func (a *App) gridView(c *ui.Context, shown []*calibre.Book) {
 	tt.Radius = 0
 	var g ui.Element
 	ui.Themed(c, &tt).Grow(1).MinHeight(0).Background(ui.Transparent).AlignItems(ui.Stretch).Children(func() {
-		g = ui.GridView(c, &a.grid, len(shown), theme.CardW, gridCellH, func(i int) {
-			a.shelfSlot(c, base, shown[i], i == len(shown)-1)
+		g = ui.GridView(c, s.grid, len(shown), theme.CardW, gridCellH, func(i int) {
+			a.shelfSlot(c, s, base, shown[i], i == len(shown)-1)
 		}).Grow(1).Margin(theme.Space8, theme.Space32, 0, theme.Space32).Label(locales.BooksLabel())
 	})
 	a.gridBounds = g.Bounds()
 	if g.Submitted() {
-		a.openBook(a.current(), "")
+		if i := *s.cur; i >= 0 && i < len(shown) {
+			s.open(shown[i])
+		}
 	}
 }
 
 // shelfSlot builds a book standing on its board, with its title below; the
 // last one's board runs on to the end of the shelf.
-func (a *App) shelfSlot(c *ui.Context, base *ui.Theme, b *calibre.Book, last bool) {
+func (a *App) shelfSlot(c *ui.Context, s shelf, base *ui.Theme, b *calibre.Book, last bool) {
 	p := pal()
 	ink := ui.RGBA(26, 23, 18, 1)
 	if p.Dark {
 		ink = ui.RGBA(0, 0, 0, 1)
 	}
-	chosen := a.chosen.Has(b.ID)
+	chosen := s.chosen.Has(b.ID)
 	// The menu takes the theme current where ContextMenu is called, so it
 	// goes on an element built inside the base theme, not the grid's
 	// (whose clear Accent would wash out the highlighted item).
@@ -81,7 +108,7 @@ func (a *App) shelfSlot(c *ui.Context, base *ui.Theme, b *calibre.Book, last boo
 		ends.width = r.W + shelfReach - ends.right
 	}
 	slot.Children(func() {
-		a.shelfSlotBody(c, b, chosen, ends, ink)
+		a.shelfSlotBody(c, s, b, chosen, ends, ink)
 	})
 }
 
@@ -96,10 +123,10 @@ type shelfEnds struct {
 // shelfShadowFade is how far in from a shelf's ends its shadow fades in.
 const shelfShadowFade = 28
 
-func (a *App) shelfSlotBody(c *ui.Context, b *calibre.Book, chosen bool, ends shelfEnds, ink ui.Color) {
+func (a *App) shelfSlotBody(c *ui.Context, s shelf, b *calibre.Book, chosen bool, ends shelfEnds, ink ui.Color) {
 	right := ends.right
 	p := pal()
-	slot := ui.Column(c).Grow(1).ContextMenu(a.bookMenu(b))
+	slot := ui.Column(c).Grow(1).ContextMenu(s.menu(b))
 	var lift float32
 	switch {
 	case chosen:
@@ -109,7 +136,7 @@ func (a *App) shelfSlotBody(c *ui.Context, b *calibre.Book, chosen bool, ends sh
 	}
 	slot.Children(func() {
 		ui.Column(c).Height(shelfBayH).Justify(ui.End).AlignItems(ui.Center).Padding(0, 0, lift, 0).Children(func() {
-			bmp := a.cover(b, theme.CoverH*2)
+			bmp := s.cover(b, theme.CoverH*2)
 			cov := coverOf(c, b, bmp, theme.CoverW, shelfCoverH(bmp), false)
 			if lift > 0 {
 				cov.Shadow(0, 14, 22, -6, ink.Alpha(0.26))
@@ -189,33 +216,33 @@ var columnSort = map[string]catalog.SortKey{
 	"size": catalog.SortSize, "added": catalog.SortDateAdded,
 }
 
-func (a *App) listView(c *ui.Context, shown []*calibre.Book) {
+func (a *App) listView(c *ui.Context, s shelf, shown []*calibre.Book) {
 	// The header shows the order the toolbar's menu chose, and sets it.
-	a.tableSort = ui.SortOrder{Descending: a.query.Descending}
+	*s.tableSort = ui.SortOrder{Descending: s.query.Descending}
 	for id, k := range columnSort {
-		if k == a.query.Sort {
-			a.tableSort.Column = id
+		if k == s.query.Sort {
+			s.tableSort.Column = id
 		}
 	}
-	before := a.tableSort
-	a.table.Key = func(i int) any { return shown[i].ID }
-	a.table.Selection = &a.chosen
-	a.table.Selected = &a.cur
-	a.table.Sort = &a.tableSort
-	a.table.RoundRows = true
-	a.table.Label = func(i int) string { return shown[i].Title }
-	a.table.CellMenu = func(m *ui.Menu, row, col int) { a.bookMenu(shown[row])(m) }
+	before := *s.tableSort
+	s.table.Key = func(i int) any { return shown[i].ID }
+	s.table.Selection = s.chosen
+	s.table.Selected = s.cur
+	s.table.Sort = s.tableSort
+	s.table.RoundRows = true
+	s.table.Label = func(i int) string { return shown[i].Title }
+	s.table.CellMenu = func(m *ui.Menu, row, col int) { s.menu(shown[row])(m) }
 	// Chosen rows in the design's tint (bg/selected) with the usual text,
 	// rather than the accent with white text, so every column stays legible.
 	tt := *c.Theme()
 	tt.Accent, tt.InactiveAccent, tt.AccentText = pal().Selected, pal().Selected, pal().Text
 	var t ui.Element
 	ui.Themed(c, &tt).Grow(1).MinHeight(0).Background(ui.Transparent).Margin(0, theme.Space24, theme.Space24, theme.Space24).AlignItems(ui.Stretch).Children(func() {
-		t = ui.Table(c, &a.table, tableColumns(), len(shown), func(row, col int) {
+		t = ui.Table(c, s.table, tableColumns(), len(shown), func(row, col int) {
 			b := shown[row]
 			switch col {
 			case 0:
-				ui.Box(c).Padding(theme.Space6, 0).Children(func() { a.coverView(c, b, 28, 40, true) })
+				ui.Box(c).Padding(theme.Space6, 0).Children(func() { coverOf(c, b, s.cover(b, 80), 28, 40, true) })
 			case 1:
 				ui.Column(c).Gap(theme.Space2).MinWidth(0).Children(func() {
 					ui.Text(c, b.Title).FontWeight(500).SingleLine()
@@ -256,12 +283,16 @@ func (a *App) listView(c *ui.Context, shown []*calibre.Book) {
 		}).Grow(1).Label(locales.BooksLabel())
 	})
 	if t.Submitted() {
-		a.openBook(a.current(), "")
+		if i := *s.cur; i >= 0 && i < len(shown) {
+			s.open(shown[i])
+		}
 	}
-	if a.tableSort != before {
-		if k, ok := columnSort[a.tableSort.Column]; ok {
-			a.query.Sort, a.query.Descending = k, a.tableSort.Descending
-			a.saveSettings()
+	if *s.tableSort != before {
+		if k, ok := columnSort[s.tableSort.Column]; ok {
+			s.query.Sort, s.query.Descending = k, s.tableSort.Descending
+			if s.sorted != nil {
+				s.sorted()
+			}
 		}
 	}
 }
@@ -309,6 +340,9 @@ func (a *App) bookMenu(b *calibre.Book) func(m *ui.Menu) {
 					a.removeFromDevice(on)
 				}
 			}
+		}
+		if a.readerMenuItems(m, ids) {
+			above = true
 		}
 		if !many {
 			a.shareMenu(m, b)

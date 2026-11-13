@@ -154,6 +154,10 @@ func sanitizeFileName(name string) string {
 	return one
 }
 
+// ASCIIFilename is asciiFilename, for the names of the files calibre puts
+// on readers.
+func ASCIIFilename(s string) string { return asciiFilename(s) }
+
 // asciiFilename transliterates to ASCII (三体 → "San Ti") and makes the
 // result safe on every filesystem, like calibre's ascii_filename.
 func asciiFilename(s string) string {
