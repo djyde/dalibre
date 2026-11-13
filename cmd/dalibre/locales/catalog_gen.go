@@ -8470,3 +8470,35 @@ func DeviceFile() string { return In(i18n.Locale()).DeviceFile() }
 func (msgs Messages) DeviceFile() string {
 	return Catalog.Format(msgs.locale, "deviceFile", nil)
 }
+
+// DeviceNotMounted says "Not mounted"
+// in the language the app shows.
+func DeviceNotMounted() string { return In(i18n.Locale()).DeviceNotMounted() }
+
+// DeviceNotMounted says "Not mounted"
+// in the language of msgs.
+func (msgs Messages) DeviceNotMounted() string {
+	return Catalog.Format(msgs.locale, "deviceNotMounted", nil)
+}
+
+// DeviceMounting says "Mounting…"
+// in the language the app shows.
+func DeviceMounting() string { return In(i18n.Locale()).DeviceMounting() }
+
+// DeviceMounting says "Mounting…"
+// in the language of msgs.
+func (msgs Messages) DeviceMounting() string {
+	return Catalog.Format(msgs.locale, "deviceMounting", nil)
+}
+
+// DeviceMountFailed says "Couldn’t mount {device}: {error}"
+// in the language the app shows.
+func DeviceMountFailed(device string, error string) string {
+	return In(i18n.Locale()).DeviceMountFailed(device, error)
+}
+
+// DeviceMountFailed says "Couldn’t mount {device}: {error}"
+// in the language of msgs.
+func (msgs Messages) DeviceMountFailed(device string, error string) string {
+	return Catalog.Format(msgs.locale, "deviceMountFailed", map[string]any{"device": device, "error": error})
+}

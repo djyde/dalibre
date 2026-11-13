@@ -29,6 +29,12 @@ since 2024) and other readers (Kobo) without changing the app.
   has of them.
 - **Eject** the reader from the toolbar (udisks on Linux, diskutil on
   macOS; on Windows, the system's Safely Remove Hardware).
+- **Open a reader that isn't mounted** (Linux): a Kindle plugged in whose
+  drive the desktop didn't mount is listed in the switcher as "Not
+  mounted"; choosing it mounts it with udisks, as the file manager does,
+  without a password on a desktop session, and shows its library. One
+  that was ejected and stays plugged in is listed the same way; it is
+  never mounted unless chosen.
 
 ## calibre compatibility
 
@@ -86,7 +92,15 @@ Three seams keep the next readers small:
   another kind of storage.
 - **A `device.Source` lists the storages connected.** `device.Volumes`
   lists the mounted USB drives (on Linux with their USB ids from sysfs;
-  `USBInfo.Protocol` is `"usbms"`).
+  `USBInfo.Protocol` is `"usbms"`). A `device.PendingSource` also lists
+  the readers plugged in that it can't read yet, each with a `Connect`:
+  on Linux, the USB partitions in `/sys/class/block` (or a whole disk
+  without partitions) that `/proc/self/mounts` doesn't have, mounted with
+  `udisksctl mount`. Drivers that are `device.USBMatcher`s recognise them
+  by USB ids alone (the Kindle: Lab126's vendor id, as a USB drive), and
+  the watcher offers them as `Available`; `Watcher.Connect` mounts one
+  and returns it opened. An MTP reader will come in the same way: listed
+  while not connected, connected when chosen.
 - **A `device.Driver` recognises a reader and opens it as a
   `device.Device`**, the interface the app uses.
 
@@ -115,6 +129,8 @@ reading state are in `KoboReader.sqlite`. Add it to `App.deviceDrivers`.
 - Writing ASIN and cdetype into MOBI/AZW3 files sent, for their covers.
 - Collections, annotations (`My Clippings.txt`), page numbers (APNX).
 - The USB ids of drives on macOS and Windows (they are matched by what
-  they hold), and mounting a reader that is plugged in but not mounted.
+  they hold), and offering readers that aren't mounted there (both mount
+  drives by themselves; macOS could offer an ejected one with
+  `diskutil mount`).
 - The page's screens in the Figma file: they reuse the library's
   components, and need their design pass.

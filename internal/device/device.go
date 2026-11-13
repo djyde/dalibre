@@ -71,6 +71,41 @@ type Source interface {
 	Storages() ([]Storage, error)
 }
 
+// Pending is a reader plugged in whose storage can't be read yet: a drive
+// that isn't mounted. Connect makes it readable (mounts it); the next scan
+// then finds its storage.
+type Pending struct {
+	// Node tells it from others while it is plugged in: the device it is,
+	// as "/dev/sde1".
+	Node  string
+	Label string
+	USB   USBInfo
+	// Connect mounts it.
+	Connect func(ctx context.Context) error
+}
+
+// PendingSource is a Source that also finds the readers plugged in that
+// it can't read yet.
+type PendingSource interface {
+	Source
+	Pending() ([]Pending, error)
+}
+
+// USBMatcher is a Driver that recognises its readers by their USB device
+// alone, before their storage can be read, to offer them while they
+// aren't mounted.
+type USBMatcher interface {
+	MatchUSB(usb USBInfo) bool
+}
+
+// Available is a reader plugged in but not connected, that a driver
+// recognised by its USB device.
+type Available struct {
+	Pending
+	// Kind is the driver's, as "kindle".
+	Kind string
+}
+
 // Driver recognises one kind of reader.
 type Driver interface {
 	// Kind names the kind of reader, as "kindle".

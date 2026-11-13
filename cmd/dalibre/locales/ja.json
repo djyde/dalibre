@@ -901,5 +901,8 @@
   "deviceEmptyHint": "ライブラリの本のメニューから送信するか、ここにファイルをドロップしてください。",
   "deviceDropTitle": "ドロップして {device} に送信",
   "deviceDropHint": "リーダーが読めない形式のファイルは除外されます。",
-  "deviceFile": "ファイル"
+  "deviceFile": "ファイル",
+  "deviceNotMounted": "未マウント",
+  "deviceMounting": "マウント中…",
+  "deviceMountFailed": "{device} をマウントできませんでした: {error}"
 }

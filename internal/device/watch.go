@@ -2,6 +2,7 @@ package device
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"sync"
@@ -28,6 +29,8 @@ type Watcher struct {
 	failed map[string]error
 	// ejected are storages ejected but maybe not gone yet, by storage ID.
 	ejected map[string]bool
+	// available are the readers plugged in but not connected, by node.
+	available map[string]Available
 }
 
 // Run looks for readers every so often until ctx is done, then closes the
@@ -57,6 +60,7 @@ func (w *Watcher) Run(ctx context.Context, every time.Duration) {
 // Scan looks at the sources once.
 func (w *Watcher) Scan(ctx context.Context) {
 	present := map[string]Storage{}
+	available := map[string]Available{}
 	for _, src := range w.Sources {
 		sts, err := src.Storages()
 		if err != nil {
@@ -65,12 +69,24 @@ func (w *Watcher) Scan(ctx context.Context) {
 		for _, st := range sts {
 			present[st.ID()] = st
 		}
+		if ps, ok := src.(PendingSource); ok {
+			pending, _ := ps.Pending()
+			for _, p := range pending {
+				if kind := w.matchUSB(p.USB); kind != "" {
+					available[p.Node] = Available{Pending: p, Kind: kind}
+				}
+			}
+		}
 	}
 	changed := false
 	w.mu.Lock()
 	if w.devices == nil {
 		w.devices, w.failed, w.ejected = map[string]Device{}, map[string]error{}, map[string]bool{}
 	}
+	if !sameNodes(w.available, available) {
+		changed = true
+	}
+	w.available = available
 	for id, d := range w.devices {
 		if _, ok := present[id]; !ok {
 			d.Close()
@@ -105,7 +121,11 @@ func (w *Watcher) Scan(ctx context.Context) {
 		d, err := drv.Open(ctx, st)
 		w.mu.Lock()
 		if err != nil {
-			w.failed[st.ID()] = err
+			oe := &OpenError{Err: err}
+			if n, ok := st.(interface{ Node() string }); ok {
+				oe.Node = n.Node()
+			}
+			w.failed[st.ID()] = oe
 		} else {
 			w.devices[st.ID()] = d
 		}
@@ -116,6 +136,91 @@ func (w *Watcher) Scan(ctx context.Context) {
 		w.OnChange()
 	}
 }
+
+// matchUSB is the kind of the driver that recognises a reader by its USB
+// device; "" when none does.
+func (w *Watcher) matchUSB(usb USBInfo) string {
+	for _, drv := range w.Drivers {
+		if m, ok := drv.(USBMatcher); ok && m.MatchUSB(usb) {
+			return drv.Kind()
+		}
+	}
+	return ""
+}
+
+func sameNodes(a, b map[string]Available) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k := range a {
+		if _, ok := b[k]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// Available are the readers plugged in but not connected, by label.
+func (w *Watcher) Available() []Available {
+	w.mu.Lock()
+	out := make([]Available, 0, len(w.available))
+	for _, a := range w.available {
+		out = append(out, a)
+	}
+	w.mu.Unlock()
+	slices.SortFunc(out, func(a, b Available) int {
+		if c := strings.Compare(a.Label, b.Label); c != 0 {
+			return c
+		}
+		return strings.Compare(a.Node, b.Node)
+	})
+	return out
+}
+
+// Connect connects the available reader at node (mounts it) and returns
+// it opened.
+func (w *Watcher) Connect(ctx context.Context, node string) (Device, error) {
+	w.mu.Lock()
+	a, ok := w.available[node]
+	w.mu.Unlock()
+	if !ok {
+		return nil, ErrGone
+	}
+	if err := a.Connect(ctx); err != nil {
+		return nil, err
+	}
+	w.Scan(ctx)
+	for _, d := range w.Devices() {
+		if n, ok := d.Storage().(interface{ Node() string }); ok && n.Node() == node {
+			return d, nil
+		}
+	}
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	for _, err := range w.failed {
+		var oe *OpenError
+		if errors.As(err, &oe) && oe.Node == node {
+			return nil, oe.Err
+		}
+	}
+	return nil, ErrNotFound
+}
+
+// OpenError is a reader recognised that couldn't be opened.
+type OpenError struct {
+	Node string
+	Err  error
+}
+
+func (e *OpenError) Error() string { return e.Err.Error() }
+func (e *OpenError) Unwrap() error { return e.Err }
+
+var (
+	// ErrGone is a reader unplugged meanwhile.
+	ErrGone = errors.New("the reader isn’t plugged in any more")
+	// ErrNotFound is a reader that was mounted but isn't seen.
+	ErrNotFound = errors.New("the reader was mounted but its library wasn’t found")
+)
 
 func (w *Watcher) match(st Storage) Driver {
 	for _, drv := range w.Drivers {

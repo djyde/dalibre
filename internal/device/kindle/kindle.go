@@ -66,6 +66,13 @@ func (Driver) Match(st device.Storage) bool {
 	return strings.EqualFold(st.Label(), "Kindle") || strings.HasPrefix(versionLine(st), "Kindle")
 }
 
+// MatchUSB recognises a Kindle by its USB device alone, to offer it while
+// its drive isn't mounted: Lab126's, as a USB drive (an MTP Kindle has no
+// drive to mount).
+func (Driver) MatchUSB(usb device.USBInfo) bool {
+	return usb.Vendor == VendorID && usb.Protocol == "usbms"
+}
+
 func isDir(st device.Storage, name string) bool {
 	fi, err := fs.Stat(st, name)
 	return err == nil && fi.IsDir()

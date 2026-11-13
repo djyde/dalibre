@@ -1135,5 +1135,8 @@
   "deviceEmptyHint": "Send books to it from your library’s book menu, or drop files here.",
   "deviceDropTitle": "Drop to send to {device}",
   "deviceDropHint": "Files of formats the reader doesn’t take are left out.",
-  "deviceFile": "File"
+  "deviceFile": "File",
+  "deviceNotMounted": "Not mounted",
+  "deviceMounting": "Mounting…",
+  "deviceMountFailed": "Couldn’t mount {device}: {error}"
 }

@@ -1091,5 +1091,8 @@
   "deviceEmptyHint": "Envíale libros desde el menú de un libro de tu biblioteca, o suelta archivos aquí.",
   "deviceDropTitle": "Suelta para enviar a {device}",
   "deviceDropHint": "Los archivos en formatos que el lector no lee se omiten.",
-  "deviceFile": "Archivo"
+  "deviceFile": "Archivo",
+  "deviceNotMounted": "Sin montar",
+  "deviceMounting": "Montando…",
+  "deviceMountFailed": "No se pudo montar {device}: {error}"
 }

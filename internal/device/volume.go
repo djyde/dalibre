@@ -76,6 +76,10 @@ func (v *Volume) Stat(name string) (fs.FileInfo, error) {
 	return fi, err
 }
 
+// Node is the device the volume is mounted from, as Pending.Node names
+// it before it is mounted.
+func (v *Volume) Node() string { return v.Dev }
+
 func (v *Volume) ID() string    { return v.Mount }
 func (v *Volume) Label() string { return v.label }
 func (v *Volume) USB() USBInfo  { return v.usb }

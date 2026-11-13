@@ -901,5 +901,8 @@
   "deviceEmptyHint": "从书库中书的菜单发送,或将文件拖放到这里。",
   "deviceDropTitle": "拖放以发送到 {device}",
   "deviceDropHint": "阅读器无法读取的格式的文件会被略过。",
-  "deviceFile": "文件"
+  "deviceFile": "文件",
+  "deviceNotMounted": "未挂载",
+  "deviceMounting": "正在挂载…",
+  "deviceMountFailed": "无法挂载 {device}:{error}"
 }

@@ -3,6 +3,8 @@ package device
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,8 +18,16 @@ import (
 // in /sys.
 type Volumes struct{}
 
+// Where Linux says what is mounted and what the volumes are called; tests
+// point them elsewhere, as sysRoot.
+var (
+	mountsFile = "/proc/self/mounts"
+	labelsDir  = "/dev/disk/by-label"
+	devDir     = "/dev"
+)
+
 func (Volumes) Storages() ([]Storage, error) {
-	data, err := os.ReadFile("/proc/self/mounts")
+	data, err := os.ReadFile(mountsFile)
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +91,12 @@ func unescapeOctal(s string) string {
 // /dev/disk/by-label, whose names escape bytes as \xHH.
 func diskLabels() map[string]string {
 	out := map[string]string{}
-	ents, err := os.ReadDir("/dev/disk/by-label")
+	ents, err := os.ReadDir(labelsDir)
 	if err != nil {
 		return out
 	}
 	for _, e := range ents {
-		dev, err := filepath.EvalSymlinks(filepath.Join("/dev/disk/by-label", e.Name()))
+		dev, err := filepath.EvalSymlinks(filepath.Join(labelsDir, e.Name()))
 		if err == nil {
 			out[dev] = unescapeHex(e.Name())
 		}
@@ -138,6 +148,96 @@ func usbOfBlock(name string) (USBInfo, bool) {
 	}
 	return USBInfo{}, false
 }
+
+// Pending are the volumes of USB drives that aren't mounted: the
+// partitions in /sys/class/block on a USB device, with a medium, not in
+// /proc/self/mounts; a whole disk counts when it has no partitions, as
+// some readers' drives have none.
+func (Volumes) Pending() ([]Pending, error) {
+	data, err := os.ReadFile(mountsFile)
+	if err != nil {
+		return nil, err
+	}
+	mounted := map[string]bool{}
+	for _, m := range parseMounts(data) {
+		dev := m.dev
+		if real, err := filepath.EvalSymlinks(dev); err == nil {
+			dev = real
+		}
+		mounted[filepath.Base(dev)] = true
+	}
+	ents, err := os.ReadDir(filepath.Join(sysRoot, "class", "block"))
+	if err != nil {
+		return nil, err
+	}
+	labels := diskLabels()
+	var out []Pending
+	for _, e := range ents {
+		name := e.Name()
+		if mounted[name] || !hasMedium(name) {
+			continue
+		}
+		dir, err := filepath.EvalSymlinks(filepath.Join(sysRoot, "class", "block", name))
+		if err != nil {
+			continue
+		}
+		if _, err := os.Stat(filepath.Join(dir, "partition")); err != nil && hasPartitions(dir, name) {
+			continue // a disk whose partitions are the volumes
+		}
+		usb, ok := usbOfBlock(name)
+		if !ok {
+			continue
+		}
+		node := filepath.Join(devDir, name)
+		out = append(out, Pending{Node: node, Label: labels[node], USB: usb, Connect: func(ctx context.Context) error {
+			return mount(ctx, node)
+		}})
+	}
+	return out, nil
+}
+
+// hasMedium reports whether the block device holds anything: a card
+// reader without a card is 0 sectors.
+func hasMedium(name string) bool {
+	b, err := os.ReadFile(filepath.Join(sysRoot, "class", "block", name, "size"))
+	if err != nil {
+		return false
+	}
+	n, _ := strconv.ParseInt(strings.TrimSpace(string(b)), 10, 64)
+	return n > 0
+}
+
+// hasPartitions reports whether the disk in sysfs folder dir has
+// partitions: folders named after it with a partition file.
+func hasPartitions(dir, name string) bool {
+	ents, err := os.ReadDir(dir)
+	if err != nil {
+		return false
+	}
+	for _, e := range ents {
+		if strings.HasPrefix(e.Name(), name) && e.Name() != name {
+			if _, err := os.Stat(filepath.Join(dir, e.Name(), "partition")); err == nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// mount mounts the volume at node as the desktop does, with udisks, for
+// the user and without asking for a password; tests replace it.
+var mount = func(ctx context.Context, node string) error {
+	exe, err := exec.LookPath("udisksctl")
+	if err != nil {
+		return errNoUdisks
+	}
+	if out, err := exec.CommandContext(ctx, exe, "mount", "--no-user-interaction", "-b", node).CombinedOutput(); err != nil {
+		return fmt.Errorf("%s", firstLine(out, err))
+	}
+	return nil
+}
+
+var errNoUdisks = errors.New("udisks isn’t installed: mount the reader from your file manager")
 
 // eject unmounts the volume and powers its drive off, with udisks as the
 // desktop does, so the reader leaves USB mode; with plain umount when

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -191,6 +192,88 @@ func TestReaderUnplugged(t *testing.T) {
 	a.devicesChanged()
 	if a.page != pageLibrary || a.dev.view != nil {
 		t.Errorf("page %v after unplugging", a.page)
+	}
+}
+
+// unmountedKindle is a Kindle plugged in but not mounted until Connect,
+// as device.Volumes finds one on Linux.
+type unmountedKindle struct {
+	root    string
+	mounted bool
+	fail    error
+}
+
+func (s *unmountedKindle) Storages() ([]device.Storage, error) {
+	if !s.mounted {
+		return nil, nil
+	}
+	return []device.Storage{device.NewVolume(s.root, "/dev/sde1", "Kindle", device.USBInfo{Vendor: kindle.VendorID, Name: "Amazon Kindle", Protocol: "usbms"})}, nil
+}
+
+func (s *unmountedKindle) Pending() ([]device.Pending, error) {
+	if s.mounted {
+		return nil, nil
+	}
+	return []device.Pending{{Node: "/dev/sde1", Label: "Kindle",
+		USB: device.USBInfo{Vendor: kindle.VendorID, Name: "Amazon Kindle", Protocol: "usbms"},
+		Connect: func(context.Context) error {
+			if s.fail != nil {
+				return s.fail
+			}
+			s.mounted = true
+			return nil
+		}}}, nil
+}
+
+func TestMountReaderFromSwitcher(t *testing.T) {
+	a := newTestApp(t)
+	src := &unmountedKindle{root: fakeKindle(t, true)}
+	w := &device.Watcher{Sources: []device.Source{src}, Drivers: a.deviceDrivers()}
+	a.dev = &devicesState{watcher: w, failed: map[string]bool{}}
+	w.Scan(context.Background())
+	a.devicesChanged()
+	if len(a.devices()) != 0 || len(a.dev.available) != 1 {
+		t.Fatalf("devices %d, available %d", len(a.devices()), len(a.dev.available))
+	}
+	tt := ui.NewTester(a.View, 1440, 900)
+	tt.Frame()
+	if err := tt.Click("Library"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText("Amazon Kindle · Not mounted") {
+		t.Fatalf("switcher misses the unmounted Kindle: %q", tt.Texts())
+	}
+	shot(t, tt, "device-not-mounted")
+	if err := tt.Click("Kindle"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !src.mounted || a.page != pageDevice || a.deviceView() == nil {
+		t.Fatalf("after choosing: mounted %v, page %v", src.mounted, a.page)
+	}
+	if tt.HasText("Kindle connected") {
+		t.Error("a Kindle the user mounted was announced as if plugged in")
+	}
+	if !tt.HasText("No books on Kindle") {
+		t.Errorf("reader page: %q", tt.Texts())
+	}
+}
+
+func TestMountReaderFails(t *testing.T) {
+	a := newTestApp(t)
+	src := &unmountedKindle{root: fakeKindle(t, false), fail: errors.New("Not authorized to perform operation")}
+	w := &device.Watcher{Sources: []device.Source{src}, Drivers: a.deviceDrivers()}
+	a.dev = &devicesState{watcher: w, failed: map[string]bool{}}
+	w.Scan(context.Background())
+	a.devicesChanged()
+	a.toasts = nil
+	a.connectReader(a.dev.available[0])
+	if a.page == pageDevice || a.dev.connecting != "" {
+		t.Errorf("page %v, connecting %q", a.page, a.dev.connecting)
+	}
+	if len(a.toasts) != 1 || !strings.Contains(a.toasts[0].text, "Couldn’t mount Kindle: Not authorized") {
+		t.Errorf("toasts = %+v", a.toasts)
 	}
 }
 

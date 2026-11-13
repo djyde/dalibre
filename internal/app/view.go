@@ -324,7 +324,7 @@ func (a *App) librarySwitcher(c *ui.Context) {
 		}
 		// The readers plugged in are libraries too.
 		a.deviceSwitcherItems(m)
-		if len(recent) > 0 || len(a.devices()) > 0 {
+		if len(recent) > 0 || len(a.devices()) > 0 || a.dev != nil && len(a.dev.available) > 0 {
 			m.Separator()
 		}
 		if m.Item(locales.MainOpenLibraryMenu()).Chosen() {

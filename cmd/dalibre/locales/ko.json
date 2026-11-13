@@ -1091,5 +1091,8 @@
   "deviceEmptyHint": "라이브러리의 책 메뉴에서 보내거나 여기에 파일을 놓으세요.",
   "deviceDropTitle": "놓아서 {device}(으)로 보내기",
   "deviceDropHint": "리더가 읽지 못하는 형식의 파일은 제외됩니다.",
-  "deviceFile": "파일"
+  "deviceFile": "파일",
+  "deviceNotMounted": "마운트되지 않음",
+  "deviceMounting": "마운트하는 중…",
+  "deviceMountFailed": "{device}을(를) 마운트할 수 없습니다: {error}"
 }

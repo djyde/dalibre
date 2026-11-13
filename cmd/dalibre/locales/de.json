@@ -1091,5 +1091,8 @@
   "deviceEmptyHint": "Sende Bücher aus dem Buchmenü deiner Bibliothek oder lege Dateien hier ab.",
   "deviceDropTitle": "Ablegen, um an {device} zu senden",
   "deviceDropHint": "Dateien in Formaten, die der Reader nicht liest, werden übersprungen.",
-  "deviceFile": "Datei"
+  "deviceFile": "Datei",
+  "deviceNotMounted": "Nicht eingehängt",
+  "deviceMounting": "Wird eingehängt …",
+  "deviceMountFailed": "{device} konnte nicht eingehängt werden: {error}"
 }

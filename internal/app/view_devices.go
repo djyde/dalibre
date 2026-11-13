@@ -33,10 +33,31 @@ func (a *App) deviceSubtitle(d device.Device) string {
 // menu: choosing one shows its library.
 func (a *App) deviceSwitcherItems(m *ui.Menu) {
 	devs := a.devices()
-	if len(devs) == 0 {
+	var avail []device.Available
+	if a.dev != nil {
+		avail = a.dev.available
+	}
+	if len(devs) == 0 && len(avail) == 0 {
 		return
 	}
 	m.Separator()
+	defer func() {
+		// The readers not mounted, mounted when chosen.
+		for _, av := range avail {
+			state := locales.DeviceNotMounted()
+			if a.dev.connecting == av.Node {
+				state = locales.DeviceMounting()
+			}
+			sub := state
+			if av.USB.Name != "" {
+				sub = av.USB.Name + " · " + state
+			}
+			item := m.Item(availableName(av)).ID("available:" + av.Node).Icon(icons.Menu(icons.Tablet)).Subtitle(sub).Disabled(a.dev.connecting != "")
+			if item.Chosen() {
+				a.connectReader(av)
+			}
+		}
+	}()
 	cur := a.deviceView()
 	for _, d := range devs {
 		info := d.Info()

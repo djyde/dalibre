@@ -35,6 +35,10 @@ type devicesState struct {
 	stop    func()
 	// list is the readers connected, as last told (main thread).
 	list []device.Device
+	// available are the readers plugged in but not mounted, offered in
+	// the switcher; connecting is the one being mounted, by node.
+	available  []device.Available
+	connecting string
 	// failed are the errors already said, so each is said once.
 	failed map[string]bool
 	// view is the reader whose page shows.
@@ -116,8 +120,10 @@ func (a *App) devicesChanged() {
 	}
 	before := ds.list
 	ds.list = ds.watcher.Devices()
+	ds.available = ds.watcher.Available()
 	for _, d := range ds.list {
-		if !slices.Contains(before, d) {
+		// One the user asked to mount opens by itself, unannounced.
+		if !slices.Contains(before, d) && ds.connecting == "" {
 			name := d.Info().Name
 			a.toasts = append(a.toasts, toastMsg{text: locales.DeviceConnected(name), action: locales.DeviceShow(), onAction: func() {
 				a.post(func() { a.openDevice(d) })
@@ -139,6 +145,41 @@ func (a *App) devicesChanged() {
 			a.toastError(errors.New(locales.WirelessLost(v.info.Name)))
 		}
 	}
+}
+
+// availableName is what a reader that isn't mounted is called: its
+// volume's label, else its kind's name.
+func availableName(av device.Available) string {
+	if av.Label != "" {
+		return av.Label
+	}
+	if av.Kind == "kindle" {
+		return "Kindle"
+	}
+	return av.USB.Name
+}
+
+// connectReader mounts a reader plugged in but not mounted, and shows its
+// page once it is read.
+func (a *App) connectReader(av device.Available) {
+	ds := a.dev
+	if ds == nil || ds.connecting != "" {
+		return
+	}
+	ds.connecting = av.Node
+	name, w := availableName(av), ds.watcher
+	a.run(func() {
+		d, err := w.Connect(context.Background(), av.Node)
+		a.post(func() {
+			ds.connecting = ""
+			ds.list, ds.available = w.Devices(), w.Available()
+			if err != nil {
+				a.toastError(errors.New(locales.DeviceMountFailed(name, err.Error())))
+				return
+			}
+			a.openDevice(d)
+		})
+	})
 }
 
 // devices are the readers connected.
