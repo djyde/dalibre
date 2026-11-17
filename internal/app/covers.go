@@ -12,6 +12,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"dalibre/internal/app/theme"
+	"dalibre/internal/app/widgets"
 	"dalibre/internal/calibre"
 	"dalibre/internal/thumbs"
 )
@@ -116,11 +117,24 @@ func (a *App) coverView(c *ui.Context, b *calibre.Book, w, h float32, small bool
 // coverOf draws the cover in a w×h box from bmp, or a typographic one
 // when bmp is nil.
 func coverOf(c *ui.Context, b *calibre.Book, bmp *ui.Bitmap, w, h float32, small bool) ui.Element {
+	return coverObi(c, b, bmp, w, h, small, "")
+}
+
+// coverObi is coverOf wearing the obi of the reader the book is on;
+// reader "" for none. A typographic cover's title moves up above the obi;
+// an image is covered by it, as by a real one.
+func coverObi(c *ui.Context, b *calibre.Book, bmp *ui.Bitmap, w, h float32, small bool, reader string) ui.Element {
+	if small {
+		reader = ""
+	}
 	box := ui.Box(c).Size(w, h).Radius(2, 4, 4, 2).Clip().Shadow(0, 1, 1, 0, ui.RGBA(26, 23, 18, 0.12)).Shadow(0, 6, 14, -4, ui.RGBA(26, 23, 18, 0.16))
 	if bmp != nil {
 		box.Children(func() {
 			ui.Image(c, bmp).Fill().Fit(ui.Cover)
 			spine(c, small)
+			if reader != "" {
+				widgets.ReaderObi(c, reader, w)
+			}
 		})
 		return box
 	}
@@ -135,7 +149,11 @@ func coverOf(c *ui.Context, b *calibre.Book, bmp *ui.Bitmap, w, h float32, small
 		return box
 	}
 	scale := w / theme.CoverW
-	box.Padding(theme.Space12*scale, theme.Space12*scale, theme.Space12*scale, theme.Space16*scale).Justify(ui.SpaceBetween).Children(func() {
+	bottom := float32(theme.Space12)
+	if reader != "" {
+		bottom += widgets.ObiHeight
+	}
+	box.Padding(theme.Space12*scale, theme.Space12*scale, bottom*scale, theme.Space16*scale).Justify(ui.SpaceBetween).Children(func() {
 		author := strings.ToUpper(strings.Join(b.Authors, ", "))
 		ui.Text(c, author).Font(theme.FontMono).FontSize(8 * scale).LetterSpacing(1 * scale).TextColor(tn.fg.Alpha(0.75)).MaxLines(2)
 		ui.Column(c).Gap(theme.Space8 * scale).Children(func() {
@@ -143,6 +161,9 @@ func coverOf(c *ui.Context, b *calibre.Book, bmp *ui.Bitmap, w, h float32, small
 			ui.Text(c, b.Title).FontWeight(600).FontSize(15 * scale).FixedLineHeight(19 * scale).LetterSpacing(-0.1 * scale).TextColor(tn.fg).MaxLines(5)
 		})
 		spine(c, false)
+		if reader != "" {
+			widgets.ReaderObi(c, reader, w)
+		}
 	})
 	return box
 }

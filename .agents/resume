@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Runs after activation and on every wake. Nothing to authenticate or
+# reconnect here; confirm the toolchain is in place so a broken snapshot
+# surfaces now, not mid-task.
+set -euo pipefail
+
+command -v go >/dev/null && go version

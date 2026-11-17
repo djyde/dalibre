@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -21,6 +22,7 @@ type importState struct {
 	skipped []string // dropped files that aren't e-books, by name
 	added   []int64
 	failed  []string // "name: reason"
+	warned  []error  // file type plugins that failed on a file
 	held    []*heldBook
 
 	review   bool // the review sheet is open
@@ -33,6 +35,16 @@ type heldBook struct {
 	p      calibre.Prepared
 	dup    *calibre.Duplicate
 	action dupAction
+	done   func() // removes what file type plugins made of the file
+}
+
+// releaseHeld removes what plugins made of held books' files.
+func releaseHeld(held []*heldBook) {
+	for _, h := range held {
+		if h.done != nil {
+			h.done()
+		}
+	}
 }
 
 type dupAction int
@@ -100,6 +112,7 @@ func (a *App) importFiles(paths []string) {
 		return
 	}
 	a.busy, a.busyDone, a.busyTotal = "Adding books", 0, 0
+	hooks, after := a.importPlugins(), a.hookPlugins()
 	a.run(func() {
 		// Folders are walked here, off the main thread: they may be large.
 		var files, skipped []string
@@ -119,28 +132,39 @@ func (a *App) importFiles(paths []string) {
 		var added []int64
 		var held []*heldBook
 		var failed []string
+		var warned []error
 		dups, _ := lib.Duplicates() // without it, every file is added
 		for i, f := range files {
-			p := calibre.Prepare(f, calibre.Metadata{}, nil)
+			file, done, errs := processImport(context.Background(), hooks, f)
+			warned = append(warned, errs...)
+			p := calibre.Prepare(file, calibre.Metadata{}, nil)
 			var dup *calibre.Duplicate
 			if dups != nil {
 				dup, _ = dups.Find(p)
 			}
 			if dup != nil {
-				held = append(held, newHeld(p, dup))
-			} else if id, err := lib.Add(p); err != nil {
+				h := newHeld(p, dup)
+				h.done = done // the file waits for the review
+				held = append(held, h)
+				continue
+			}
+			if id, err := lib.Add(p); err != nil {
 				failed = append(failed, fmt.Sprintf("%s: %v", filepath.Base(f), err))
 			} else {
 				added = append(added, id)
 				if dups != nil {
 					dups.Added(id, p.Metadata)
 				}
+				afterAdd(context.Background(), lib, after, id, p.Format, true)
 			}
+			done()
 			a.post(func() { a.busyDone = i + 1 })
 		}
 		a.post(func() {
 			a.busy = ""
 			if lib != a.lib {
+				releaseHeld(held)
+				releaseHeld(a.imp.held)
 				a.imp = importState{}
 				return
 			}
@@ -149,6 +173,7 @@ func (a *App) importFiles(paths []string) {
 			im.skipped = append(im.skipped, skipped...)
 			im.added = append(im.added, added...)
 			im.failed = append(im.failed, failed...)
+			im.warned = append(im.warned, warned...)
 			im.held = append(im.held, held...)
 			if len(im.queue) > 0 {
 				next := im.queue[0]
@@ -172,6 +197,10 @@ func (a *App) finishImport() {
 			a.chosen.Clear()
 			a.curID = added[len(added)-1]
 		}
+		for _, e := range im.warned {
+			a.toastError(e)
+		}
+		im.warned = nil
 		if len(im.held) > 0 {
 			im.review = true
 			return
@@ -204,6 +233,7 @@ func (a *App) applyReview() {
 	}
 	held := im.held
 	im.applying = true
+	after := a.hookPlugins()
 	a.run(func() {
 		var newBooks, updated int
 		var last int64
@@ -215,10 +245,12 @@ func (a *App) applyReview() {
 			case dupAddFormat, dupReplace:
 				if err = lib.AddFormat(id, h.p.File); err == nil {
 					updated++
+					afterAdd(context.Background(), lib, after, id, h.p.Format, false)
 				}
 			case dupAddNew:
 				if id, err = lib.Add(h.p); err == nil {
 					newBooks++
+					afterAdd(context.Background(), lib, after, id, h.p.Format, true)
 				}
 			default:
 				continue
@@ -229,6 +261,7 @@ func (a *App) applyReview() {
 			}
 			last = id
 		}
+		releaseHeld(held)
 		a.post(func() {
 			queue := a.imp.queue
 			a.imp = importState{queue: queue}
@@ -259,6 +292,7 @@ func (a *App) skipReview() {
 	if a.imp.applying {
 		return
 	}
+	releaseHeld(a.imp.held)
 	a.imp = importState{queue: a.imp.queue}
 }
 

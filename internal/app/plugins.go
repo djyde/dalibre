@@ -64,6 +64,9 @@ type consentAsk struct {
 	archive  string
 	// source is the GitHub repository an update comes from.
 	source *settings.PluginSource
+	// answered, when set, takes the user's answer in place of installing:
+	// an agent adding the plugin waits for it.
+	answered func(granted bool)
 }
 
 // granted reports whether the user granted m everything it asks for.
@@ -71,17 +74,25 @@ func granted(st *settings.PluginState, m *plugin.Manifest) bool {
 	if st == nil || st.Granted == nil {
 		return false
 	}
-	return plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library}.Covers(m.Permissions)
+	return plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, CoverHosts: st.Granted.Covers}.Covers(m.Permissions) &&
+		grantedTools(st.Granted, m)
 }
 
 // loadPlugins loads the built-in plugins and the enabled ones in the
 // plugins folder whose permissions the user granted, in the background.
 // The others wait for the user in pluginsPending.
 func (a *App) loadPlugins() {
+	if stop := a.act.cancel; stop != nil {
+		stop() // an action waiting on its form would keep its plugin from closing
+	}
 	dir, builtins, transport, store := a.pluginDir, a.builtins, a.pluginTransport, a.secrets
+	tools := a.toolStore()
 	if dir == "" && !builtins {
+		a.pluginsSettled()
 		return
 	}
+	a.loadSeq++
+	seq := a.loadSeq
 	states := map[string]settings.PluginState{}
 	for id, st := range a.settings.Plugins {
 		states[id] = *st
@@ -94,6 +105,21 @@ func (a *App) loadPlugins() {
 		var errs []error
 		secrets := map[string]map[string]string{}
 		var moved []*plugin.Manifest
+		needTools := map[string][]string{}
+		places := map[string]map[string]toolPlace{}
+		// withTools finds m's tools: false when one is missing, and m
+		// can't load until it is here.
+		withTools := func(m *plugin.Manifest, st settings.PluginState) (map[string]string, bool) {
+			found, missing := locateTools(tools, m, st.Tools)
+			if len(missing) > 0 {
+				needTools[m.ID] = missing
+				return nil, false
+			}
+			if found != nil {
+				places[m.ID] = found
+			}
+			return toolPaths(found), true
+		}
 		// options are what m loads with: its values, secrets included.
 		options := func(m *plugin.Manifest, st settings.PluginState) plugin.Options {
 			values, sec, mv := pluginValues(store, m, st.Values)
@@ -103,7 +129,11 @@ func (a *App) loadPlugins() {
 			if mv {
 				moved = append(moved, m)
 			}
-			return plugin.Options{Settings: values, Transport: transport}
+			o := plugin.Options{Settings: values, Transport: transport}
+			if dir != "" {
+				o.DataDir = plugin.DataDir(dir, m.ID)
+			}
+			return o
 		}
 		if builtins {
 			// Dalibre vouches for its own plugins: they have what they ask.
@@ -144,7 +174,13 @@ func (a *App) loadPlugins() {
 					pending = append(pending, m)
 					return plugin.Options{}, false
 				}
-				return options(m, st), true
+				paths, ok := withTools(m, st)
+				if !ok {
+					return plugin.Options{}, false
+				}
+				o := options(m, st)
+				o.Tools = paths
+				return o, true
 			})
 			plugins = append(plugins, found...)
 			errs = append(errs, ferrs...)
@@ -177,7 +213,13 @@ func (a *App) loadPlugins() {
 				pending = append(pending, m)
 				continue
 			}
-			p, err := plugin.Load(st.Path, options(m, st))
+			paths, ok := withTools(m, st)
+			if !ok {
+				continue
+			}
+			o := options(m, st)
+			o.Tools = paths
+			p, err := plugin.Load(st.Path, o)
 			if err != nil {
 				errs = append(errs, err)
 				continue
@@ -195,8 +237,8 @@ func (a *App) loadPlugins() {
 					d.cancel()
 				}
 			}
-			// Each plugin holds an interpreter whose memory Go doesn't
-			// collect. Close waits for a call in progress.
+			// Close ends what each old plugin has in flight (timers,
+			// requests) and waits for a call in progress.
 			a.run(func() {
 				for _, p := range old {
 					p.Close()
@@ -204,12 +246,37 @@ func (a *App) loadPlugins() {
 			})
 			a.pluginsLoading = false
 			a.pluginErrs, a.pluginsPending, a.pluginsKnown = errs, pending, known
+			a.tl.missing, a.tl.places = needTools, places
 			a.setPlugins(plugins)
+			if a.tl.prune {
+				a.tl.prune = false
+				a.keepTools(known)
+			}
+			a.checkPlugins(plugins)
 			for _, err := range errs {
 				a.toastError(errors.New(locales.PluginsErrToast(err.Error())))
 			}
+			if seq == a.loadSeq {
+				a.pluginsSettled()
+			}
 		})
 	})
+}
+
+// afterPluginLoad is closed once the plugins are loaded: by the load
+// under way, or the next. Main thread.
+func (a *App) afterPluginLoad() <-chan struct{} {
+	ch := make(chan struct{})
+	a.loadWait = append(a.loadWait, ch)
+	return ch
+}
+
+// pluginsSettled tells those waiting in afterPluginLoad.
+func (a *App) pluginsSettled() {
+	for _, ch := range a.loadWait {
+		close(ch)
+	}
+	a.loadWait = nil
 }
 
 // setPlugins makes plugins the loaded ones. What the Get books page holds
@@ -271,8 +338,15 @@ func (a *App) grantConsent() {
 	}
 	a.consent = nil
 	st := a.settings.Plugin(c.manifest.ID)
-	st.Granted = &settings.Grant{Hosts: slices.Clone(c.manifest.Permissions.Hosts), LocalNetwork: c.manifest.Permissions.LocalNetwork, Library: c.manifest.Permissions.Library}
+	st.Granted = grantFor(c.manifest)
 	a.saveSettings()
+	if len(c.manifest.Tools) > 0 {
+		a.getPickedTools(c.manifest)
+	}
+	if c.answered != nil {
+		c.answered(true)
+		return
+	}
 	if c.archive != "" {
 		a.finishInstallFrom(c.archive, c.source)
 		return
@@ -366,14 +440,20 @@ func (a *App) linkPlugin(folder string) {
 				a.toastError(errors.New(locales.PluginsAddFailed(err.Error())))
 				return
 			}
-			st := a.settings.Plugin(m.ID)
-			st.Path, st.Source = abs, nil
-			delete(a.updates, m.ID)
-			a.saveSettings()
-			a.toast("%s", locales.PluginsAddedFrom(m.Name, filepath.Base(abs)))
-			a.loadPlugins()
+			a.link(m, abs)
 		})
 	})
+}
+
+// link makes the plugin with manifest m load from folder abs, and loads
+// the plugins again.
+func (a *App) link(m *plugin.Manifest, abs string) {
+	st := a.settings.Plugin(m.ID)
+	st.Path, st.Source = abs, nil
+	delete(a.updates, m.ID)
+	a.saveSettings()
+	a.toast("%s", locales.PluginsAddedFrom(m.Name, filepath.Base(abs)))
+	a.loadPlugins()
 }
 
 // uninstallPlugin removes plugin id and what the user decided about it.
@@ -389,6 +469,7 @@ func (a *App) uninstallPlugin(id string) {
 		return
 	}
 	dir := a.pluginDir
+	a.tl.prune = true // the builds only it declared go
 	a.run(func() {
 		err := plugin.Uninstall(dir, id)
 		a.post(func() {
@@ -413,6 +494,8 @@ func (a *App) downloadBook(p *plugin.Plugin, r plugin.Result, format string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	d := &download{plugin: p, result: r, format: strings.ToUpper(format), total: -1, cancel: cancel}
 	a.downloads = append(a.downloads, d)
+	hooks, after := a.importPlugins(), a.hookPlugins()
+	var warned []error
 	a.run(func() {
 		defer cancel()
 		id, err := func() (int64, error) {
@@ -432,9 +515,19 @@ func (a *App) downloadBook(p *plugin.Plugin, r plugin.Result, format string) {
 				return 0, err
 			}
 			cover, _ := p.Cover(ctx, r) // the file's own cover comes first; a missing one is no failure
-			return lib.ImportWith(file, resultMetadata(r), cover)
+			file, done, errs := processImport(ctx, hooks, file)
+			defer done()
+			warned = errs
+			id, err := lib.ImportWith(file, resultMetadata(r), cover)
+			if err == nil {
+				afterAdd(ctx, lib, after, id, strings.ToUpper(strings.TrimPrefix(filepath.Ext(file), ".")), true)
+			}
+			return id, err
 		}()
 		a.post(func() {
+			for _, e := range warned {
+				a.toastError(e)
+			}
 			d.finished, d.err, d.bookID = true, err, id
 			if err != nil {
 				if !errors.Is(err, context.Canceled) && !isCanceled(err) {

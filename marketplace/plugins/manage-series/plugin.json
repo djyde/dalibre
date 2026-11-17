@@ -1,0 +1,40 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.manage-series",
+  "name": "Manage Series",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/manage-series",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "description": "Puts books in a series and numbers them",
+  "icon": "layers",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "set-series",
+        "title": "Set series…",
+        "icon": "layers",
+        "scope": "books",
+        "books": {
+          "min": 1
+        }
+      },
+      {
+        "id": "clear-series",
+        "title": "Remove from series",
+        "icon": "x",
+        "scope": "books",
+        "books": {
+          "min": 1
+        }
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

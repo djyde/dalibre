@@ -1,0 +1,86 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.epub-merge",
+  "name": "EPUB Merge",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "Merge EPUBs into one new book, after calibre's EpubMerge",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/epub-merge",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "icon": "layers",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "merge",
+        "title": "Merge EPUBs…",
+        "icon": "layers",
+        "scope": "books",
+        "books": {
+          "min": 2
+        },
+        "formats": [
+          "EPUB"
+        ],
+        "files": true,
+        "covers": true
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  },
+  "settings": [
+    {
+      "key": "titlenavpoints",
+      "title": "Insert Table of Contents entry for each title",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "originalnavpoints",
+      "title": "Copy Table of Contents entries from each title",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "removesingletocs",
+      "title": "Skip when there is only one TOC entry",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "flattentoc",
+      "title": "Flatten Table of Contents",
+      "type": "toggle",
+      "default": "false"
+    },
+    {
+      "key": "includecomments",
+      "title": "Include books' comments",
+      "type": "toggle",
+      "default": "false"
+    },
+    {
+      "key": "firstseries",
+      "title": "Copy series from first book",
+      "type": "toggle",
+      "default": "false"
+    },
+    {
+      "key": "mergetags",
+      "title": "Add tags to merged books",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "key": "mergeword",
+      "title": "Word for the default title",
+      "type": "text",
+      "default": "Anthology"
+    }
+  ]
+}

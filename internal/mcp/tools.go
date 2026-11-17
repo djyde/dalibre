@@ -462,6 +462,7 @@ type addBooksOut struct {
 	Added      []Added   `json:"added"`
 	Duplicates []Held    `json:"duplicates,omitempty" jsonschema:"not added: add_format adds a file to the book the library has"`
 	Failed     []Failure `json:"failed,omitempty"`
+	Warnings   []string  `json:"warnings,omitempty" jsonschema:"file type plugins that failed on a file, which was added as it was"`
 }
 
 type idsIn struct {
@@ -478,10 +479,11 @@ type addFormatIn struct {
 }
 
 type formatOut struct {
-	ID      int64    `json:"id"`
-	Format  string   `json:"format"`
-	Path    string   `json:"path,omitempty" jsonschema:"the file in the library"`
-	Formats []string `json:"formats" jsonschema:"the formats the book has now"`
+	ID       int64    `json:"id"`
+	Format   string   `json:"format"`
+	Path     string   `json:"path,omitempty" jsonschema:"the file in the library"`
+	Formats  []string `json:"formats" jsonschema:"the formats the book has now"`
+	Warnings []string `json:"warnings,omitempty" jsonschema:"file type plugins that failed on the file, which was added as it was"`
 }
 
 type removeFormatIn struct {
@@ -686,18 +688,23 @@ func (s *Server) addBooks(ctx context.Context, _ *sdk.CallToolRequest, in addBoo
 			out.Failed = append(out.Failed, Failure{File: f, Error: err.Error()})
 			continue
 		}
-		p := calibre.Prepare(f, calibre.Metadata{}, nil)
+		file, done, warned := s.processImport(ctx, f)
+		out.Warnings = append(out.Warnings, warned...)
+		p := calibre.Prepare(file, calibre.Metadata{}, nil)
 		if dups != nil {
 			if d, _ := dups.Find(p); d != nil {
+				done()
 				out.Duplicates = append(out.Duplicates, Held{File: f, ID: d.Book.ID, Title: d.Book.Title, HasFormat: d.HasFormat, SameFile: d.SameFile})
 				continue
 			}
 		}
 		id, err := lib.Add(p)
+		done()
 		if err != nil {
 			out.Failed = append(out.Failed, Failure{File: f, Error: err.Error()})
 			continue
 		}
+		s.added(ctx, id, p.Format, true)
 		if dups != nil {
 			dups.Added(id, p.Metadata)
 		}
@@ -757,12 +764,15 @@ func (s *Server) addFormat(ctx context.Context, _ *sdk.CallToolRequest, in addFo
 	if err := checkFile(lib, in.Path); err != nil {
 		return nil, formatOut{}, err
 	}
-	if err := lib.AddFormat(in.ID, in.Path); err != nil {
+	file, done, warned := s.processImport(ctx, in.Path)
+	defer done()
+	if err := lib.AddFormat(in.ID, file); err != nil {
 		return nil, formatOut{}, err
 	}
+	s.added(ctx, in.ID, strings.ToUpper(strings.TrimPrefix(filepath.Ext(file), ".")), false)
 	s.host.Changed()
-	format := strings.ToUpper(strings.TrimPrefix(filepath.Ext(in.Path), "."))
-	out := formatOut{ID: in.ID, Format: format, Formats: []string{}}
+	format := strings.ToUpper(strings.TrimPrefix(filepath.Ext(file), "."))
+	out := formatOut{ID: in.ID, Format: format, Formats: []string{}, Warnings: warned}
 	if b, err := lib.Book(in.ID); err == nil {
 		out.Formats = nonNil(b.Formats)
 		if d, err := lib.Details(b); err == nil {
@@ -792,6 +802,9 @@ func (s *Server) removeFormat(ctx context.Context, _ *sdk.CallToolRequest, in re
 	}
 	if err := lib.RemoveFormat(in.ID, format); err != nil {
 		return nil, formatOut{}, err
+	}
+	if ev, ok := s.host.(Events); ok {
+		ev.FormatRemoved(ctx, in.ID, format)
 	}
 	s.host.Changed()
 	out := formatOut{ID: in.ID, Format: format, Formats: []string{}}

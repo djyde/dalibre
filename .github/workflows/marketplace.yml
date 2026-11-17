@@ -1,0 +1,88 @@
+# The Marketplace (marketplace/): on pull requests, checks its plugins and
+# the community's with the dalibre-plugin of the same commit. On main, and
+# daily for the community's new releases, packs each plugin version not
+# packed yet and writes marketplace.json, onto the marketplace branch,
+# which Dalibre reads (plugin.MarketplaceURL). A pack is never replaced:
+# bump a plugin's version to publish a change.
+name: Marketplace
+
+on:
+  pull_request:
+    paths: ["marketplace/**", "internal/plugin/**", "cmd/dalibre-plugin/**", ".github/workflows/marketplace.yml"]
+  push:
+    branches: [main]
+    paths: ["marketplace/**", "internal/plugin/**", "cmd/dalibre-plugin/**", ".github/workflows/marketplace.yml"]
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write # the marketplace branch
+
+concurrency: marketplace-${{ github.ref }}
+
+jobs:
+  marketplace:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: marketplace
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: marketplace/package-lock.json
+      - name: Build dalibre-plugin
+        working-directory: .
+        run: go build -o /usr/local/bin/dalibre-plugin ./cmd/dalibre-plugin
+      - run: npm ci
+      - name: Bundle and check the plugins
+        run: |
+          node build.mjs
+          for d in plugins/*/; do dalibre-plugin check "$d" | tee /tmp/check.txt; ! grep -q '^warning: uses what' /tmp/check.txt; done
+      - name: Check the community's plugins
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DALIBRE_PLUGIN: /usr/local/bin/dalibre-plugin
+        run: node index.mjs --check
+      - name: Check out the marketplace branch
+        if: github.event_name != 'pull_request'
+        working-directory: .
+        run: |
+          if git ls-remote --exit-code --heads origin marketplace > /dev/null; then
+            git fetch --depth 1 origin marketplace
+            git worktree add /tmp/published origin/marketplace
+            git -C /tmp/published switch -c marketplace
+          else
+            git worktree add --orphan -b marketplace /tmp/published
+          fi
+      - name: Pack new versions
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p /tmp/published/packages
+          for d in plugins/*/; do
+            id=$(jq -r .id "$d/plugin.json") version=$(jq -r .version "$d/plugin.json")
+            [ -e "/tmp/published/packages/$id-$version.dalibre-plugin" ] && continue
+            dalibre-plugin pack "$d" -o /tmp/published/packages
+          done
+      - name: Write marketplace.json
+        if: github.event_name != 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DALIBRE_PLUGIN: /usr/local/bin/dalibre-plugin
+        run: node index.mjs --out /tmp/published/marketplace.json
+      - name: Publish
+        if: github.event_name != 'pull_request'
+        working-directory: /tmp/published
+        run: |
+          git add -A
+          git diff --cached --quiet && exit 0
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Marketplace from ${GITHUB_SHA::7}"
+          git push origin marketplace

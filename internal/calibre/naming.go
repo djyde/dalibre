@@ -154,6 +154,10 @@ func sanitizeFileName(name string) string {
 	return one
 }
 
+// ASCIIFilename is asciiFilename, for the names of the files calibre puts
+// on readers.
+func ASCIIFilename(s string) string { return asciiFilename(s) }
+
 // asciiFilename transliterates to ASCII (三体 → "San Ti") and makes the
 // result safe on every filesystem, like calibre's ascii_filename.
 func asciiFilename(s string) string {
@@ -219,3 +223,14 @@ func BookFileName(title, author string) string {
 	}
 	return name
 }
+
+// calibre keeps a comma in an author's name as "|", since it joins a
+// book's authors with commas elsewhere: "Herbert, Frank" is stored as
+// "Herbert| Frank".
+
+// AuthorName is an author's name as stored in authors.name, as calibre
+// shows it.
+func AuthorName(stored string) string { return strings.ReplaceAll(stored, "|", ",") }
+
+// storedAuthor is an author's name as calibre stores it.
+func storedAuthor(name string) string { return strings.ReplaceAll(name, ",", "|") }

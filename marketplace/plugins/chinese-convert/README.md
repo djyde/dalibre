@@ -1,0 +1,7 @@
+# Chinese Text Conversion
+
+Converts EPUBs between Simplified and Traditional Chinese, and between horizontal and vertical text. Ported from calibre's [Chinese Text Conversion](https://github.com/Hopkins1/TradSimpChinese) plugin by Hopkins ([`main.py`](https://github.com/Hopkins1/TradSimpChinese/blob/master/main.py)), GPL-3.0.
+
+Choose books, then **Convert Chinese…**: conversion (Traditional → Simplified, Simplified → Traditional, Traditional → Traditional), input and output locale (Mainland, Hong Kong, Taiwan, Japan), output locale phrases, quotation marks (Western “” or East Asian 「」), text direction and vertical punctuation. The form keeps your last choices. As in calibre, it converts the text (never tags or attributes), the table of contents, the package's title, creators, description, publisher, subjects and rights, and Chinese `lang` attributes and languages. The converted EPUB is added to the book; the old one is kept as ORIGINAL_EPUB. **Convert the book's details too** converts the title, authors, publisher, tags and comments in the library.
+
+Not ported: converting the current file or selected text (Dalibre converts whole books), AZW3, editing which punctuation goes vertical (calibre's default is used). The conversion uses [opencc-js](https://github.com/nk2028/opencc-js) (Apache-2.0) with OpenCC's dictionaries, in place of the plugin's opencc-python; opencc-js has no Hong Kong phrase dictionaries, so "use output locale phrases" changes nothing for Hong Kong.

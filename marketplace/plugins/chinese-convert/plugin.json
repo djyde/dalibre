@@ -1,0 +1,34 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.chinese-convert",
+  "name": "Chinese Text Conversion",
+  "version": "1.0.1",
+  "api": 1,
+  "dalibre": ">=0.5.0",
+  "description": "Converts EPUBs between Simplified and Traditional Chinese, and their text direction",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/chinese-convert",
+  "license": "GPL-3.0-or-later",
+  "icon": "layers",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "convert",
+        "title": "Convert Chinese…",
+        "icon": "replace",
+        "scope": "books",
+        "books": {
+          "min": 1
+        },
+        "formats": [
+          "EPUB"
+        ],
+        "files": true
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

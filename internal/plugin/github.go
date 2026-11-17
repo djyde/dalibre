@@ -275,3 +275,31 @@ func (g *GitHub) Download(ctx context.Context, rawURL, dir string) (string, erro
 	}
 	return filepath.Clean(f.Name()), nil
 }
+
+// Readme is the repository's README, as Markdown, at ref (a tag, a branch
+// or a commit); "" when it has none.
+func (g *GitHub) Readme(ctx context.Context, r Repo, ref string) (string, error) {
+	u := g.api() + "/repos/" + r.String() + "/readme"
+	if ref != "" {
+		u += "?ref=" + url.QueryEscape(ref)
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Accept", "application/vnd.github.raw")
+	req.Header.Set("User-Agent", UserAgent)
+	resp, err := g.client().Do(req)
+	if err != nil {
+		return "", fmt.Errorf("couldn’t reach GitHub: %w", err)
+	}
+	defer resp.Body.Close()
+	switch {
+	case resp.StatusCode == 404:
+		return "", nil
+	case resp.StatusCode < 200 || resp.StatusCode > 299:
+		return "", fmt.Errorf("GitHub answered %s", resp.Status)
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	return string(data), err
+}

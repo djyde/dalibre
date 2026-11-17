@@ -5,6 +5,13 @@
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
+interface Props {
+  /** The note under the picture, in the page's language. */
+  title: string;
+  text: string;
+}
+const { title, text } = Astro.props;
+
 const files = import.meta.glob<{ default: ImageMetadata }>("../assets/covers/*.jpg", { eager: true });
 const cover = async (slug: string) =>
   (await getImage({ src: files[`../assets/covers/${slug}.jpg`].default, width: 96, format: "webp", quality: 80 })).src;
@@ -127,11 +134,8 @@ const addr = "http://192.168.1.20:8080/opds";
       </div>
     </div>
   <div class="max-w-sm">
-    <p class="text-lg font-medium tracking-tight">Just one book?</p>
-    <p class="mt-2 leading-relaxed text-sand-11">
-      On a Mac, right-click a format in the detail panel and choose Share… to
-      send it with AirDrop, Messages or Mail.
-    </p>
+    <p class="text-lg font-medium tracking-tight">{title}</p>
+    <p class="mt-2 leading-relaxed text-sand-11">{text}</p>
   </div>
 </div>
 

@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.clean-metadata",
+  "name": "Clean Metadata",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/clean-metadata",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "description": "Cleans up titles, authors and series",
+  "icon": "library",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "clean",
+        "title": "Clean metadata…",
+        "icon": "sparkle",
+        "scope": "books",
+        "books": {
+          "min": 1
+        }
+      },
+      {
+        "id": "clean-library",
+        "title": "Clean metadata…",
+        "icon": "sparkle",
+        "scope": "library"
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

@@ -16,6 +16,10 @@ import (
 // is offered in the update dialog, once per version. Installing downloads
 // it, then it runs when Dalibre restarts.
 
+// appUpdateEvery is how often Dalibre checks for a newer version of
+// itself, when automatic checks are on.
+const appUpdateEvery = time.Hour
+
 // releasesURL is where Dalibre's versions are published (mygo.json).
 const releasesURL = "https://github.com/djyde/dalibre/releases"
 
@@ -82,13 +86,13 @@ func (a *App) CheckForUpdates() {
 
 // checkAppUpdate asks for a newer version of Dalibre: when manual, now,
 // saying when it fails; else when automatic checks are on and the last
-// was a day ago, quietly.
+// was an hour ago, quietly.
 func (a *App) checkAppUpdate(manual bool) {
 	u := &a.au
 	switch {
 	case u.updater == nil, u.status == auChecking, u.status == auDownloading, u.status == auReady:
 		return
-	case !manual && (a.settings.AppUpdates.Manual || time.Since(a.settings.AppUpdates.Checked) < updateEvery):
+	case !manual && (a.settings.AppUpdates.Manual || time.Since(a.settings.AppUpdates.Checked) < appUpdateEvery):
 		return
 	}
 	prev := u.status
@@ -186,11 +190,12 @@ func (a *App) skipAppUpdate() {
 }
 
 // watchAppUpdates checks now and then while Dalibre runs: the check
-// itself waits for a day since the last.
+// itself waits for an hour since the last. Ticking more often than that
+// keeps the checks an hour apart, not two.
 func (a *App) watchAppUpdates() {
 	a.checkAppUpdate(false)
 	go func() {
-		for range time.Tick(time.Hour) {
+		for range time.Tick(5 * time.Minute) {
 			a.post(func() { a.checkAppUpdate(false) })
 		}
 	}()

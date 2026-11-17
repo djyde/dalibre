@@ -29,10 +29,8 @@ type welcomeState struct {
 	bitmaps       []*ui.Bitmap // by welcomeBooks index; nil until loaded
 	box           ui.Handle    // the wall, measured to cover the window
 
-	// found is the library calibre last used, when it has one; foundBooks
-	// how many books it holds, -1 until counted.
-	found      string
-	foundBooks int
+	// found is the library calibre last used, when it has one.
+	found string
 	// missing marks recent libraries whose folder is gone, as last looked.
 	missing  map[string]bool
 	checking bool
@@ -182,7 +180,8 @@ func welcomeCover(client *http.Client, dir, url string) ([]byte, error) {
 }
 
 // findCalibreLibrary looks for the library calibre last used, to offer it
-// on the welcome screen, and counts its books.
+// on the welcome screen. Its database is left alone until the user opens
+// it: it may be on a network volume SQLite can't lock.
 func (a *App) findCalibreLibrary() {
 	p := calibreLibraryPath()
 	if p == "" {
@@ -191,23 +190,7 @@ func (a *App) findCalibreLibrary() {
 	if _, err := os.Stat(filepath.Join(p, "metadata.db")); err != nil {
 		return
 	}
-	a.welcome.found, a.welcome.foundBooks = p, -1
-	a.run(func() {
-		lib, err := calibre.OpenReadOnly(p)
-		if err != nil {
-			return
-		}
-		defer lib.Close()
-		books, err := lib.Books()
-		if err != nil {
-			return
-		}
-		a.post(func() {
-			if a.welcome.found == p {
-				a.welcome.foundBooks = len(books)
-			}
-		})
-	})
+	a.welcome.found = p
 }
 
 // checkRecent looks, in the background, at which recent libraries' folders

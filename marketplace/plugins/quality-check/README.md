@@ -1,0 +1,7 @@
+# Quality Check
+
+Lists books with missing or suspect metadata, a group per check. Ported from calibre's [Quality Check](https://github.com/kiwidude68/calibre_plugins/tree/main/quality_check) plugin by Grant Drake ([`check_missing.py`](https://github.com/kiwidude68/calibre_plugins/tree/main/quality_check/check_missing.py), [`check_metadata.py`](https://github.com/kiwidude68/calibre_plugins/tree/main/quality_check/check_metadata.py), [`helpers.py`](https://github.com/kiwidude68/calibre_plugins/tree/main/quality_check/helpers.py)), GPL-3.0; title case from calibre's [`titlecase.py`](https://github.com/kovidgoyal/calibre/blob/master/src/calibre/utils/titlecase.py), ISBNs from [`check_isbn`](https://github.com/kovidgoyal/calibre/blob/master/src/calibre/ebooks/metadata/__init__.py).
+
+**Tools › Quality check…**, then pick the checks: missing title, author, ISBN, pubdate, publisher, tags, rating, languages, comments, cover, formats; invalid title sort, author sort, ISBN; pubdate set to the date added; duplicate ISBN; duplicate series, series gaps, series pubdate order; excess tags; HTML or no HTML in comments; authors with or without commas, case, non-alphabetic, non-ASCII, initials; titles with series, title case. The form keeps your last choices.
+
+Not ported: checks of the books' files (EPUB and MOBI structure and style, cover sizes), search ePubs, and the fixes. Author sort is compared with calibre's computed sort, as Dalibre has no Manage authors sort values; pubdate is compared with the date added by day.

@@ -59,11 +59,11 @@ async function getJSON(url, missingOK) {
   /** @type {Record<string, string>} */
   const headers = { Accept: "application/json" };
   if (key) headers["X-Goog-Api-Key"] = key;
-  const res = await dalibre.fetch(url, { headers });
+  const res = await fetch(url, { headers });
   if (res.status === 404 && missingOK) return null;
-  if (!res.ok) throw failure(res, key !== "");
+  if (!res.ok) throw await failure(res, key !== "");
   try {
-    return res.json();
+    return await res.json();
   } catch {
     throw dalibre.error("unavailable", "Google Books sent something that isn’t JSON.");
   }
@@ -71,12 +71,12 @@ async function getJSON(url, missingOK) {
 
 /**
  * The error for a failed response.
- * @param {Dalibre.Response} res @param {boolean} hasKey
+ * @param {Response} res @param {boolean} hasKey
  */
-function failure(res, hasKey) {
+async function failure(res, hasKey) {
   let reason = "";
   try {
-    const err = res.json()?.error;
+    const err = (await res.json())?.error;
     reason = [err?.status, ...(err?.errors ?? []).map((/** @type {any} */ e) => e.reason),
       ...(err?.details ?? []).map((/** @type {any} */ d) => d.reason)].filter(Boolean).join(" ");
   } catch {}

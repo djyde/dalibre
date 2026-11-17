@@ -6,7 +6,11 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/base64"
 	"errors"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"net"
 	"os"
@@ -235,12 +239,17 @@ func TestSendBooks(t *testing.T) {
 	os.WriteFile(epub, content, 0o644)
 	pdf := filepath.Join(dir, "big.pdf")
 	os.WriteFile(pdf, []byte("pdf"), 0o644)
+	var cover bytes.Buffer
+	png.Encode(&cover, image.NewRGBA(image.Rect(0, 0, 300, 480)))
+	coverFile := filepath.Join(dir, "cover.png")
+	os.WriteFile(coverFile, cover.Bytes(), 0o644)
 	var sent []int
 	err := d.Send([]Book{
 		{Path: pdf, Format: "PDF", UUID: "u-big", Title: "Too Big"},
 		{Path: filepath.Join(dir, "missing.epub"), Format: "EPUB", UUID: "u-gone", Title: "Gone"},
 		{Path: epub, Format: "EPUB", UUID: "u-new", Title: "三体", Authors: []string{"刘慈欣"}, AuthorSort: "Liu, Cixin",
-			Tags: []string{"SF"}, Series: "Remembrance", SeriesIndex: 1, LastModified: time.Date(2024, 5, 1, 12, 0, 0, 0, time.UTC)},
+			Tags: []string{"SF"}, Series: "Remembrance", SeriesIndex: 1, LastModified: time.Date(2024, 5, 1, 12, 0, 0, 0, time.UTC),
+			Cover: coverFile},
 	}, func(n int) { sent = append(sent, n) })
 	var refused *RefusedError
 	if !errors.As(err, &refused) || refused.Title != "Too Big" || refused.Message != "No space left on device" {
@@ -262,6 +271,15 @@ func TestSendBooks(t *testing.T) {
 	if meta["uuid"] != "u-new" || meta["series"] != "Remembrance" || meta["series_index"] != 1.0 ||
 		meta["last_modified"] != "2024-05-01T12:00:00+00:00" || meta["size"] != float64(len(content)) {
 		t.Fatalf("metadata = %v", meta)
+	}
+	// The cover goes along as calibre sends it: a JPEG 160 pixels high.
+	thumb, _ := meta["thumbnail"].([]any)
+	if len(thumb) != 3 || thumb[0] != 100.0 || thumb[1] != 160.0 {
+		t.Fatalf("thumbnail = %.40v", meta["thumbnail"])
+	}
+	jpg, _ := base64.StdEncoding.DecodeString(thumb[2].(string))
+	if cfg, err := jpeg.DecodeConfig(bytes.NewReader(jpg)); err != nil || cfg.Width != 100 || cfg.Height != 160 {
+		t.Fatalf("thumbnail JPEG = %+v, %v", cfg, err)
 	}
 	if !d.Has("u-new") {
 		t.Fatal("a book sent isn't known to be on the reader")

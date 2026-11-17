@@ -1,0 +1,276 @@
+{
+  "meta": {
+    "title": "Dalibre — a calibre alternative for you and your AI agent",
+    "description": "Dalibre is a lightweight calibre alternative designed for both people and AI agents: a fast, native e-book manager that opens your existing calibre library, and lets your agent manage it and write plugins for it.",
+    "ogAlt": "Dalibre: a library for you, and your AI agent.",
+    "features": [
+      "Opens existing calibre libraries",
+      "Edit metadata and fetch it from online sources",
+      "Get books from catalogues and OPDS servers",
+      "Send books to e-readers over OPDS",
+      "Sandboxed JavaScript plugins",
+      "A Marketplace of calibre's most used plugins, ported",
+      "MCP server for AI agents such as Claude Code, Claude Desktop and Cursor",
+      "AI agents can write, try and install plugins over MCP"
+    ]
+  },
+  "nav": {
+    "agents": "AI agents",
+    "plugins": "Plugins",
+    "docs": "Docs",
+    "changelog": "Changelog",
+    "download": "Download"
+  },
+  "hero": {
+    "eyebrow": "The calibre alternative for you and your AI agent",
+    "title1": "A library for you,",
+    "title2": "and your AI agent.",
+    "lead": "Dalibre is a calm, fast e-book manager that opens the calibre library you already have. Look after it yourself, or just ask your AI: it tidies your shelves, and builds the features you are missing.",
+    "downloadFor": "Download for {os}",
+    "otherPlatforms": "Other platforms",
+    "allDownloads": "All downloads →",
+    "sponsoredBy": "Sponsored by",
+    "sponsorTagline": "Display AI agent quota on your phone",
+    "windowTheme": "Window theme",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "demo": {
+    "working": "Working…",
+    "scenes": [
+      {
+        "ask": "Show me my science fiction.",
+        "done": "Here are your 9 science fiction books."
+      },
+      {
+        "ask": "Tag every Liu Cixin book “Chinese SF”.",
+        "done": "Done. 3 books are tagged “Chinese SF”."
+      },
+      {
+        "ask": "Find covers for the books that don’t have one.",
+        "done": "Found covers for 2 books."
+      },
+      {
+        "ask": "Make a Kindle copy of Dune.",
+        "done": "Dune now has an AZW3 for your Kindle."
+      }
+    ]
+  },
+  "chat": {
+    "manage": {
+      "ask": "Tag every Liu Cixin book “Hard SF”, and make a Kindle copy of Dune.",
+      "steps": [
+        "Found 3 books by Liu Cixin",
+        "Tagged them “Hard SF”",
+        "Converted Dune to AZW3, the Kindle format",
+        "Added it to Dune in your library"
+      ],
+      "done": "Done: 3 books are tagged “Hard SF”, and Dune is ready for your Kindle."
+    },
+    "extend": {
+      "ask": "I want to get books from Standard Ebooks.",
+      "steps": [
+        "Read Dalibre’s plugin guide",
+        "Wrote a plugin for Standard Ebooks",
+        "Asked you to allow standardebooks.org",
+        "Tried a search for “Dune”, and fixed one error",
+        "Tried again: 3 books found"
+      ],
+      "done": "It works. Standard Ebooks is in Get books now."
+    }
+  },
+  "light": {
+    "eyebrow": "Lightweight",
+    "title1": "{ratio}× smaller",
+    "title2": "than calibre.",
+    "lead": "calibre is a toolbox for everything you could do to an e-book. Dalibre does the everyday part: managing your library.",
+    "wholeApp": "← that's the whole app",
+    "note": "Size on disk on macOS: calibre.app 9.18 as installed, and the Dalibre release binary.",
+    "rows": [
+      "Opens your calibre library, no import",
+      "Edits show up in the other app",
+      "Sends books to KOReader over Wi-Fi",
+      "Converts formats"
+    ],
+    "notYet": "Not yet",
+    "size": "Size on disk"
+  },
+  "both": {
+    "eyebrow": "For both",
+    "title1": "One library.",
+    "title2": "Two ways in.",
+    "lead": "Dalibre is designed for people and for AI from the start. Do things yourself in a calm window, or say what you want and let your AI do it. Both work on the same books.",
+    "hand": {
+      "label": "By hand",
+      "title": "Do it yourself.",
+      "lead": "A calm, native window. Everything in reach of a click.",
+      "items": [
+        "Browse covers, lists and shelves",
+        "Search and filter as you type",
+        "Edit details, covers and the book’s text",
+        "Send books to your e-reader over Wi-Fi"
+      ]
+    },
+    "ai": {
+      "label": "With your AI",
+      "title": "Or just ask.",
+      "lead": "Say it in your own words. Works with Claude, Cursor and other AI apps on your computer.",
+      "asks": [
+        "Which series am I missing books from?",
+        "Add every e-book in my Downloads folder.",
+        "Fill in the missing covers and publishers.",
+        "Make a Kindle copy of Dune.",
+        "Build me a way to get books from Standard Ebooks."
+      ]
+    }
+  },
+  "manage": {
+    "eyebrow": "Manage",
+    "title1": "Your AI agent",
+    "title2": "knows your shelves.",
+    "lead": "Ask Claude, Cursor or any AI app that speaks MCP to search your library, fix its details, add books or convert formats. It stays on your computer, and Dalibre shows you everything it does.",
+    "popover": {
+      "status": "Running · can change books",
+      "agents": "Agents",
+      "working": "Working now · 5 calls",
+      "activity": "Activity",
+      "items": [
+        "Added AZW3 to “Dune”",
+        "Read “Dune”",
+        "Edited 3 books",
+        "Searched the library · 3 books"
+      ]
+    },
+    "features": [
+      {
+        "title": "On your computer only",
+        "text": "The server listens on 127.0.0.1, and only programs with its token get in."
+      },
+      {
+        "title": "Every call in sight",
+        "text": "The toolbar shows the agent at work; its popover lists what each agent did."
+      },
+      {
+        "title": "Read only, if you like",
+        "text": "Agents get every tool by default. One switch keeps them to searching and reading."
+      }
+    ],
+    "connect": "Connect your agent →",
+    "docs": "Read the MCP docs"
+  },
+  "extend": {
+    "eyebrow": "Extend",
+    "title1": "Missing a feature?",
+    "title2": "Ask for it.",
+    "lead": "Dalibre grows with plugins. Install calibre's most used ones, ported, from the Marketplace, or ask your AI for the one you need: it builds the plugin, tries it, and fixes what fails. You only decide what it may reach.",
+    "dialog": {
+      "label": "Dalibre asks you",
+      "title": "Add “Standard Ebooks”?",
+      "lead": "This plugin asks to reach one website:",
+      "note": "It can’t reach anything else, and can’t read your files.",
+      "deny": "Don’t allow",
+      "allow": "Allow"
+    },
+    "builtIn": "Built in",
+    "kindSource": "Book source",
+    "kindMetadata": "Metadata",
+    "builtins": [
+      "Search and browse over 70,000 free public-domain ebooks, by language. Most popular and Recently added lists.",
+      "Title, authors, series, tags, publisher, date, ISBN, cover and description from an open catalogue linked to Douban, Goodreads and more. No account needed.",
+      "Title, authors, tags, publisher, date, ISBN, cover and description from Google Books. Add your own API key for a quota of your own."
+    ],
+    "docs": "Read the plugin docs →",
+    "browse": "Browse the plugins →",
+    "safe": "How plugins are kept safe →"
+  },
+  "devices": {
+    "eyebrow": "Send to device",
+    "title1": "From your library",
+    "title2": "to your e-reader.",
+    "lead": "Turn on sharing and Dalibre serves your library over OPDS on your Wi-Fi. KOReader, Moon+ Reader, Thorium and KyBook browse it like a bookstore and download what you pick. No cables, no cloud, no account.",
+    "steps": [
+      "Turn on sharing in Settings › OPDS.",
+      "Add the address to your reading app.",
+      "Browse and download, on the couch."
+    ],
+    "oneBookTitle": "Just one book?",
+    "oneBookText": "On a Mac, right-click a format in the detail panel and choose Share… to send it with AirDrop, Messages or Mail."
+  },
+  "calibre": {
+    "eyebrow": "No migration",
+    "title1": "Keep your library.",
+    "title2": "Keep calibre, too.",
+    "lead": "Dalibre reads and writes calibre's own format. Open your library in either app, any day; nothing to import, nothing to export.",
+    "items": [
+      "Uses calibre's <code>metadata.db</code> schema, triggers and all",
+      "Folders and files named the way calibre names them",
+      "Edits write <code>metadata.opf</code>, so calibre picks them up",
+      "Removed books go to the system trash, not into the void"
+    ]
+  },
+  "faq": {
+    "eyebrow": "Questions",
+    "title1": "A calibre alternative,",
+    "title2": "answered.",
+    "lead": "What Dalibre does, what it leaves to calibre, and how the two share a library.",
+    "items": [
+      {
+        "q": "Is Dalibre a calibre alternative?",
+        "a": "Yes, for managing your e-book library. Dalibre does the everyday part of calibre (browsing, searching, editing metadata, getting books and sending them to your e-reader) in a native app that is {ratio}× smaller. Format conversion is in the works; calibre's e-book editor is out of scope."
+      },
+      {
+        "q": "Do I have to migrate my calibre library?",
+        "a": "No. Dalibre reads and writes calibre's own library format (metadata.db, its folder layout and metadata.opf), so it opens the library you already have. Nothing to import, nothing to export."
+      },
+      {
+        "q": "Can I use Dalibre and calibre on the same library?",
+        "a": "Yes. Both apps work on the same files, so you can open your library in either one, any day, and keep calibre for the jobs Dalibre doesn't do."
+      },
+      {
+        "q": "Does Dalibre convert e-book formats?",
+        "a": "Not yet. We are working on it. Until then, keep using calibre on the same library to convert between EPUB, MOBI, AZW3 or PDF, or ask an AI agent connected over MCP: it can convert a book with calibre's ebook-convert and add the result to it."
+      },
+      {
+        "q": "How do I get books onto my e-reader?",
+        "a": "Turn on sharing and Dalibre serves your library over OPDS on your Wi-Fi. Reading apps such as KOReader, Moon+ Reader, Thorium and KyBook browse it and download the books you pick. No cables, no cloud, no account."
+      },
+      {
+        "q": "Can AI agents use my library?",
+        "a": "Yes. Turn on MCP and agents such as Claude Code, Claude Desktop and Cursor can search your library, edit metadata, add books and convert formats with the tools they already have. Only programs on your computer can connect, with a token, and Dalibre shows every call they make."
+      },
+      {
+        "q": "Can an AI agent write a Dalibre plugin for me?",
+        "a": "Yes. Over MCP an agent can start a plugin from the template, add it to Dalibre, call it, read its results, logs and errors, and fix it until it works. Dalibre still asks you to allow the hosts the plugin reaches; the agent can't allow them for you."
+      },
+      {
+        "q": "Which platforms does Dalibre run on?",
+        "a": "macOS, Windows and Linux. Dalibre is a single native binary written in Go: no webview, no bundled Python, no runtime to install."
+      },
+      {
+        "q": "Does Dalibre run calibre plugins?",
+        "a": "Not calibre's own. Dalibre has its own plugins: small, sandboxed JavaScript modules that anyone can write. Its Marketplace, from the toolbar's Plugins button, has calibre's most used plugins ported to them, such as Find Duplicates, Quality Check, EpubMerge and KePub."
+      }
+    ]
+  },
+  "cta": {
+    "title1": "Less app.",
+    "title2": "More reading.",
+    "lead": "One small download for macOS, Windows and Linux."
+  },
+  "footer": {
+    "tagline": "A lighter home for your calibre library.",
+    "product": "Product",
+    "contact": "Contact",
+    "moreApps": "More apps",
+    "devices": "Send to device",
+    "calibre": "calibre compatibility",
+    "nowdex": "Your AI quotas on every screen",
+    "disclaimer": "calibre is a separate project by Kovid Goyal. Dalibre is not affiliated with it.",
+    "language": "Language"
+  },
+  "banner": {
+    "text": "Dalibre is also available in English.",
+    "action": "View in English",
+    "dismiss": "Dismiss"
+  }
+}

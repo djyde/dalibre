@@ -18,7 +18,7 @@ go run ./cmd/seed "testdata/Sample Library"   # a sample library to play with
 
 Point the app at a library with `DALIBRE_LIBRARY` (PowerShell:
 `$env:DALIBRE_LIBRARY="C:\path\to\Library"`); otherwise it opens the last one
-used, then the one calibre itself uses.
+used. With neither, the welcome screen offers the one calibre itself uses.
 
 On macOS, mount network shares in Finder, then choose the library folder
 on the mounted volume (for example, `/Volumes/Shared/Calibre Library`).
@@ -63,7 +63,7 @@ leaves signing out, so local builds are signed ad hoc.
 cmd/
   dalibre/            the app: main.go, mygo.json, resources/icon.png
   seed/               creates a sample calibre library for development
-  dalibre-plugin/     CLI for plugin authors: init, check, search, download, pack, install
+  dalibre-plugin/     CLI for plugin authors (npm: dalibre-plugin): init, check, dev, docs, pack, install
 plugins/
   gutenberg/          Project Gutenberg, built into the app (dalibre.gutenberg)
   googlebooks/        Google Books metadata lookup, built into the app (dalibre.googlebooks)
@@ -76,6 +76,8 @@ internal/
   catalog/            search, filters, sorting and sidebar counts (no UI)
   plugin/             plugins: manifest, sandboxed JS runtime, consent, packages
   mcp/                the MCP server: tools, call log, stdio bridge
+  device/             readers plugged in (docs/devices.md): storages, the
+                      watcher, calibre's on-device library (usbms), Kindle
   settings/           user settings persisted as JSON
   thumbs/             on-disk cover thumbnails
   app/                state, actions and views of the window
@@ -90,7 +92,8 @@ Get books (in the sidebar) searches and browses book sources and adds
 what you pick to your library. Project Gutenberg is built in; anyone can
 add a source as a plugin: a `plugin.json` and a JavaScript file, run
 sandboxed inside Dalibre. See
-[Writing Dalibre plugins](docs/plugins/README.md) and the
+[Writing Dalibre plugins](docs/plugins/README.md), also in the CLI
+(`npx dalibre-plugin@latest docs`), and the
 [design](docs/plugins/design.md).
 
 ## MCP
@@ -114,6 +117,9 @@ formats with their own tools. See
 - Removed books go to the system Recycle Bin.
 
 ## Licenses
+
+Dalibre is free software under the [GNU General Public License v3.0 or
+later](LICENSE).
 
 `internal/calibre/metadata_sqlite.sql` comes from calibre (GPL-3.0). Fonts
 (Inter, Geist Mono) are under the SIL Open Font License; icons

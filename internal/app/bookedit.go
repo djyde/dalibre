@@ -27,16 +27,16 @@ import (
 	"dalibre/internal/epub"
 )
 
-// editableFormats are the formats the book editor opens, in the order
+// editorFormats are the formats the book editor opens, in the order
 // Edit book picks among a book's files.
-var editableFormats = []string{"EPUB", "KEPUB", "TXT"}
+var editorFormats = []string{"EPUB", "KEPUB", "TXT", "AZW3"}
 
-// editableFormat is the format Edit book opens for b, or "".
-func editableFormat(b *calibre.Book) string {
+// editorFormat is the format Edit book opens for b, or "".
+func editorFormat(b *calibre.Book) string {
 	if b == nil {
 		return ""
 	}
-	for _, f := range editableFormats {
+	for _, f := range editorFormats {
 		if slices.Contains(b.Formats, f) {
 			return f
 		}
@@ -44,7 +44,7 @@ func editableFormat(b *calibre.Book) string {
 	return ""
 }
 
-func isEditableFormat(f string) bool { return slices.Contains(editableFormats, strings.ToUpper(f)) }
+func isEditorFormat(f string) bool { return slices.Contains(editorFormats, strings.ToUpper(f)) }
 
 type editorMode int
 
@@ -121,7 +121,10 @@ const bookCSS = `<style>
 :where(img,svg,video){max-width:100%;height:auto}
 </style>`
 
-const bookCSP = "default-src " + bookScheme + ": data:; script-src 'none'; object-src 'none'; style-src " + bookScheme + ": 'unsafe-inline'; img-src " + bookScheme + ": data:; font-src " + bookScheme + ": data:"
+// bookCSP lets a page load only its own book. 'self' is needed beside the
+// scheme: WebView2 serves dalibre-book://<token>/ from
+// http://<token>.dalibre-book.localhost/, which the scheme alone doesn't match.
+const bookCSP = "default-src 'self' " + bookScheme + ": data:; script-src 'none'; object-src 'none'; style-src 'self' " + bookScheme + ": 'unsafe-inline'; img-src 'self' " + bookScheme + ": data:; font-src 'self' " + bookScheme + ": data:"
 
 func serveBookFile(w http.ResponseWriter, r *http.Request) {
 	bookPages.Lock()
@@ -174,7 +177,7 @@ func (ed *bookEditor) content(name string) ([]byte, string, bool) {
 		return nil, "", false
 	}
 	media := ed.bk.Type(name)
-	if !ed.bk.Zipped() {
+	if !ed.bk.Packaged() {
 		media = "text/plain"
 	}
 	ed.mu.Lock()
@@ -213,7 +216,7 @@ func (a *App) editBook(b *calibre.Book, format string) {
 		return
 	}
 	if format == "" {
-		format = editableFormat(b)
+		format = editorFormat(b)
 	}
 	if format == "" {
 		return
@@ -524,7 +527,7 @@ func (ed *bookEditor) revert() {
 // shownPage is the page the web view shows: the file shown when it is a
 // page, else the last page shown, beside a stylesheet being edited.
 func (ed *bookEditor) shownPage() string {
-	if epub.IsPage(ed.bk.Type(ed.cur)) || !ed.bk.Zipped() {
+	if epub.IsPage(ed.bk.Type(ed.cur)) || !ed.bk.Packaged() {
 		return ed.cur
 	}
 	return ed.lastPage
@@ -564,7 +567,7 @@ func (ed *bookEditor) wordsOf(it epub.Item) int {
 		return w.n
 	}
 	n := epub.PageWords([]byte(st.Buffer.String()))
-	if !ed.bk.Zipped() {
+	if !ed.bk.Packaged() {
 		n = epub.CountWords(st.Buffer.String())
 	}
 	ed.words[it.Name] = wordCount{v, n}

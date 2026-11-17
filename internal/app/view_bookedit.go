@@ -74,7 +74,7 @@ func (ed *bookEditor) saveSettingsSoon() {
 // modes says whether the file shown can show in Glance and in Edit.
 func (ed *bookEditor) modes() (glance, edit bool) {
 	media := ed.bk.Type(ed.cur)
-	if !ed.bk.Zipped() {
+	if !ed.bk.Packaged() {
 		return true, true
 	}
 	return epub.IsPage(media), epub.IsTextType(media)
@@ -120,7 +120,7 @@ func (ed *bookEditor) sidebar(c *ui.Context) {
 			})
 		})
 		ui.Box(c).Height(1).Background(pal().BorderSubtle)
-		if ed.bk.Zipped() {
+		if ed.bk.Packaged() {
 			ui.Box(c).Padding(theme.Space12, theme.Space10, theme.Space8, theme.Space10).AlignItems(ui.Stretch).Children(func() {
 				segmented(c, []segment{
 					{label: locales.EditorContents(), on: !ed.files, onClick: func() { ed.files = false }},
@@ -129,7 +129,7 @@ func (ed *bookEditor) sidebar(c *ui.Context) {
 			})
 		}
 		ui.Scroll(c.Key("list")).Grow(1).Padding(theme.Space4, theme.Space8, theme.Space16, theme.Space8).Gap(theme.Space2).AlignItems(ui.Stretch).Children(func() {
-			if ed.files && ed.bk.Zipped() {
+			if ed.files && ed.bk.Packaged() {
 				ed.fileTree(c, ed.tree, 0)
 				return
 			}
@@ -172,7 +172,7 @@ func (ed *bookEditor) row(c *ui.Context, key string, depth int, chev, icon *ui.S
 		r.Background(pal().Hover)
 	}
 	r.OnClick(onClick).Children(func() {
-		if ed.files && ed.bk.Zipped() {
+		if ed.files && ed.bk.Packaged() {
 			if chev != nil {
 				ui.Icon(c, chev).FontSize(12).TextColor(pal().IconMuted).Width(12)
 			} else {
@@ -261,7 +261,7 @@ func (ed *bookEditor) toolbar(c *ui.Context, glanceOK, editOK bool) {
 			if ed.modified(ed.cur) {
 				ui.Box(c).Size(6, 6).Radius(3).Background(pal().WarningSolid)
 			}
-			if ed.bk.Zipped() {
+			if ed.bk.Packaged() {
 				ui.Text(c, ed.relPath(ed.cur)).Font(theme.FontMono).FontSize(12).TextColor(pal().TextTertiary).SingleLine().Shrink(2)
 			}
 		})

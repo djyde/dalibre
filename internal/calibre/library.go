@@ -263,7 +263,7 @@ func (l *Library) loadBooks(id int64) ([]*Book, error) {
 		set   func(b *Book, v string)
 	}{
 		{`SELECT l.book, a.name FROM books_authors_link l JOIN authors a ON a.id = l.author` + w + ` ORDER BY l.id`,
-			func(b *Book, v string) { b.Authors = append(b.Authors, v) }},
+			func(b *Book, v string) { b.Authors = append(b.Authors, AuthorName(v)) }},
 		{`SELECT l.book, t.name FROM books_tags_link l JOIN tags t ON t.id = l.tag` + w + ` ORDER BY t.name`,
 			func(b *Book, v string) { b.Tags = append(b.Tags, v) }},
 		{`SELECT l.book, s.name FROM books_series_link l JOIN series s ON s.id = l.series` + w,

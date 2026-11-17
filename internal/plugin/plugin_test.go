@@ -76,10 +76,10 @@ func TestSearchAndDownload(t *testing.T) {
 	})
 	dir := write(t, testManifest, `
 		exports.search = async function (q) {
-			const res = await dalibre.fetch("https://books.example/search?q=" + encodeURIComponent(q.text),
+			const res = await fetch("https://books.example/search?q=" + encodeURIComponent(q.text),
 				{ headers: { Authorization: "Bearer " + dalibre.settings.token } });
 			if (res.status === 401) throw dalibre.error("auth", "token refused");
-			const data = res.json();
+			const data = await res.json();
 			const items = data.books.map(b => ({
 				id: b.key, title: b.name, authors: b.by, formats: [{ format: "epub" }], extra: { key: b.key },
 			}));
@@ -177,7 +177,7 @@ func TestHostsAreEnforced(t *testing.T) {
 	})}
 	dir := write(t, testManifest, `
 		exports.search = async function (q) {
-			await dalibre.fetch(q.text);
+			await fetch(q.text);
 			return { items: [] };
 		};`)
 	p, err := Load(dir, Options{Transport: tr})
@@ -203,7 +203,7 @@ func TestLocalNetworkIsRefused(t *testing.T) {
 		w.Write([]byte(`{"items":[]}`))
 	}))
 	defer srv.Close()
-	script := `exports.search = async (q) => (await dalibre.fetch(q.text)).json();`
+	script := `exports.search = async (q) => (await fetch(q.text)).json();`
 	for _, local := range []bool{false, true} {
 		m := `{"id":"t","name":"T","version":"1.0.0","api":1,"capabilities":["source"],
 			"permissions":{"hosts":["127.0.0.1","localhost"],"localNetwork":` + map[bool]string{false: "false", true: "true"}[local] + `}}`
@@ -229,7 +229,7 @@ func TestLimits(t *testing.T) {
 	dir := write(t, testManifest, `
 		exports.search = async function (q) {
 			if (q.text === "loop") for (;;) {}
-			if (q.text === "many") for (let i = 0; i < 100; i++) await dalibre.fetch("https://books.example/");
+			if (q.text === "many") for (let i = 0; i < 100; i++) await fetch("https://books.example/");
 			if (q.text === "deep") { const f = () => f(); f(); }
 			return { items: [] };
 		};`)
@@ -294,7 +294,7 @@ func TestHostIsFrozenAndSecretsRedacted(t *testing.T) {
 	dir := write(t, testManifest, `
 		exports.search = function () {
 			const threw = (f) => { try { f(); return false; } catch { return true; } };
-			const frozen = threw(() => { dalibre.fetch = () => "stolen"; }) && threw(() => { dalibre.settings.token = "x"; }) &&
+			const frozen = threw(() => { dalibre.error = () => "stolen"; }) && threw(() => { dalibre.settings.token = "x"; }) &&
 				threw(() => { globalThis.dalibre = {}; }) && typeof __host_fetch === "undefined" && typeof __dalibre_call === "function" &&
 				threw(() => { globalThis.__dalibre_call = null; });
 			console.log("token is", dalibre.settings.token, frozen, { n: 1 });
@@ -339,7 +339,7 @@ func TestModules(t *testing.T) {
 	for script, want := range map[string]string{
 		`import x from "lodash"; export function search() {}`:           "bundle packages",
 		`import x from "../../outside.js"; export function search() {}`: "outside the plugin",
-		`import x from "./data.json"; export function search() {}`:      "only .js files",
+		`import x from "./data.json"; export function search() {}`:      "only .js and .ts files",
 		`import x from "./missing.js"; export function search() {}`:     "missing.js",
 		`export function search( {`:                                     "SyntaxError",
 		`throw new Error("broken at load")`:                             "broken at load",
@@ -351,13 +351,12 @@ func TestModules(t *testing.T) {
 }
 
 // A plugin's module state lasts across calls, until the interpreter has
-// to start over: after running out of memory or time.
-func TestMemoryAndRecovery(t *testing.T) {
+// to start over: after running out of time.
+func TestRecovery(t *testing.T) {
 	dir := write(t, testManifest, `
 		let calls = 0;
 		export function search(q) {
 			calls++;
-			if (q.text === "bomb") { const a = []; for (;;) a.push("x".repeat(1 << 20) + a.length); }
 			if (q.text === "loop") for (;;) {}
 			return { items: [{ id: String(calls), title: "t", formats: [{ format: "TXT", url: "https://books.example/" }] }] };
 		}`)
@@ -375,16 +374,6 @@ func TestMemoryAndRecovery(t *testing.T) {
 	}
 	if count() != "1" || count() != "2" {
 		t.Fatal("module state isn’t kept between calls")
-	}
-	start := time.Now()
-	if _, err := p.Search(context.Background(), Query{Text: "bomb"}); kind(err) != KindScript || !strings.Contains(err.Error(), "memory") {
-		t.Fatalf("bomb: %v", err)
-	}
-	if d := time.Since(start); d > 5*time.Second && !raceEnabled { // the race detector slows the engine a lot
-		t.Errorf("the memory limit took %v", d)
-	}
-	if count() != "1" {
-		t.Error("the interpreter didn’t start over after running out of memory")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
@@ -584,14 +573,14 @@ func TestCookies(t *testing.T) {
 		let signedIn = false;
 		exports.search = async function () {
 			if (!signedIn) {
-				const r = await dalibre.fetch("https://books.example/login", { method: "POST",
+				const r = await fetch("https://books.example/login", { method: "POST",
 					headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "password=pw" });
 				if (!r.ok) throw dalibre.error("auth", "refused");
 				signedIn = true;
 			}
-			const me = await dalibre.fetch("https://books.example/me");
+			const me = await fetch("https://books.example/me");
 			if (!me.ok) throw dalibre.error("auth", "signed out");
-			return { items: [{ id: "1", title: me.text(), formats: [{ format: "EPUB", url: "https://books.example/file" }] }] };
+			return { items: [{ id: "1", title: await me.text(), formats: [{ format: "EPUB", url: "https://books.example/file" }] }] };
 		};`
 	p, err := Load(write(t, testManifest, script), Options{Transport: serve{mux}})
 	if err != nil {
@@ -611,7 +600,7 @@ func TestCookies(t *testing.T) {
 	}
 	// Another plugin has its own cookies.
 	other, err := Load(write(t, testManifest, `exports.search = async () => {
-		const me = await dalibre.fetch("https://books.example/me");
+		const me = await fetch("https://books.example/me");
 		return { items: [{ id: "1", title: String(me.status), formats: [{ format: "EPUB" }] }] };
 	}`), Options{Transport: serve{mux}})
 	if err != nil {

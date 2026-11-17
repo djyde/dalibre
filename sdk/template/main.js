@@ -15,14 +15,14 @@ const API = "https://api.example.com";
 export async function search({ text, page, filters }) {
   let url = `${API}/search?q=${encodeURIComponent(text)}&page=${page}`;
   if (filters.language) url += `&lang=${filters.language}`;
-  const res = await dalibre.fetch(url, {
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${dalibre.settings.apiKey}` },
   });
   if (res.status === 401) throw dalibre.error("auth", "The API key was refused");
   if (res.status === 429) throw dalibre.error("rateLimited");
   if (!res.ok) throw dalibre.error("unavailable", `example.com answered ${res.status}`);
 
-  const data = res.json();
+  const data = await res.json();
   return {
     items: data.results.map((/** @type {any} */ b) => ({
       id: String(b.id),
@@ -45,7 +45,7 @@ export async function search({ text, page, filters }) {
 //  * @returns {Promise<Dalibre.Result>}
 //  */
 // export async function get(item) {
-//   const b = (await dalibre.fetch(`${API}/books/${item.id}`)).json();
+//   const b = await (await fetch(`${API}/books/${item.id}`)).json();
 //   return { ...item, description: b.summary, tags: b.subjects, url: b.page_url,
 //            fields: [{ label: "Rights", value: b.rights }] };
 // }
@@ -67,6 +67,6 @@ export async function search({ text, page, filters }) {
 //  * @returns {Promise<Dalibre.DownloadRequest>}
 //  */
 // export async function resolve(item, format) {
-//   const res = await dalibre.fetch(`${API}/books/${item.id}/download?format=${format}`);
-//   return { url: res.json().url };
+//   const res = await fetch(`${API}/books/${item.id}/download?format=${format}`);
+//   return { url: (await res.json()).url };
 // }

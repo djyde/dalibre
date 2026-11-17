@@ -2,12 +2,15 @@ package smartdevice
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/rand"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"maps"
 	"net"
@@ -18,6 +21,8 @@ import (
 	"sync/atomic"
 	"time"
 	"unicode/utf8"
+
+	"dalibre/internal/device/usbms"
 )
 
 // The calibre version Dalibre says it is. KOReader answers a book it
@@ -31,6 +36,9 @@ const (
 	// noopEvery is how long a quiet reader waits for a NOOP. KOReader
 	// lets go after five minutes without a word.
 	noopEvery = time.Minute
+	// thumbnailHeight is the height of the cover calibre sends with a
+	// book, for the reader to show while it arrives.
+	thumbnailHeight = 160
 )
 
 var (
@@ -441,6 +449,8 @@ type Book struct {
 	Series       string
 	SeriesIndex  float64
 	LastModified time.Time
+	// Cover is the book's cover image file, "" when it has none.
+	Cover string
 }
 
 // RefusedError is a book the reader wouldn't take, saying why: no space
@@ -591,7 +601,26 @@ func (b Book) metadata(lpath string, size int64) map[string]any {
 	if size >= 0 {
 		m["size"] = size
 	}
+	m["thumbnail"] = thumbnail(b.Cover)
 	return m
+}
+
+// thumbnail is the cover in file as calibre sends it: width, height and
+// the JPEG in base64; nil when there is none.
+func thumbnail(file string) any {
+	if file == "" {
+		return nil
+	}
+	img, err := os.ReadFile(file)
+	if err != nil {
+		return nil
+	}
+	jpg := usbms.Thumbnail(img, thumbnailHeight)
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(jpg))
+	if err != nil {
+		return nil
+	}
+	return []any{cfg.Width, cfg.Height, base64.StdEncoding.EncodeToString(jpg)}
 }
 
 // Delete deletes the books of uuids from the reader; those it doesn't

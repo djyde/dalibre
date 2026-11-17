@@ -32,6 +32,9 @@ type Settings struct {
 	GetBooksSource string `json:"getBooksSource,omitempty"`
 	// Plugins are what the user decided about each plugin, by id.
 	Plugins map[string]*PluginState `json:"plugins,omitempty"`
+	// ToolSource is where the user last chose to get a plugin's tool from
+	// ("download", "brew", …): the choice offered first next time.
+	ToolSource string `json:"toolSource,omitempty"`
 	// UpdatesChecked is when plugins installed from GitHub were last
 	// checked for updates.
 	UpdatesChecked time.Time `json:"updatesChecked,omitzero"`
@@ -44,8 +47,55 @@ type Settings struct {
 	// Wireless is letting readers connect as they connect to calibre,
 	// to be sent books.
 	Wireless Wireless `json:"wireless,omitzero"`
+	// Export is what the user chose last when exporting books to a
+	// folder.
+	Export Export `json:"export,omitzero"`
+	// Email is emailing books to Kindles.
+	Email Email `json:"email,omitzero"`
 
 	path string
+}
+
+// Email is the Kindles books are emailed to and the account they are
+// sent from. The password isn't here: it is kept in the system's
+// credential store.
+type Email struct {
+	Kindles []*Kindle `json:"kindles,omitempty"`
+	Host    string    `json:"host,omitempty"`
+	Port    int       `json:"port,omitempty"` // 587 when 0
+	// Security is email.Security; "" picks by the port.
+	Security string `json:"security,omitempty"`
+	From     string `json:"from,omitempty"`
+}
+
+// Kindle is a Kindle's Send to Kindle address.
+type Kindle struct {
+	Name    string `json:"name,omitempty"`
+	Address string `json:"address,omitempty"`
+}
+
+// DefaultEmailPort is the port mail is sent on unless the user picks
+// another.
+const DefaultEmailPort = 587
+
+// ServerPort is the port mail is sent on.
+func (e Email) ServerPort() int {
+	if e.Port <= 0 || e.Port > 65535 {
+		return DefaultEmailPort
+	}
+	return e.Port
+}
+
+// Export is the Export to folder dialog's last answers.
+type Export struct {
+	Folder   string `json:"folder,omitempty"`
+	Template string `json:"template,omitempty"`
+	// Unchecked are the formats the user unchecked, upper case.
+	Unchecked []string `json:"unchecked,omitempty"`
+	// Policy is export.Policy: keep both, replace, skip.
+	Policy int  `json:"policy,omitempty"`
+	ASCII  bool `json:"ascii,omitempty"`
+	Extras bool `json:"extras,omitempty"`
 }
 
 // AppUpdates is what the user chose about new versions of Dalibre.
@@ -160,6 +210,9 @@ type PluginState struct {
 	// user grants it again.
 	Granted *Grant            `json:"granted,omitempty"`
 	Values  map[string]string `json:"values,omitempty"` // the plugin's settings
+	// Answers are the last answers to its actions' forms that ask to be
+	// remembered, by action id and field key.
+	Answers map[string]map[string]any `json:"answers,omitempty"`
 	// Source is where the plugin was installed from, when it can be
 	// updated from there; nil for one installed from a file.
 	Source *PluginSource `json:"source,omitempty"`
@@ -167,6 +220,18 @@ type PluginState struct {
 	// as the folder is, instead of from a copy in the plugins folder, and
 	// reloads when the folder's files change. "" for an installed plugin.
 	Path string `json:"path,omitempty"`
+	// Tools are where each of the plugin's tools comes from, by tool id;
+	// a tool missing here was never chosen.
+	Tools map[string]*ToolChoice `json:"tools,omitempty"`
+}
+
+// ToolChoice is where a plugin's tool comes from: Source is "download"
+// (Dalibre's own download of the pinned build), a package manager
+// ("brew", "winget", "scoop"), or "file", with Path the file the user
+// chose.
+type ToolChoice struct {
+	Source string `json:"source"`
+	Path   string `json:"path,omitempty"`
 }
 
 // PluginSource is the GitHub repository a plugin came from, and what of
@@ -179,6 +244,10 @@ type PluginSource struct {
 	Ref string `json:"ref"`
 	// Auto installs an update that asks for nothing new by itself.
 	Auto bool `json:"auto,omitempty"`
+	// Marketplace is true for a plugin installed from the Marketplace: its
+	// updates are the versions the Marketplace lists, and Ref the version
+	// installed.
+	Marketplace bool `json:"marketplace,omitempty"`
 }
 
 // Grant is the permissions granted to a plugin, as its manifest has them.
@@ -186,6 +255,11 @@ type Grant struct {
 	Hosts        []string `json:"hosts"`
 	LocalNetwork bool     `json:"localNetwork,omitempty"`
 	Library      string   `json:"library,omitempty"`
+	// Covers is "any" when it may load covers from any website.
+	Covers string `json:"covers,omitempty"`
+	// Tools are the tools the user let it run, as plugin.Tool.Identity
+	// names them, by id: a version and a build.
+	Tools map[string]string `json:"tools,omitempty"`
 }
 
 // Plugin returns the state of plugin id, creating it.

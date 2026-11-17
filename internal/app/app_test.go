@@ -248,6 +248,32 @@ func TestWelcomeWithoutLibrary(t *testing.T) {
 	shot(t, tt, "welcome")
 }
 
+// calibre's library is offered without opening its database, which may be
+// on a network volume SQLite can't lock (issue #20).
+func TestWelcomeOffersCalibreLibrary(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	root := filepath.Join(home, "Calibre Library")
+	lib, err := calibre.Create(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lib.Close()
+	prefs := filepath.Join(home, "Library", "Preferences", "calibre")
+	os.MkdirAll(prefs, 0o755)
+	os.WriteFile(filepath.Join(prefs, "global.py.json"), []byte(`{"library_path": "`+root+`"}`), 0o644)
+
+	a := New("")
+	a.run = func(func()) { t.Error("calibre's library was opened before the user asked") }
+	a.findCalibreLibrary()
+	tt := ui.NewTester(a.View, 1440, 900)
+	tt.Frame()
+	if !tt.HasText("Calibre Library") {
+		t.Fatalf("calibre's library not offered: %q", tt.Texts())
+	}
+	shot(t, tt, "welcome-calibre")
+}
+
 func TestWelcomeCreateLibrary(t *testing.T) {
 	a := New("")
 	a.run = func(fn func()) { fn() }
@@ -498,5 +524,62 @@ func TestDialogClearsCaptionButtons(t *testing.T) {
 	}
 	if r.Y < bar.Height {
 		t.Errorf("close button at y=%v, under the caption buttons (to y=%v)", r.Y, bar.Height)
+	}
+}
+
+// The detail panel's Open: one file opens straight away; several open
+// from a menu, the editor's formats first.
+func TestDetailOpen(t *testing.T) {
+	a := newTestApp(t)
+	tt := ui.NewTester(a.View, 1440, 900)
+	tt.Frame()
+	if err := tt.Click("Dune"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	dune := a.current()
+	sync := a.run
+	opened := 0
+	a.run = func(func()) { opened++ } // opening reaches for the file; don't
+	if err := tt.Click("Open"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if opened != 1 || tt.Menu() != nil {
+		t.Fatalf("one file: opened %d, menu %q", opened, tt.Menu())
+	}
+	shot(t, tt, "detail-open")
+
+	a.run = sync
+	f := filepath.Join(t.TempDir(), "dune.pdf")
+	os.WriteFile(f, []byte("pdf"), 0o644)
+	if err := a.lib.AddFormat(dune.ID, f); err != nil {
+		t.Fatal(err)
+	}
+	dune.Formats = []string{"PDF", "EPUB"}
+	delete(a.details, dune.ID)
+	delete(a.detailsReq, dune.ID)
+	tt.Frame()
+	if err := tt.Click("Open"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if got := strings.Join(tt.Menu(), "|"); got != "EPUB|-|PDF" {
+		t.Fatalf("menu %q", got)
+	}
+	shot(t, tt, "detail-open-menu")
+	a.run = func(func()) { opened++ }
+	if err := tt.ChooseMenuItem("PDF"); err != nil {
+		t.Fatal(err)
+	}
+	if opened != 2 {
+		t.Errorf("opened %d", opened)
+	}
+}
+
+func TestOpenOrder(t *testing.T) {
+	got := openOrder([]string{"PDF", "AZW3", "MOBI", "EPUB", "TXT"})
+	if strings.Join(got, " ") != "EPUB TXT AZW3 PDF MOBI" {
+		t.Errorf("order %q", got)
 	}
 }

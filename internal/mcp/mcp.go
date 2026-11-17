@@ -49,6 +49,42 @@ type Sources interface {
 	Download(ctx context.Context, p *plugin.Plugin, r plugin.Result, format string) (int64, error)
 }
 
+// Processor is what a Host with file type plugins gives too: what they
+// make of a file an agent adds, before it goes into the library. done
+// removes what they made; errs are the plugins that failed, passed over.
+type Processor interface {
+	ProcessImport(ctx context.Context, file string) (out string, done func(), errs []error)
+}
+
+// processImport is what the host's file type plugins make of file; file
+// itself when it has none.
+func (s *Server) processImport(ctx context.Context, file string) (string, func(), []string) {
+	pr, ok := s.host.(Processor)
+	if !ok {
+		return file, func() {}, nil
+	}
+	out, done, errs := pr.ProcessImport(ctx, file)
+	var msgs []string
+	for _, e := range errs {
+		msgs = append(msgs, e.Error())
+	}
+	return out, done, msgs
+}
+
+// Events is what a Host with file type plugins' hooks gives too: told
+// after an agent added a file or removed a format, it calls them.
+type Events interface {
+	Added(ctx context.Context, id int64, format string, newBook bool)
+	FormatRemoved(ctx context.Context, id int64, format string)
+}
+
+// added tells the host's Events, if any, that a file was added.
+func (s *Server) added(ctx context.Context, id int64, format string, newBook bool) {
+	if ev, ok := s.host.(Events); ok {
+		ev.Added(ctx, id, format, newBook)
+	}
+}
+
 // Server is the MCP server of a Host.
 type Server struct {
 	host Host
@@ -63,11 +99,14 @@ type Server struct {
 	writable bool
 	found    map[string]plugin.Result // find_books' results, by source and id
 	order    []string                 // keys of found, oldest first
-	client   string                   // the agent that called a tool last
-	used     time.Time
-	agents   map[string]*Agent // by name
-	calls    []*Call           // oldest first
-	nextCall int64
+	// processed is what test_plugin's last process call made, kept for
+	// the agent to look at until the next.
+	processed *plugin.Processed
+	client    string // the agent that called a tool last
+	used      time.Time
+	agents    map[string]*Agent // by name
+	calls     []*Call           // oldest first
+	nextCall  int64
 }
 
 // clientMeta is the key in a call's _meta under which the stdio bridge
@@ -79,7 +118,10 @@ func New(h Host, version string, allowChanges bool) *Server {
 	s := &Server{host: h, found: map[string]plugin.Result{}, agents: map[string]*Agent{}}
 	s.srv = sdk.NewServer(&sdk.Implementation{Name: "dalibre", Title: "Dalibre", Version: version}, &sdk.ServerOptions{
 		Instructions: "Dalibre is the user's e-book library, a calibre library. Book ids come from search_books. " +
-			"To convert a book, convert the file get_book gives to a file outside the library, then add it with add_format.",
+			"To convert a book, convert the file get_book gives to a file outside the library, then add it with add_format. " +
+			"To write a plugin for Dalibre (a book source, a metadata source, or one that works on books' files), read " + PluginDocs +
+			" first, then use create_plugin, add_plugin and test_plugin; reload_plugins after an edit. " +
+			"What the user's plugins can do with books and the library (find duplicates and the like) is in list_actions; run_action runs one.",
 		Capabilities: &sdk.ServerCapabilities{Tools: &sdk.ToolCapabilities{ListChanged: true}},
 	})
 	s.srv.AddReceivingMiddleware(s.noteUse)
@@ -136,10 +178,17 @@ func (s *Server) SetAllowChanges(on bool) {
 		if _, ok := s.host.(Sources); ok {
 			s.addSourceTools()
 		}
+		if _, ok := s.host.(Plugins); ok {
+			s.addPluginTools()
+		}
+		if _, ok := s.host.(Actions); ok {
+			s.addActionTools()
+		}
 		return
 	}
 	s.srv.RemoveTools(writeTools...)
 	s.srv.RemoveTools(sourceTools...)
+	s.srv.RemoveTools(pluginTools...)
 }
 
 func (s *Server) allowsChanges() bool {

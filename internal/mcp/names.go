@@ -16,6 +16,9 @@ const (
 	// SourceGroup is Get books' sources and the metadata plugins, while
 	// changes are allowed.
 	SourceGroup
+	// PluginGroup writes, adds and tries plugins, while changes are
+	// allowed.
+	PluginGroup
 )
 
 // Tools are the names of a group's tools, in the order Settings lists
@@ -26,6 +29,8 @@ func Tools(g Group) []string {
 		return slices.Clone(writeTools)
 	case SourceGroup:
 		return slices.Clone(sourceTools)
+	case PluginGroup:
+		return slices.Clone(pluginTools)
 	}
 	return slices.Clone(readTools)
 }

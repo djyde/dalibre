@@ -1,0 +1,17 @@
+{
+  "name": "dalibre-marketplace",
+  "private": true,
+  "description": "The plugins in Dalibre's Marketplace",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "index": "node index.mjs",
+    "check": "node build.mjs && for d in plugins/*/; do dalibre-plugin check \"$d\" || exit 1; done && node index.mjs --check"
+  },
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "fflate": "^0.8.2",
+    "opencc-js": "^1.0.5"
+  }
+}

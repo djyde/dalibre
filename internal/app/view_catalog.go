@@ -113,6 +113,7 @@ func (a *App) catalogToolbar(c *ui.Context) {
 		}
 		a.sharingButton(c)
 		a.agentsButton(c)
+		a.pluginsButton(c)
 		if p != nil {
 			ui.Box(c).Size(1, 20).Background(pal().Border).Margin(0, theme.Space4)
 			if widgets.Button(c, widgets.Secondary, icons.Refresh, locales.CatalogRefresh()).Clicked() {

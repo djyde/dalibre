@@ -1,6 +1,8 @@
 /testdata/
+/.amp/portals/*
 /build/
 /cmd/dalibre/build/
 .mygo/
 mygo_windows_*.syso
 *.exe
+.data/

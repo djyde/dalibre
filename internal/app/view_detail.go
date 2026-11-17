@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -24,6 +25,9 @@ func (a *App) detailShown() bool {
 	if a.settings.HideDetail {
 		return false
 	}
+	if v := a.deviceView(); v != nil {
+		return len(v.selectedIDs()) > 0
+	}
 	if a.page != pageLibrary {
 		return a.gb.selected != nil && a.pluginByID(a.gb.selected.source) != nil
 	}
@@ -41,6 +45,10 @@ func (a *App) detailPanelOf(c *ui.Context, pg page, b *calibre.Book, ids []int64
 		if bar.Right > 0 {
 			// Room for the caption buttons over the panel, to drag by.
 			ui.Box(c).Height(bar.Height).DragWindow()
+		}
+		if v := a.deviceView(); pg == pageDevice && v != nil {
+			a.deviceDetail(c, v)
+			return
 		}
 		if pg != pageLibrary {
 			a.resultDetail(c)
@@ -73,6 +81,10 @@ func (a *App) multiDetail(c *ui.Context, ids []int64) {
 		})
 		ui.Text(c, locales.DetailBooksSelected(len(ids))).FontWeight(600).FontSize(18)
 		ui.Column(c).Gap(theme.Space8).Width(220).AlignItems(ui.Stretch).Children(func() {
+			a.selectionActions(c, ids)
+			if widgets.Button(c, widgets.Secondary, icons.Download, locales.ExportMenu()).Disabled(a.busy != "").Clicked() {
+				a.openExport(ids)
+			}
 			if widgets.Button(c, widgets.Secondary, icons.Trash, locales.CommonRemoveFromLibrary()).Clicked() {
 				a.askDelete(ids)
 			}
@@ -85,7 +97,7 @@ func (a *App) bookDetail(c *ui.Context, b *calibre.Book) {
 	// Cover, title, actions.
 	ui.Column(c).Gap(theme.Space20).AlignItems(ui.Center).Children(func() {
 		ui.Row(c).FillWidth().Justify(ui.Center).Padding(theme.Space24, 0).Radius(theme.RadiusLG).Background(pal().Subtle).Children(func() {
-			a.coverView(c, b, 152, 228, false)
+			coverObi(c, b, a.cover(b, 456), 152, 228, false, a.readerName(b.ID))
 			// The book's actions, in the cover's corner.
 			ui.Box(c).Absolute().Top(theme.Space8).Right(theme.Space8).Children(func() {
 				// Raised off the cover's backdrop so it reads as a button.
@@ -98,11 +110,15 @@ func (a *App) bookDetail(c *ui.Context, b *calibre.Book) {
 					if m.Item(locales.DetailMenuEditMetadata()).Icon(icons.Menu(icons.Pencil)).Trailing("Ctrl+I").Chosen() {
 						a.openEditor(b)
 					}
-					if editableFormat(b) != "" && m.Item(locales.EditorMenuEditBook()).Icon(icons.Menu(icons.File)).Trailing("Ctrl+E").Chosen() {
+					if editorFormat(b) != "" && m.Item(locales.EditorMenuEditBook()).Icon(icons.Menu(icons.File)).Trailing("Ctrl+E").Chosen() {
 						a.editBook(b, "")
 					}
+					a.pluginActions(m, []int64{b.ID})
 					if m.Item(locales.DetailMenuAddFormat()).Icon(icons.Menu(icons.Plus)).Chosen() {
 						a.addFormat(b.ID)
+					}
+					if m.Item(locales.ExportMenu()).Icon(icons.Menu(icons.Download)).Disabled(a.busy != "").Chosen() {
+						a.openExport([]int64{b.ID})
 					}
 					a.shareMenu(m, b)
 					if m.Item(locales.CommonShowInFolder()).Icon(icons.Menu(icons.Folder)).Chosen() {
@@ -135,6 +151,8 @@ func (a *App) bookDetail(c *ui.Context, b *calibre.Book) {
 				widgets.Stars(c, b.Rating, 13)
 			}
 		})
+		a.openButton(c, b, d)
+		a.onReaderRow(c, b)
 	})
 	widgets.Hairline(c)
 	// Details.
@@ -232,7 +250,7 @@ func (a *App) bookDetail(c *ui.Context, b *calibre.Book) {
 				r.Background(pal().Hover)
 			}
 			r.OnClick(func() { a.openBook(b, f.Format) })
-			editable := isEditableFormat(f.Format)
+			editable := isEditorFormat(f.Format)
 			r.ContextMenu(func(m *ui.Menu) {
 				if m.Item(locales.CommonOpen()).Chosen() {
 					a.openBook(b, f.Format)
@@ -313,4 +331,77 @@ func htmlToText(s string) string {
 		lines[i] = strings.Join(strings.Fields(l), " ")
 	}
 	return strings.TrimSpace(reBlank.ReplaceAllString(strings.Join(lines, "\n"), "\n\n"))
+}
+
+// openButton is the book's main action (Figma, 19 · Open book). One file
+// opens straight away: in the editor when it's a format the editor opens,
+// else in the system's app for it. Several files open from a menu, the
+// editor's formats first.
+func (a *App) openButton(c *ui.Context, b *calibre.Book, d *calibre.Details) {
+	formats := openOrder(b.Formats)
+	if len(formats) == 0 {
+		return
+	}
+	if len(formats) == 1 {
+		f, icon := formats[0], icons.BookOpen
+		if !isEditorFormat(f) {
+			icon = icons.External
+		}
+		if widgets.Button(c.Key("open"), widgets.Primary, icon, locales.CommonOpen()).FillWidth().Clicked() {
+			a.openFormat(b, f)
+		}
+		return
+	}
+	sizes := map[string]int64{}
+	if d != nil {
+		for _, f := range d.Files {
+			sizes[f.Format] = f.Size
+		}
+	}
+	widgets.MenuButton(c.Key("open"), widgets.Primary, icons.BookOpen, locales.CommonOpen()).FillWidth().PopoverMenuButton(func(m *ui.Menu) {
+		for i, f := range formats {
+			editor := isEditorFormat(f)
+			if !editor && i > 0 && isEditorFormat(formats[i-1]) {
+				m.Separator()
+			}
+			icon := icons.BookOpen
+			if !editor {
+				icon = icons.External
+			}
+			it := m.Item(f).Icon(icons.Menu(icon))
+			if n, ok := sizes[f]; ok {
+				it.Trailing(humanSize(n))
+			}
+			if it.Chosen() {
+				a.openFormat(b, f)
+			}
+		}
+	})
+}
+
+// openOrder lists formats as Open offers them: the editor's, in the order
+// Edit book picks them, then the others as the book has them.
+func openOrder(formats []string) []string {
+	var out []string
+	for _, f := range editorFormats {
+		if slices.Contains(formats, f) {
+			out = append(out, f)
+		}
+	}
+	for _, f := range formats {
+		if !isEditorFormat(f) {
+			out = append(out, f)
+		}
+	}
+	return out
+}
+
+// openFormat opens a book's file: in the editor when it opens the format,
+// else in the system's app.
+func (a *App) openFormat(b *calibre.Book, format string) {
+	if isEditorFormat(format) {
+		a.editBook(b, format)
+		return
+	}
+	a.openBook(b, format)
 }

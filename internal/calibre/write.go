@@ -116,6 +116,7 @@ func setMetadata(tx *sql.Tx, id int64, m *Metadata, now time.Time) error {
 		table, linkCol, itemTable, itemCol string
 		values                             []string
 		extra                              func(v string) map[string]any
+		stored                             func(v string) string // the name as kept, when not v
 	}
 	one := func(s string) []string {
 		if s == "" {
@@ -124,10 +125,10 @@ func setMetadata(tx *sql.Tx, id int64, m *Metadata, now time.Time) error {
 		return []string{s}
 	}
 	links := []link{
-		{"books_authors_link", "author", "authors", "name", m.Authors, func(v string) map[string]any { return map[string]any{"sort": AuthorSort(v)} }},
-		{"books_tags_link", "tag", "tags", "name", m.Tags, nil},
-		{"books_series_link", "series", "series", "name", one(m.Series), nil},
-		{"books_publishers_link", "publisher", "publishers", "name", one(m.Publisher), nil},
+		{"books_authors_link", "author", "authors", "name", m.Authors, func(v string) map[string]any { return map[string]any{"sort": AuthorSort(v)} }, storedAuthor},
+		{"books_tags_link", "tag", "tags", "name", m.Tags, nil, nil},
+		{"books_series_link", "series", "series", "name", one(m.Series), nil, nil},
+		{"books_publishers_link", "publisher", "publishers", "name", one(m.Publisher), nil, nil},
 	}
 	for _, ln := range links {
 		if _, err := tx.Exec(`DELETE FROM `+ln.table+` WHERE book = ?`, id); err != nil {
@@ -137,6 +138,9 @@ func setMetadata(tx *sql.Tx, id int64, m *Metadata, now time.Time) error {
 			var extra map[string]any
 			if ln.extra != nil {
 				extra = ln.extra(v)
+			}
+			if ln.stored != nil {
+				v = ln.stored(v)
 			}
 			item, err := itemID(tx, ln.itemTable, ln.itemCol, v, extra)
 			if err != nil {
@@ -511,6 +515,13 @@ func (l *Library) SetCover(id int64, img []byte) error {
 // inside the library, so that a removal can be undone by hand.
 const TrashDir = ".dalibre-trash"
 
+// hasTable reports whether the library's database has table name.
+func hasTable(tx *sql.Tx, name string) (bool, error) {
+	var n int
+	err := tx.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?`, name).Scan(&n)
+	return n > 0, err
+}
+
 // RemoveBooks deletes books from the database, then hands each book's
 // folder to trash, as the system's Recycle Bin; with a nil trash the
 // folders move to the library's TrashDir.
@@ -528,13 +539,18 @@ func (l *Library) RemoveBooks(ids []int64, trash func(path string) error) error 
 		if err := tx.QueryRow(`SELECT path FROM books WHERE id = ?`, id).Scan(&path); err != nil {
 			return err
 		}
-		for _, q := range []string{
-			`DELETE FROM books WHERE id = ?`,
-			`DELETE FROM books_pages_link WHERE book = ?`,
-			`DELETE FROM metadata_dirtied WHERE book = ?`,
-			`DELETE FROM annotations_dirtied WHERE book = ?`,
-		} {
-			if _, err := tx.Exec(q, id); err != nil {
+		if _, err := tx.Exec(`DELETE FROM books WHERE id = ?`, id); err != nil {
+			return err
+		}
+		// Tables newer calibres added, which older libraries don't have:
+		// books_pages_link came with calibre 8.
+		for _, table := range []string{"books_pages_link", "metadata_dirtied", "annotations_dirtied"} {
+			if ok, err := hasTable(tx, table); err != nil {
+				return err
+			} else if !ok {
+				continue
+			}
+			if _, err := tx.Exec(`DELETE FROM `+table+` WHERE book = ?`, id); err != nil {
 				return err
 			}
 		}

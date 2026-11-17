@@ -1,24 +1,31 @@
 ---
+import { locale as findLocale, locales, strings } from "../i18n";
+
 interface Props {
   /** The page's content width, so the footer lines up with it. */
   width?: string;
+  /** The landing page's language; the pages beside it are in English. */
+  locale?: string;
 }
-const { width = "max-w-6xl" } = Astro.props;
+const { width = "max-w-6xl", locale = "en" } = Astro.props;
+const home = findLocale(locale).path;
+const all = strings(locale);
+const t = all.footer;
 
 type Link = { label: string; href: string };
 const columns: { title: string; links: Link[] }[] = [
   {
-    title: "Product",
+    title: t.product,
     links: [
-      { label: "Plugins", href: "/#plugins" },
-      { label: "Send to device", href: "/#devices" },
-      { label: "calibre compatibility", href: "/#calibre" },
-      { label: "Docs", href: "/docs/" },
-      { label: "Changelog", href: "/changelog/" },
+      { label: all.nav.plugins, href: "/plugins/" },
+      { label: t.devices, href: `${home}#devices` },
+      { label: t.calibre, href: `${home}#calibre` },
+      { label: all.nav.docs, href: "/docs/" },
+      { label: all.nav.changelog, href: "/changelog/" },
     ],
   },
   {
-    title: "Contact",
+    title: t.contact,
     links: [
       { label: "X", href: "https://x.com/randyloop" },
       { label: "Telegram", href: "https://t.me/djyde" },
@@ -34,12 +41,12 @@ const external = (href: string) => (href.startsWith("http") ? { target: "_blank"
   <div class:list={["mx-auto px-5", width]}>
     <div class="grid gap-12 py-14 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
       <div>
-        <a href="/" class="inline-flex items-center gap-2 font-medium tracking-tight">
+        <a href={home} class="inline-flex items-center gap-2 font-medium tracking-tight">
           <img src="/icon.png" alt="" class="size-7" />
           Dalibre
         </a>
         <p class="mt-3 max-w-[16rem] leading-relaxed text-sand-11">
-          A lighter home for your calibre library.
+          {t.tagline}
         </p>
       </div>
 
@@ -61,21 +68,41 @@ const external = (href: string) => (href.startsWith("http") ? { target: "_blank"
       }
 
       <div>
-        <p class="text-xs font-medium text-ink">More apps</p>
+        <p class="text-xs font-medium text-ink">{t.moreApps}</p>
         <ul class="mt-4">
           <li>
             <a href="https://nowdex.app" target="_blank" rel="noopener" class="text-sand-11 transition-colors hover:text-ink">
               Nowdex
             </a>
-            <p class="mt-0.5 text-xs leading-relaxed text-sand-9">Your AI quotas on every screen</p>
+            <p class="mt-0.5 text-xs leading-relaxed text-sand-9">{t.nowdex}</p>
           </li>
         </ul>
       </div>
     </div>
 
+    <nav aria-label={t.language} class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-sand-4 py-5 text-xs">
+      <span class="flex items-center gap-1.5 font-medium text-ink">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
+        {t.language}
+      </span>
+      {
+        locales.map((l) => (
+          <a
+            href={l.path}
+            hreflang={l.lang}
+            lang={l.lang}
+            aria-current={l.code === locale ? "true" : undefined}
+            class:list={["transition-colors hover:text-ink", l.code === locale ? "text-ink" : "text-sand-11"]}
+          >
+            {l.name}
+          </a>
+        ))
+      }
+    </nav>
+
     <div class="flex flex-col gap-2 border-t border-sand-4 py-6 text-xs text-sand-9 sm:flex-row sm:justify-between">
       <span>© {new Date().getFullYear()} Dalibre</span>
-      <span>calibre is a separate project by Kovid Goyal. Dalibre is not affiliated with it.</span>
+      <span>{t.disclaimer}</span>
     </div>
   </div>
 </footer>

@@ -34,6 +34,9 @@ type Meta struct {
 	Series      string
 	SeriesIndex float64
 	Cover       []byte
+	// ASIN and CDEType are a Kindle book's (MOBI EXTH 113 and 501): its
+	// Amazon id, or the one calibre gave it, and its kind, as "EBOK".
+	ASIN, CDEType string
 }
 
 // Read extracts what it can from the file, falling back to its name.
@@ -339,6 +342,10 @@ func readMOBI(file string) (Meta, error) {
 					m.Title = clean(decode(val))
 				case 524:
 					m.Language = clean(decode(val))
+				case 113:
+					m.ASIN = clean(decode(val))
+				case 501:
+					m.CDEType = clean(decode(val))
 				case 201:
 					if len(val) >= 4 {
 						coverOffset = int(binary.BigEndian.Uint32(val))

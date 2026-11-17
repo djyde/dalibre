@@ -1,0 +1,38 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.count-pages",
+  "name": "Count Pages",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "Counts words and estimates pages",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/count-pages",
+  "license": "GPL-3.0-or-later",
+  "icon": "library",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "count",
+        "title": "Count pages…",
+        "icon": "file",
+        "scope": "books",
+        "books": {
+          "min": 1
+        },
+        "formats": [
+          "EPUB",
+          "KEPUB",
+          "TXT",
+          "HTMLZ",
+          "FB2"
+        ],
+        "files": true
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

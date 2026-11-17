@@ -1,0 +1,46 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.apple-books",
+  "name": "Apple Books covers",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "High-resolution covers from the Apple Books store",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/apple-books",
+  "license": "GPL-3.0-or-later",
+  "icon": "book-open",
+  "capabilities": {
+    "metadata": {
+      "fields": [
+        "cover"
+      ]
+    }
+  },
+  "permissions": {
+    "hosts": [
+      "itunes.apple.com",
+      "*.mzstatic.com"
+    ],
+    "library": "read"
+  },
+  "settings": [
+    {
+      "key": "maxCovers",
+      "title": "Maximum number of covers",
+      "type": "number",
+      "default": "5"
+    },
+    {
+      "key": "country",
+      "title": "Store country",
+      "type": "text",
+      "default": "US"
+    },
+    {
+      "key": "additionalCountry",
+      "title": "Additional store country",
+      "type": "text"
+    }
+  ]
+}

@@ -145,6 +145,7 @@ func (a *App) syncDevice() {
 					}
 				}
 			}
+			stale[i].Cover = coverFile(lib, byUUID[s.UUID])
 		}
 		dev.UpdateMetadata(stale)
 	})
@@ -165,6 +166,14 @@ func deviceBook(b *calibre.Book, path, format string) smartdevice.Book {
 		Authors: b.Authors, AuthorSort: b.AuthorSort, Tags: b.Tags,
 		Series: b.Series, SeriesIndex: b.SeriesIndex, LastModified: b.LastModified,
 	}
+}
+
+// coverFile is b's cover image, "" when it has none.
+func coverFile(lib *calibre.Library, b *calibre.Book) string {
+	if b == nil || !b.HasCover {
+		return ""
+	}
+	return lib.CoverPath(b)
 }
 
 // connectedDevice is the reader connected, nil when none is.
@@ -247,7 +256,9 @@ func (a *App) sendToDevice(ids []int64) {
 				unreadable = append(unreadable, b.Title)
 				continue
 			}
-			send = append(send, deviceBook(b, path, format))
+			db := deviceBook(b, path, format)
+			db.Cover = coverFile(lib, b)
+			send = append(send, db)
 		}
 		a.post(func() { st.sending = len(send) })
 		var err error

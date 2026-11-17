@@ -1,0 +1,11 @@
+---
+// The landing page in each language but English, which is at "/".
+import Home from "../../components/Home.astro";
+import { defaultLocale, locales } from "../../i18n";
+
+export function getStaticPaths() {
+  return locales.filter((l) => l !== defaultLocale).map((l) => ({ params: { lang: l.code } }));
+}
+---
+
+<Home locale={Astro.params.lang} />

@@ -1,0 +1,35 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.kepub",
+  "name": "KePub",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "Convert EPUBs to Kobo's KePub, after kepubify and calibre's KoboTouchExtended",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/kepub",
+  "license": "MIT",
+  "main": "main.js",
+  "icon": "book-open",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "kepub",
+        "title": "Convert to KePub…",
+        "icon": "replace",
+        "scope": "books",
+        "books": {
+          "min": 1
+        },
+        "formats": [
+          "EPUB"
+        ],
+        "files": true
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

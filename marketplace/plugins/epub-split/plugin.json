@@ -1,0 +1,161 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.epub-split",
+  "name": "EPUB Split",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "Split sections of an EPUB off into new books, after calibre's EpubSplit",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/epub-split",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "icon": "layers",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "split",
+        "title": "Split EPUB…",
+        "icon": "copy",
+        "scope": "books",
+        "books": {
+          "min": 1,
+          "max": 1
+        },
+        "formats": [
+          "EPUB"
+        ],
+        "files": true,
+        "covers": true
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  },
+  "settings": [
+    {
+      "key": "new_book_per",
+      "title": "Splitting into several books makes",
+      "type": "select",
+      "default": "per_section",
+      "options": [
+        {
+          "value": "per_section",
+          "title": "New Book per Section"
+        },
+        {
+          "value": "per_n_sections",
+          "title": "New Book per N Sections"
+        },
+        {
+          "value": "per_n_splits",
+          "title": "N New Books"
+        }
+      ]
+    },
+    {
+      "key": "n_sections_num",
+      "title": "N sections per book",
+      "type": "number",
+      "default": "10"
+    },
+    {
+      "key": "orphans_num",
+      "title": "Orphan sections allowed",
+      "type": "number",
+      "default": "2"
+    },
+    {
+      "key": "n_splits_num",
+      "title": "N books",
+      "type": "number",
+      "default": "3"
+    },
+    {
+      "key": "copytoctitle",
+      "title": "Title from first section's TOC entry",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copytitle",
+      "title": "Title from the source title",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copyauthors",
+      "title": "Copy authors",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copytags",
+      "title": "Copy tags",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copylanguages",
+      "title": "Copy languages",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copyseries",
+      "title": "Copy series",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copyrating",
+      "title": "Copy rating",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copypubdate",
+      "title": "Copy published date",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copypublisher",
+      "title": "Copy publisher",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copyidentifiers",
+      "title": "Copy identifiers",
+      "type": "toggle",
+      "default": "false"
+    },
+    {
+      "key": "copycover",
+      "title": "Copy cover",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copycommentstitle",
+      "title": "Source title in comments",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copycommentsidurl",
+      "title": "Source URL in comments",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "copycomments",
+      "title": "Copy comments",
+      "type": "toggle",
+      "default": "true"
+    }
+  ]
+}

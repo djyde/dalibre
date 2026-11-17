@@ -1,0 +1,40 @@
+---
+// A request to an AI and what it did, in plain words: no tool names.
+import Check from "@lucide/astro/icons/check";
+import Sparkle from "@lucide/astro/icons/sparkle";
+
+interface Props {
+  ask: string;
+  steps: string[];
+  done: string;
+  tone?: "accent" | "violet";
+  class?: string;
+  style?: string;
+}
+const { ask, steps, done, tone = "accent", class: className, style } = Astro.props;
+---
+
+<div class:list={["rounded-[20px] border border-sand-6 bg-paper p-5 pb-[22px]", className]} style={style}>
+  <p class="ml-auto w-fit max-w-[85%] rounded-[18px] rounded-br-md bg-sand-3 px-4 py-2.5 text-[15px] leading-[23px]">{ask}</p>
+  <div class="mt-4 flex gap-3">
+    <span
+      class:list={[
+        "flex size-7 shrink-0 items-center justify-center rounded-full",
+        tone === "violet" ? "bg-[#f4f0fe] text-violet" : "bg-accent-soft text-accent",
+      ]}
+    >
+      <Sparkle size={14} stroke-width={2} aria-hidden="true" />
+    </span>
+    <div class="min-w-0 flex-1 pt-[3px]">
+      <ul class="space-y-2 text-sm leading-5 text-sand-11">
+        {steps.map((s) => (
+          <li class="flex gap-2.5">
+            <Check size={14} stroke-width={2.25} class="mt-[3px] shrink-0 text-green" aria-hidden="true" />
+            {s}
+          </li>
+        ))}
+      </ul>
+      <p class="mt-3 text-[15px] leading-[23px]">{done}</p>
+    </div>
+  </div>
+</div>

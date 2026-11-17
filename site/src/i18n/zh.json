@@ -1,0 +1,276 @@
+{
+  "meta": {
+    "title": "Dalibre — 为你和你的 AI Agent 打造的 calibre 替代品",
+    "description": "Dalibre 是轻量的 calibre 替代品，同时为人和 AI Agent 设计：快速的原生电子书管理器，可直接打开你现有的 calibre 书库，并让 AI Agent 管理书库、为它编写插件。",
+    "ogAlt": "Dalibre：为你和你的 AI Agent 准备的书库。",
+    "features": [
+      "可打开现有的 calibre 书库",
+      "编辑元数据，并从在线来源获取",
+      "从目录和 OPDS 服务器获取书籍",
+      "通过 OPDS 把书发送到电子阅读器",
+      "沙盒化的 JavaScript 插件",
+      "插件市场：移植自 calibre 最常用的插件",
+      "为 Claude Code、Claude Desktop 和 Cursor 等 AI Agent 提供的 MCP 服务器",
+      "AI Agent 可以通过 MCP 编写、试用和安装插件"
+    ]
+  },
+  "nav": {
+    "agents": "AI Agent",
+    "plugins": "插件",
+    "docs": "文档",
+    "changelog": "更新日志",
+    "download": "下载"
+  },
+  "hero": {
+    "eyebrow": "适合你和你的 AI Agent 的 calibre 替代品",
+    "title1": "你的书库，",
+    "title2": "AI 也能打理。",
+    "lead": "Dalibre 是一个安静、快速的电子书管理器，直接打开你已有的 calibre 书库。你可以自己管理，也可以直接问 AI：它会整理书架，并补上你缺少的功能。",
+    "downloadFor": "下载 {os} 版",
+    "otherPlatforms": "其他平台",
+    "allDownloads": "所有下载 →",
+    "sponsoredBy": "赞助方",
+    "sponsorTagline": "在手机上查看 AI Agent 的额度",
+    "windowTheme": "窗口主题",
+    "light": "浅色",
+    "dark": "深色"
+  },
+  "demo": {
+    "working": "正在处理…",
+    "scenes": [
+      {
+        "ask": "给我看看我的科幻小说。",
+        "done": "这是你的 9 本科幻书。"
+      },
+      {
+        "ask": "把刘慈欣的所有书都标上 “Chinese SF”。",
+        "done": "已完成，3 本书已标记 “Chinese SF”。"
+      },
+      {
+        "ask": "帮没有封面的书找封面。",
+        "done": "已为 2 本书找到封面。"
+      },
+      {
+        "ask": "给《沙丘》做一个 Kindle 版本。",
+        "done": "《沙丘》现在有了适合 Kindle 的 AZW3 版本。"
+      }
+    ]
+  },
+  "chat": {
+    "manage": {
+      "ask": "把刘慈欣的所有书都标记为“Hard SF”，并为《沙丘》做一份 Kindle 版本。",
+      "steps": [
+        "找到 3 本刘慈欣的书",
+        "把它们标记为“Hard SF”",
+        "把《沙丘》转换为 Kindle 格式 AZW3",
+        "把它添加到你书库中的《沙丘》里"
+      ],
+      "done": "完成：3 本书已标记为“Hard SF”，《沙丘》已可用于你的 Kindle。"
+    },
+    "extend": {
+      "ask": "我想从 Standard Ebooks 获取书籍。",
+      "steps": [
+        "阅读了 Dalibre 的插件指南",
+        "为 Standard Ebooks 编写了一个插件",
+        "请你允许访问 standardebooks.org",
+        "试着搜索“Dune”，并修复了一个错误",
+        "再试一次：找到 3 本书"
+      ],
+      "done": "搞定。Standard Ebooks 已经出现在“Get books”里了。"
+    }
+  },
+  "light": {
+    "eyebrow": "轻量",
+    "title1": "体积只有 calibre 的",
+    "title2": "1/{ratio}。",
+    "lead": "calibre 是一个工具箱，能对电子书做各种处理。Dalibre 只做日常的部分：管理你的书库。",
+    "wholeApp": "← 整个应用就只有这么大",
+    "note": "macOS 上的磁盘占用：安装后的 calibre.app 9.18，以及 Dalibre 发布版的可执行文件。",
+    "rows": [
+      "直接打开你的 calibre 书库，无需导入",
+      "在另一个应用里也能看到你的修改",
+      "通过 Wi-Fi 把书发送到 KOReader",
+      "转换格式"
+    ],
+    "notYet": "尚未支持",
+    "size": "磁盘占用"
+  },
+  "both": {
+    "eyebrow": "两种方式",
+    "title1": "一个书库。",
+    "title2": "两种用法。",
+    "lead": "Dalibre 从一开始就同时为人和 AI 设计。你可以在安静的窗口中自己动手，也可以直接说出需求，让 AI 来完成。两者操作的是同一批书。",
+    "hand": {
+      "label": "亲自动手",
+      "title": "自己动手。",
+      "lead": "一个安静的原生窗口，所有功能点一下即可找到。",
+      "items": [
+        "浏览封面、列表和书架",
+        "输入即搜索和筛选",
+        "编辑详情、封面和书籍正文",
+        "通过 Wi-Fi 把书发送到电子阅读器"
+      ]
+    },
+    "ai": {
+      "label": "使用 AI",
+      "title": "或者直接问。",
+      "lead": "用你自己的话说出来即可。支持 Claude、Cursor 等你电脑上的 AI 应用。",
+      "asks": [
+        "我缺了哪些系列的书？",
+        "把我下载文件夹里的所有电子书都加进来。",
+        "补全缺失的封面和出版社。",
+        "为《沙丘》做一份 Kindle 版本。",
+        "帮我做一个从 Standard Ebooks 获取书籍的功能。"
+      ]
+    }
+  },
+  "manage": {
+    "eyebrow": "管理",
+    "title1": "你的 AI Agent",
+    "title2": "熟悉你的书架。",
+    "lead": "让 Claude、Cursor 或任何支持 MCP 的 AI 应用搜索你的书库、修正书籍信息、添加书籍或转换格式。它只留在你的电脑上，Dalibre 会显示它做的每一件事。",
+    "popover": {
+      "status": "运行中 · 可以修改书籍",
+      "agents": "AI Agent",
+      "working": "正在工作 · 5 次调用",
+      "activity": "活动",
+      "items": [
+        "已将 AZW3 添加到《沙丘》",
+        "读取了《沙丘》",
+        "编辑了 3 本书",
+        "搜索了书库 · 3 本书"
+      ]
+    },
+    "features": [
+      {
+        "title": "只在你的电脑上运行",
+        "text": "服务器只监听 127.0.0.1，只有带 Token 的程序才能连接。"
+      },
+      {
+        "title": "每次调用都看得见",
+        "text": "工具栏会显示 AI Agent 正在工作；弹出面板会列出每个 AI Agent 做过的事。"
+      },
+      {
+        "title": "需要的话，可以只读",
+        "text": "AI Agent 默认可以使用全部 Tools。打开一个开关，它就只能搜索和阅读。"
+      }
+    ],
+    "connect": "连接你的 AI Agent →",
+    "docs": "阅读 MCP 文档"
+  },
+  "extend": {
+    "eyebrow": "扩展",
+    "title1": "缺少某个功能？",
+    "title2": "直接告诉它。",
+    "lead": "Dalibre 通过插件不断成长。你可以从插件市场安装移植自 calibre 的常用插件，也可以让你的 AI 编写你需要的插件：它会编写插件、试用，并修复失败的地方。你只需决定它可以访问什么。",
+    "dialog": {
+      "label": "Dalibre 询问你",
+      "title": "添加“Standard Ebooks”？",
+      "lead": "这个插件要访问一个网站：",
+      "note": "它无法访问其他任何地方，也无法读取你的文件。",
+      "deny": "不允许",
+      "allow": "允许"
+    },
+    "builtIn": "内置",
+    "kindSource": "书源",
+    "kindMetadata": "元数据",
+    "builtins": [
+      "搜索和浏览超过 70,000 本免费公版电子书，可按语言筛选。提供最受欢迎和最近添加的列表。",
+      "来自开放书目的书名、作者、系列、标签、出版社、日期、ISBN、封面和简介，关联豆瓣、Goodreads 等。无需账号。",
+      "来自 Google Books 的书名、作者、标签、出版社、日期、ISBN、封面和简介。可添加你自己的 API 密钥，使用专属额度。"
+    ],
+    "docs": "阅读插件文档 →",
+    "browse": "浏览插件 →",
+    "safe": "插件如何保证安全 →"
+  },
+  "devices": {
+    "eyebrow": "发送到设备",
+    "title1": "从你的书库",
+    "title2": "到你的电子阅读器。",
+    "lead": "打开分享，Dalibre 就会通过你的 Wi-Fi 以 OPDS 提供你的书库。KOReader、Moon+ Reader、Thorium 和 KyBook 可以像逛书店一样浏览，并下载你选中的书。无需数据线，无需云端，也无需账号。",
+    "steps": [
+      "在“Settings › OPDS”中开启分享。",
+      "把地址添加到你的阅读应用中。",
+      "在沙发上浏览并下载。"
+    ],
+    "oneBookTitle": "只想发一本书？",
+    "oneBookText": "在 Mac 上，在详情面板中右键点击某个格式，选择“Share…”，即可通过 AirDrop、信息或邮件发送。"
+  },
+  "calibre": {
+    "eyebrow": "无需迁移",
+    "title1": "保留你的书库。",
+    "title2": "也保留 calibre。",
+    "lead": "Dalibre 读写 calibre 自己的格式。随时在任一应用中打开你的书库，无需导入，也无需导出。",
+    "items": [
+      "使用 calibre 的 <code>metadata.db</code> 结构、触发器等全部内容",
+      "文件夹和文件的命名方式与 calibre 相同",
+      "编辑会写入 <code>metadata.opf</code>，calibre 会自动识别",
+      "删除的书会进入系统废纸篓，而不是凭空消失"
+    ]
+  },
+  "faq": {
+    "eyebrow": "常见问题",
+    "title1": "calibre 替代品，",
+    "title2": "一次说清。",
+    "lead": "Dalibre 做什么，把什么留给 calibre，以及两者如何共享同一个书库。",
+    "items": [
+      {
+        "q": "Dalibre 是 calibre 的替代品吗？",
+        "a": "是的，用来管理你的电子书库。Dalibre 负责 calibre 的日常功能（浏览、搜索、编辑元数据、获取书籍并发送到电子阅读器），并且是一个小 {ratio}× 的原生应用。格式转换功能正在开发中；calibre 的电子书编辑器不在计划范围内。"
+      },
+      {
+        "q": "我需要迁移我的 calibre 书库吗？",
+        "a": "不需要。Dalibre 读写 calibre 自己的书库格式（metadata.db、文件夹结构和 metadata.opf），所以可以直接打开你已有的书库。无需导入，也无需导出。"
+      },
+      {
+        "q": "我能同时在 Dalibre 和 calibre 中使用同一个书库吗？",
+        "a": "可以。两个应用操作的是同一批文件，你可以随时在任一应用中打开书库，并把 Dalibre 不做的事交给 calibre 完成。"
+      },
+      {
+        "q": "Dalibre 能转换电子书格式吗？",
+        "a": "暂时还不能，我们正在开发中。在此之前，你可以继续用 calibre 处理同一个书库，在 EPUB、MOBI、AZW3 或 PDF 之间转换；或者让通过 MCP 连接的 AI Agent 使用 calibre 的 ebook-convert 转换书籍，并把结果添加到书库中。"
+      },
+      {
+        "q": "如何把书传到我的电子阅读器上？",
+        "a": "打开分享，Dalibre 就会通过你的 Wi-Fi 以 OPDS 提供书库。KOReader、Moon+ Reader、Thorium 和 KyBook 等阅读应用可以浏览并下载你选中的书。无需数据线，无需云端，也无需账号。"
+      },
+      {
+        "q": "AI Agent 能使用我的书库吗？",
+        "a": "可以。开启 MCP 后，Claude Code、Claude Desktop 和 Cursor 等 AI Agent 就能用它们已有的 Tools 搜索书库、编辑元数据、添加书籍和转换格式。只有你电脑上的程序才能连接，而且需要 Token；Dalibre 会显示它们做的每一次调用。"
+      },
+      {
+        "q": "AI Agent 能帮我编写 Dalibre 插件吗？",
+        "a": "可以。通过 MCP，AI Agent 可以从模板开始创建插件，把它添加到 Dalibre，调用它，读取结果、日志和错误，并不断修复直到它能正常运行。Dalibre 仍然会请你允许插件访问的网站；AI Agent 不能替你授权。"
+      },
+      {
+        "q": "Dalibre 支持哪些平台？",
+        "a": "macOS、Windows 和 Linux。Dalibre 是一个用 Go 编写的单一原生可执行文件：没有 webview，不内置 Python，也无需安装任何运行时。"
+      },
+      {
+        "q": "Dalibre 能运行 calibre 插件吗？",
+        "a": "不能直接运行 calibre 的插件。Dalibre 有自己的插件：小型、沙盒化的 JavaScript 模块，任何人都可以编写。在工具栏的「插件」按钮里打开插件市场，可以安装移植自 calibre 的常用插件，例如 Find Duplicates、Quality Check、EpubMerge 和 KePub。"
+      }
+    ]
+  },
+  "cta": {
+    "title1": "少一点软件，",
+    "title2": "多一点阅读。",
+    "lead": "一个小小的安装包，支持 macOS、Windows 和 Linux。"
+  },
+  "footer": {
+    "tagline": "为你的 calibre 书库提供一个更轻的家。",
+    "product": "产品",
+    "contact": "联系",
+    "moreApps": "更多应用",
+    "devices": "发送到设备",
+    "calibre": "calibre 兼容性",
+    "nowdex": "你的 AI 额度，尽在每个屏幕上",
+    "disclaimer": "calibre 是 Kovid Goyal 的独立项目。Dalibre 与其没有关联。",
+    "language": "语言"
+  },
+  "banner": {
+    "text": "Dalibre 也有简体中文版。",
+    "action": "查看中文版",
+    "dismiss": "关闭"
+  }
+}

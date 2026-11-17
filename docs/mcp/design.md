@@ -95,6 +95,29 @@ book's file can't be moved onto another).
 | `download_book(source, id, format?)` | Adds a result of `find_books` (the server keeps the last 1000) to the library, as Get books does. |
 | `find_metadata(id, source?)` | Candidates from metadata plugins (`plugin.Identify`); the agent picks one and applies it with `update_books`. |
 
+### Plugins (unless read only)
+
+For an agent that writes a plugin ([docs/plugins](../plugins/README.md));
+the server's instructions point it at the published docs.
+
+| Tool | |
+|---|---|
+| `list_plugins` | Each plugin's state: `loaded`, `disabled`, `needs_approval`, `failed`; and the load errors. |
+| `create_plugin(path, id, name?)` | The template (`sdk.Init`) in an empty folder. |
+| `add_plugin(path)` | Links the folder, as Plugins › Add plugin › From a folder. |
+| `reload_plugins` | `loadPlugins`, and waits for it. |
+| `test_plugin(id, call, …)` | Calls a loaded plugin's function; returns the result, the log lines (`Plugin.Tap`) and the error with its kind and stack. |
+| `enable_plugin(id, enabled?)` | |
+| `remove_plugin(id)` | Linked plugins only. |
+
+The user's consent stays the gate. `add_plugin` shows the consent dialog
+and waits for the answer (two minutes, then it reports
+`needs_approval`); an edit that asks for more waits unloaded, as any
+update does. `test_plugin` only calls loaded plugins, so an agent can't
+run code or reach a host the user didn't allow. `add_plugin` refuses an
+id another plugin has, which would hand it that plugin's grant and
+secrets, and `remove_plugin` leaves installed plugins to the user.
+
 ### Later
 
 - `read_book(id, chapter?)`: a book's text, chapter by chapter, for

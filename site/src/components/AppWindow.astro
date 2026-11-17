@@ -6,6 +6,15 @@
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
 
+interface Props {
+  /** The requests the window plays, in the page's language. */
+  demo: { working: string; scenes: { ask: string; done: string }[] };
+}
+const { demo } = Astro.props;
+
+// Books that start without a cover; the demo's AI finds theirs.
+const noCover = [8, 9];
+
 const coverFiles = import.meta.glob<{ default: ImageMetadata }>("../assets/covers/*.jpg", { eager: true });
 const slugs = [
   "three-body", "dark-forest", "deaths-end", "foundation", "dune",
@@ -120,7 +129,8 @@ const sources = [
 const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", "Philosophy"];
 ---
 
-<div class="dw-frame" data-books={JSON.stringify(books)}>
+<div class="dw-wrap">
+<div class="dw-frame" data-books={JSON.stringify(books)} data-demo={JSON.stringify(demo)}>
   <div class="dw" role="img" aria-label="The Dalibre library window: books on shelves, a sidebar and a detail panel">
     <!-- Sidebar -->
     <aside class="dw-side">
@@ -158,7 +168,7 @@ const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", 
         <div class="dw-item">
           <span class="dw-ic" set:html={icon(n.i)} />
           <span class="flex-1">{n.t}</span>
-          <span class="dw-count">{n.n}</span>
+          <span class="dw-count" data-count={n.t}>{n.n}</span>
         </div>
       ))}
 
@@ -185,6 +195,7 @@ const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", 
       <header class="dw-toolbar">
         <h3 class="text-[20px] font-semibold tracking-[-0.01em]">All books <span class="ml-1 font-mono text-[12px] font-normal text-[var(--t3)]">1,284</span></h3>
         <div class="flex-1"></div>
+        <span class="dw-agent"><i>CC</i>Claude Code<b></b></span>
         <div class="dw-search">
           <span set:html={icon("search", 14)} />
           <span class="flex-1">Search title, author, tag…</span>
@@ -197,7 +208,7 @@ const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", 
       </header>
 
       <div class="dw-filters">
-        {chips.map((c, i) => <span class:list={["dw-chip", i === 0 && "dw-chip-on"]}>{c}</span>)}
+        {chips.map((c, i) => <span class:list={["dw-chip", i === 0 && "dw-chip-on"]} data-chip={i}>{c}</span>)}
         <span class="flex-1"></span>
         <span class="text-[12px] text-[var(--t2)]">Date added ↓</span>
       </div>
@@ -211,6 +222,12 @@ const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", 
                 return (
                   <button class:list={["dw-book", idx === 0 && "is-sel"]} data-i={idx} aria-label={b.title}>
                     <img class="dw-cover" src={b.cover} alt="" width="132" height={b.h} style={`height:${b.h}px;background:${b.color}`} loading={r === 0 ? "eager" : "lazy"} decoding="async" />
+                    {noCover.includes(idx) && (
+                      <span class="dw-ph" style={`height:${b.h}px;background:${b.color};color:${b.color === C.cream ? "#21201c" : "#fff"}`}>
+                        <span class="dw-ph-author">{b.author}</span>
+                        {b.title}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -259,7 +276,21 @@ const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", 
   })();
 </script>
 
+<!-- The demo's requests, shown beside what they change. They are labelled
+     as coming from the visitor's own AI app: Dalibre itself has no chat. -->
+<div class="dw-chat" aria-hidden="true">
+  <span class="dw-chat-from"><b></b>Claude · MCP</span>
+  <p class="dw-chat-user"></p>
+  <p class="dw-chat-ai">
+    <span class="dw-chat-spark" set:html={`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/></svg>`} />
+    <span class="dw-chat-text"></span>
+  </p>
+</div>
+</div>
+
 <script>
+  import { animate, stagger } from "motion";
+
   type Book = {
     title: string; author: string; color: string; cover: string; h: number; series?: string; publisher: string;
     published: string; language: string; tags: string[]; formats: [string, string][]; rating: number;
@@ -303,6 +334,168 @@ const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", 
     el.addEventListener("click", () => show(Number(el.dataset.i))),
   );
   show(0);
+
+  // The demo: requests to an AI, one after another, each with what it does
+  // to the window. It plays while the window is on screen.
+  const demo: { working: string; scenes: { ask: string; done: string }[] } = JSON.parse(frame.dataset.demo!);
+  const wrap = frame.parentElement!;
+  const chat = wrap.querySelector<HTMLElement>(".dw-chat")!;
+  // Where each scene's bubbles sit: beside what the scene changes.
+  const spots = [
+    { x: "46.5%", y: "96%", tx: "-50%", ty: "-100%" }, // under the shelves
+    { x: "35.6%", y: "80%", tx: "-50%", ty: "-100%" }, // below the three books
+    { x: "58%", y: "97%", tx: "-50%", ty: "-100%" }, // below the two covers
+    { x: "75.5%", y: "97%", tx: "-100%", ty: "-100%" }, // beside the formats
+  ];
+  const userB = wrap.querySelector<HTMLElement>(".dw-chat-user")!;
+  const aiB = wrap.querySelector<HTMLElement>(".dw-chat-ai")!;
+  const aiText = wrap.querySelector<HTMLElement>(".dw-chat-text")!;
+  const agent = frame.querySelector<HTMLElement>(".dw-agent")!;
+  const all = (sel: string) => [...frame.querySelectorAll<HTMLElement>(sel)];
+  const parts = (i: number) => all(`.dw-book[data-i="${i}"], .dw-label[data-i="${i}"]`);
+  const spring = { type: "spring", stiffness: 380, damping: 28 } as const;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+  let onScreen = false;
+  new IntersectionObserver(([e]) => (onScreen = e.isIntersecting), { threshold: 0.3 }).observe(frame);
+  const whenWatched = async () => {
+    while (!onScreen || document.hidden) await sleep(300);
+  };
+
+  const lift = (i: number, on: boolean) => frame.querySelector(`.dw-book[data-i="${i}"]`)!.classList.toggle("is-lift", on);
+
+  const scenes: { run: () => Promise<void>; reset: () => Promise<void> }[] = [
+    // "Show me my science fiction": the filter chip, and the rest fade.
+    (() => {
+      const chips = all("[data-chip]");
+      const rest = books.flatMap((b, i) => (b.tags.includes("Science Fiction") ? [] : parts(i)));
+      return {
+        async run() {
+          chips[0].classList.remove("dw-chip-on");
+          chips[1].classList.add("dw-chip-on");
+          animate(chips[1], { scale: [1.25, 1] }, spring);
+          await animate(rest, { opacity: 0.14 }, { duration: 0.5, delay: stagger(0.025) });
+        },
+        async reset() {
+          chips[1].classList.remove("dw-chip-on");
+          chips[0].classList.add("dw-chip-on");
+          await animate(rest, { opacity: 1 }, { duration: 0.4 });
+        },
+      };
+    })(),
+    // "Tag every Liu Cixin book": a tag lands on each, then in the details.
+    (() => {
+      const tag = "Chinese SF";
+      const count = frame.querySelector<HTMLElement>('[data-count="Tags"]')!;
+      const mine = books.flatMap((b, i) => (b.author === "Liu Cixin" ? [i] : []));
+      let pops: HTMLElement[] = [];
+      return {
+        async run() {
+          show(mine[0]);
+          for (const i of mine) {
+            lift(i, true);
+            const pop = document.createElement("span");
+            pop.className = "dw-tagpop";
+            pop.textContent = tag;
+            frame.querySelector(`.dw-book[data-i="${i}"]`)!.append(pop);
+            pops.push(pop);
+            animate(pop, { opacity: [0, 1], scale: [0.4, 1], y: [10, 0] }, spring);
+            await sleep(380);
+          }
+          const chip = document.createElement("span");
+          chip.className = "dw-chip dw-chip-on";
+          chip.textContent = tag;
+          $("dw-d-tags").append(chip);
+          animate(chip, { opacity: [0, 1], scale: [0.5, 1] }, spring);
+          count.textContent = "144";
+          await animate(count, { scale: [1.5, 1] }, { duration: 0.6 });
+        },
+        async reset() {
+          await animate(pops, { opacity: 0, y: -6 }, { duration: 0.25 });
+          pops.forEach((p) => p.remove());
+          pops = [];
+          mine.forEach((i) => lift(i, false));
+          count.textContent = "143";
+          show(0);
+        },
+      };
+    })(),
+    // "Find covers": each bare cover gives way to the real one.
+    (() => {
+      const bare = all(".dw-ph");
+      return {
+        async run() {
+          for (const ph of bare) {
+            const i = Number(ph.parentElement!.dataset.i);
+            lift(i, true);
+            await animate(ph, { opacity: [1, 0], scale: [1, 1.06], filter: ["blur(0px)", "blur(8px)"] }, { duration: 0.7, ease: "easeOut" });
+            await sleep(150);
+            lift(i, false);
+          }
+        },
+        async reset() {
+          await animate(bare, { opacity: 1, scale: 1, filter: "blur(0px)" }, { duration: 0.4 });
+        },
+      };
+    })(),
+    // "Make a Kindle copy of Dune": the book opens, and gains a format.
+    (() => {
+      const dune = books.findIndex((b) => b.title === "Dune");
+      return {
+        async run() {
+          show(dune);
+          animate($("dw-d-cover"), { opacity: [0, 1], scale: [0.94, 1] }, { duration: 0.4 });
+          await sleep(1300);
+          const row = document.createElement("div");
+          row.className = "dw-format dw-format-new";
+          row.innerHTML = `<span class="dw-badge" style="color:var(--azw3);background:var(--azw3-bg)">AZW3</span><span class="flex-1 truncate">Dune</span><span class="font-mono text-[11px] text-[var(--t3)]">1.6 MB</span><span class="text-[var(--icon)]">${dl}</span>`;
+          $("dw-d-formats").append(row);
+          await animate(row, { opacity: [0, 1], y: [-14, 0], scale: [0.96, 1] }, spring);
+        },
+        async reset() {
+          show(0);
+        },
+      };
+    })(),
+  ];
+
+  const fadeIn = { opacity: [0, 1], y: [6, 0] };
+  const soft = { duration: 0.45, ease: "easeOut" } as const;
+
+  async function play() {
+    for (let n = 0; ; n = (n + 1) % scenes.length) {
+      await whenWatched();
+      const text = demo.scenes[n];
+      userB.textContent = text.ask;
+      aiText.textContent = demo.working;
+      for (const [k, v] of Object.entries(spots[n])) chat.style.setProperty(`--${k}`, v);
+      animate(chat, fadeIn, soft);
+      await animate(userB, fadeIn, soft);
+      await sleep(300);
+
+      aiB.classList.add("is-working");
+      animate(agent, { opacity: [0, 1], scale: [0.9, 1] }, { duration: 0.3 });
+      await animate(aiB, fadeIn, soft);
+      await sleep(250);
+      await scenes[n].run();
+      await sleep(300);
+
+      // The answer fades in where "Working…" was.
+      await animate(aiB, { opacity: 0 }, { duration: 0.25 });
+      aiText.textContent = text.done;
+      aiB.classList.remove("is-working");
+      animate(aiB, { opacity: 1 }, { duration: 0.45 });
+      animate(agent, { opacity: 0 }, { duration: 0.3 });
+      await sleep(2600);
+
+      await whenWatched();
+      await animate(chat, { opacity: 0 }, { duration: 0.35 });
+      animate([userB, aiB], { opacity: 0 }, { duration: 0 });
+      await scenes[n].reset();
+      await sleep(500);
+    }
+  }
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) play();
 </script>
 
 <style is:global>
@@ -419,7 +612,43 @@ const chips = ["All", "Science Fiction", "Literary", "Classics", "Non-fiction", 
   .dw-format { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border-subtle); font-size: 12px; color: var(--t2); }
   .dw-badge { font-family: "Geist Mono", ui-monospace, monospace; font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 4px; }
 
+  /* the demo */
+  .dw-agent { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 5px; border-radius: 8px; background: var(--accent-subtle); color: var(--t-accent); font-size: 12px; font-weight: 500; opacity: 0; }
+  .dw-agent i { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 5px; background: #cc7852; color: #fff; font-size: 9px; font-weight: 600; font-style: normal; }
+  .dw-agent b { width: 6px; height: 6px; border-radius: 99px; background: var(--accent); animation: dw-pulse 1s ease-in-out infinite; }
+  @keyframes dw-pulse { 50% { opacity: .3; } }
+  .dw-book.is-lift { transform: translateY(-12px); }
+  .dw-book.is-lift .dw-cover { box-shadow: 0 0 0 2px var(--accent), 0 16px 28px -6px rgba(0,0,0,.35); }
+  .dw-ph { position: absolute; left: 12px; bottom: 0; width: 132px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; padding: 12px 10px; border-radius: 2px 3px 3px 2px; font-size: 14px; font-weight: 600; line-height: 1.2; text-align: left; box-shadow: 0 1px 1px rgba(0,0,0,.1), 0 2px 6px rgba(0,0,0,.08); }
+  .dw-ph-author { font-family: "Geist Mono", ui-monospace, monospace; font-size: 8px; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; opacity: .7; margin-bottom: auto; }
+  .dw-tagpop { position: absolute; bottom: 14px; left: 50%; translate: -50% 0; z-index: 3; display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 11px; font-weight: 500; white-space: nowrap; box-shadow: 0 0 0 2px #fff, 0 6px 14px -2px rgba(0,0,0,.5); }
+  .dw-format-new { margin-top: 6px; border-color: var(--accent); background: var(--selected); }
+
+  /* The requests float over the window, next to what they change. */
+  .dw-wrap { position: relative; }
+  .dw-chat {
+    display: flex; flex-direction: column; gap: 8px; min-height: 124px; margin-top: 16px; padding: 12px;
+    border-radius: 22px; border: 1px solid var(--color-sand-7); background: var(--color-paper);
+    box-shadow: 0 0 0 6px rgba(253,253,252,.55), 0 28px 56px -12px rgba(33,32,28,.6), 0 6px 16px rgba(33,32,28,.18);
+    pointer-events: none; font-size: 15px; line-height: 22px; opacity: 0;
+  }
+  .dw-chat-user, .dw-chat-ai { opacity: 0; }
+  .dw-chat-from { display: inline-flex; align-items: center; gap: 6px; padding: 0 4px 2px; font-family: var(--font-mono); font-size: 10px; line-height: 14px; letter-spacing: .04em; color: var(--color-sand-11); }
+  .dw-chat-from b { width: 6px; height: 6px; border-radius: 99px; background: var(--color-green); }
+  .dw-chat-user { align-self: flex-end; max-width: 92%; padding: 9px 15px; border-radius: 16px 16px 6px 16px; background: var(--color-ink); color: #fff; font-weight: 500; }
+  .dw-chat-ai { align-self: flex-start; display: flex; align-items: flex-start; gap: 9px; max-width: 96%; padding: 9px 15px 9px 10px; border-radius: 16px 16px 16px 6px; background: var(--color-sand-3); color: var(--color-ink); }
+  .dw-chat-spark { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 99px; background: var(--color-accent); color: #fff; }
+  .dw-chat-ai.is-working .dw-chat-spark svg { animation: dw-spin 1.6s linear infinite; }
+  .dw-chat-ai.is-working .dw-chat-text { color: var(--color-sand-11); }
+  @media (min-width: 640px) {
+    /* --x and --y are the scene's spot in the window; --tx and --ty say
+       which point of the bubbles sits there. */
+    .dw-chat { position: absolute; left: var(--x, 46.5%); top: var(--y, 96%); width: min(380px, 48%); min-height: 0; margin: 0; translate: var(--tx, -50%) var(--ty, -100%); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .dw-chat { display: none; }
+    .dw-ph { display: none; }
     .dw-spin { animation: none; }
     .dw-book, .dw-cover { transition: none; }
   }

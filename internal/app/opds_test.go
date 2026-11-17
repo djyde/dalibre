@@ -262,6 +262,9 @@ func newFakeGitHub(t *testing.T) *fakeGitHub {
 	mux.HandleFunc("/repos/o/r/branches", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode([]map[string]any{{"name": "dev", "commit": map[string]string{"sha": "bbb"}}, {"name": "main", "commit": map[string]string{"sha": "aaa"}}})
 	})
+	mux.HandleFunc("/repos/o/r/readme", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("# GitHub Books\n\nSearch and download books from **books.example.com**.\n\n## Settings\n\n- Token: from your account page\n- Language: two-letter codes\n\n```sh\nbrew install example\n```\n"))
+	})
 	mux.HandleFunc("/asset/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(g.assets[strings.TrimPrefix(r.URL.Path, "/asset/")])
 	})
@@ -307,7 +310,7 @@ func TestInstallFromGitHubAndUpdate(t *testing.T) {
 	a.ghi.text = "https://github.com/o/r"
 	a.ghFind()
 	tt.Frame()
-	for _, s := range []string{"GitHub Books 1.0.0", "Latest release", "Connect to books.example.com", "Keep it up to date from this repository"} {
+	for _, s := range []string{"GitHub Books 1.0.0", "Latest release", "Connect to books.example.com", "Keep it up to date from this repository", "README.md", "Settings"} {
 		if !tt.HasText(s) {
 			t.Fatalf("sheet misses %q: %q", s, tt.Texts())
 		}

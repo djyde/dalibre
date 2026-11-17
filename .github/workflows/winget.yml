@@ -1,0 +1,33 @@
+# Opens a pull request at microsoft/winget-pkgs that adds each published
+# release of Dalibre to WinGet as Dalibre.Dalibre, with its NSIS
+# installers. It runs on publishing, not on the tag: release.yml uploads
+# to a draft, whose download URLs work only once it is published.
+#
+# The package must be in winget-pkgs already, since this only adds new
+# versions of it. The first version was submitted by hand.
+#
+# Secrets:
+#   WINGET_TOKEN   a classic personal access token with the public_repo
+#                  scope, of the account that has a fork of
+#                  microsoft/winget-pkgs (djyde)
+name: WinGet
+
+on:
+  release:
+    types: [released] # published, and neither a draft nor a prerelease
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to submit, such as v0.6.1
+        required: true
+
+jobs:
+  winget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: Dalibre.Dalibre
+          installers-regex: '^dalibre-setup-.*\.exe$'
+          release-tag: ${{ inputs.tag || github.event.release.tag_name }}
+          token: ${{ secrets.WINGET_TOKEN }}

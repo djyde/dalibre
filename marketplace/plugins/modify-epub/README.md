@@ -1,0 +1,9 @@
+# Modify ePub
+
+Fixes and cleans up EPUBs, writing a new EPUB to the same book; Dalibre keeps the old one as ORIGINAL_EPUB. Ported from kiwidude's [Modify ePub](https://github.com/kiwidude68/calibre_plugins/tree/main/modify_epub) calibre plugin ([`modify.py`](https://github.com/kiwidude68/calibre_plugins/blob/main/modify_epub/modify.py), [`container.py`](https://github.com/kiwidude68/calibre_plugins/blob/main/modify_epub/container.py), [`jacket.py`](https://github.com/kiwidude68/calibre_plugins/blob/main/modify_epub/jacket.py)), with calibre's smarten punctuation ([`smartypants.py`](https://github.com/kovidgoyal/calibre/blob/master/src/calibre/utils/smartypants.py)), GPL-3.0.
+
+Run **Modify ePub…** on one or more books and pick the options, named as in Modify ePub; the form starts with the last ones used: known artifacts (iTunes, calibre bookmarks, OS files, unused images), de-indent, strip Kobo remnants and spans, manifest fixes, Adobe .xpgt, DRM meta tags and page maps, NCX flattening and broken entries, jackets, broken image pages, remove or insert/replace the cover (from the library cover, with calibre's SVG titlepage, [`covers.py`](https://github.com/kiwidude68/calibre_plugins/blob/main/modify_epub/covers.py)), update metadata, non-dc metadata, UTF-8, embedded fonts, smarten punctuation, JavaScript. Removed files also leave the manifest, spine, guide and NCX. DRM-encrypted books get only the options that don't read their content.
+
+Update metadata writes title and title sort, authors and their sort, tags, languages, publisher, date, comments, identifiers, series and rating, and puts the library cover over the book's cover image when both are the same format.
+
+Left out, as they need calibre: add/replace jacket, CSS margins and extra CSS. The inserted cover isn't rescaled to the output profile or re-encoded as JPEG.

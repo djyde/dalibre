@@ -1,0 +1,259 @@
+---
+import BookOpen from "@lucide/astro/icons/book-open";
+import Bookmark from "@lucide/astro/icons/bookmark";
+import Building from "@lucide/astro/icons/building";
+import Database from "@lucide/astro/icons/database";
+import Globe from "@lucide/astro/icons/globe";
+import Layers from "@lucide/astro/icons/layers";
+import Library from "@lucide/astro/icons/library";
+import Network from "@lucide/astro/icons/network";
+import AppWindow from "@lucide/astro/icons/app-window";
+import BookLock from "@lucide/astro/icons/book-lock";
+import Box from "@lucide/astro/icons/box";
+import GlobeLock from "@lucide/astro/icons/globe-lock";
+import Hand from "@lucide/astro/icons/hand";
+import KeyRound from "@lucide/astro/icons/key-round";
+import ShieldCheck from "@lucide/astro/icons/shield-check";
+import Footer from "../components/Footer.astro";
+import Seo from "../components/Seo.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import { strings } from "../i18n";
+import "../styles/global.css";
+
+// The Marketplace's plugins are read in the browser from marketplace.json
+// (see the script below), so the page lists what Dalibre offers now, not
+// what it offered when the site was built. The icons plugins may use are
+// drawn here, for the script to copy.
+const icons = { globe: Globe, library: Library, "book-open": BookOpen, database: Database, network: Network, building: Building, bookmark: Bookmark, layers: Layers };
+
+const en = strings("en").extend;
+const builtins = [
+  { name: "Project Gutenberg", kind: en.kindSource, text: en.builtins[0] },
+  { name: "NeoDB", kind: en.kindMetadata, text: en.builtins[1] },
+  { name: "Google Books", kind: en.kindMetadata, text: en.builtins[2] },
+];
+
+// How plugins are kept safe; each point is what docs/plugins says.
+const safety = [
+  {
+    icon: Box,
+    title: "Sandboxed",
+    text: "Plugins run in a JavaScript engine inside Dalibre, not as programs on your computer: no shell, no other apps, and no files but two folders of their own, which uninstalling deletes.",
+  },
+  {
+    icon: GlobeLock,
+    title: "Only the sites they name",
+    text: "Every request must go to a site the plugin lists, or it is refused. Your computer and home network are off limits unless it asks for them, checked after the address is looked up.",
+  },
+  {
+    icon: Hand,
+    title: "Nothing runs until you allow it",
+    text: "Installing shows what a plugin asks for: its sites, your local network, your library. An update that asks for more stays off until you allow that too.",
+  },
+  {
+    icon: BookLock,
+    title: "Your library, on your terms",
+    text: "A plugin sees your books only if it asks to read your library. It never writes the library itself: it says what to change, and Dalibre shows you first unless you allowed it to change books. Actions never delete books.",
+  },
+  {
+    icon: KeyRound,
+    title: "Secrets stay secret",
+    text: "API keys and passwords you give a plugin go in your system's keychain, are masked in logs, and reach that plugin only.",
+  },
+  {
+    icon: AppWindow,
+    title: "No screens of its own",
+    text: "Plugins return data and Dalibre draws every screen, so a plugin can't fake a sign-in page or a system dialog. Calls have time limits: one that hangs is stopped, and Dalibre carries on.",
+  },
+];
+
+const chip = "rounded-full border border-sand-6 px-3.5 py-1.5 text-sm text-sand-11 transition hover:border-sand-9 hover:text-ink";
+const title = "Plugins · Dalibre";
+const description = "Plugins for Dalibre, from its Marketplace: book sources, metadata, EPUB tools and actions on your library.";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Seo title={title} description={description} />
+    <link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="font-sans">
+    <div class="grain pointer-events-none fixed inset-0 z-50 opacity-70"></div>
+    <SiteHeader current="plugins" />
+
+    {Object.entries(icons).map(([name, Icon]) => (
+      <template data-icon={name}><Icon size={16} stroke-width={1.75} aria-hidden="true" /></template>
+    ))}
+    <template data-icon="shield"><ShieldCheck size={13} stroke-width={1.75} class="shrink-0 text-green" aria-hidden="true" /></template>
+
+    <main class="mx-auto max-w-6xl px-5">
+      <section class="relative pt-20 pb-12 sm:pt-28">
+        <div
+          class="pointer-events-none absolute -top-24 left-0 -z-10 h-[360px] w-[640px] rounded-full opacity-60 blur-3xl"
+          style="background: radial-gradient(closest-side, #ece7fd, transparent);"
+        ></div>
+        <p class="rise font-mono text-xs tracking-widest text-violet uppercase">Plugins</p>
+        <h1 class="rise mt-4 max-w-3xl font-serif text-5xl leading-[1.05] tracking-tight sm:text-7xl">
+          Make Dalibre <em class="text-violet">yours.</em>
+        </h1>
+        <p class="rise mt-6 max-w-2xl leading-relaxed text-sand-11">
+          Plugins add what Dalibre doesn't do on its own: places to get books, metadata lookups, EPUB tools and actions on your library.
+          Install them from <strong class="font-medium text-ink">Plugins › Marketplace</strong> in Dalibre's toolbar. Each one shows what it may reach before you allow it.
+        </p>
+        <nav id="categories" class="rise mt-8 flex flex-wrap gap-2" aria-label="Categories">
+          <a href="#safety" class={chip}>Safety</a>
+          <a href="#built-in" class={chip}>Built in <span class="font-mono text-xs text-sand-9">{builtins.length}</span></a>
+        </nav>
+      </section>
+
+      <div id="marketplace" aria-live="polite">
+        <section class="border-t border-sand-4 py-10" aria-busy="true">
+          <div class="h-8 w-48 animate-pulse rounded-lg bg-sand-3"></div>
+          <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            {[0, 1, 2, 3, 4, 5].map(() => <li class="h-32 animate-pulse rounded-xl border border-sand-4 bg-paper-2"></li>)}
+          </ul>
+        </section>
+      </div>
+
+      <section id="safety" class="scroll-mt-20 border-t border-sand-4 py-12">
+        <p class="font-mono text-xs tracking-widest text-green uppercase">Safety</p>
+        <h2 class="mt-3 font-serif text-4xl tracking-tight">Plugins are code from strangers.<br /><em class="text-green">Dalibre treats them that way.</em></h2>
+        <ul class="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+          {
+            safety.map((f) => (
+              <li>
+                <span class="grid size-9 place-items-center rounded-lg bg-green/10 text-green">
+                  <f.icon size={18} stroke-width={1.75} aria-hidden="true" />
+                </span>
+                <p class="mt-4 font-medium">{f.title}</p>
+                <p class="mt-2 text-sm leading-relaxed text-sand-11">{f.text}</p>
+              </li>
+            ))
+          }
+        </ul>
+        <p class="mt-10 max-w-3xl text-sm leading-relaxed text-sand-11">
+          The Marketplace's own plugins are written in Dalibre's repository. Community plugins are checked automatically when they are listed, not reviewed by hand: the sandbox and your consent protect you either way. <a href="/docs/plugins/#permissions-and-limits" class="text-violet hover:underline">The details →</a>
+        </p>
+      </section>
+
+      <section id="built-in" class="scroll-mt-20 border-t border-sand-4 py-10">
+        <h2 class="font-serif text-3xl tracking-tight">Built in</h2>
+        <p class="mt-2 max-w-2xl text-sm leading-relaxed text-sand-11">Ship inside Dalibre, with nothing to install.</p>
+        <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {
+            builtins.map((b) => (
+              <li class="rounded-xl border border-sand-4 bg-paper-2 p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <p class="font-medium">{b.name}</p>
+                  <span class="shrink-0 font-mono text-[11px] text-sand-9">{b.kind}</span>
+                </div>
+                <p class="mt-2 line-clamp-2 text-sm leading-snug text-sand-11">{b.text}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="mb-24 flex flex-col items-start justify-between gap-5 rounded-2xl border border-sand-6 bg-paper-2 px-7 py-8 sm:flex-row sm:items-center">
+        <div>
+          <p class="font-serif text-3xl leading-tight tracking-tight">Missing one? Write it.</p>
+          <p class="mt-1 max-w-xl text-sm text-sand-11">
+            A plugin is a <code class="font-mono text-[13px]">plugin.json</code> and a JavaScript file; your AI agent can
+            write it for you. List yours with a pull request to the <a href="https://github.com/djyde/dalibre/blob/main/marketplace/README.md#list-your-plugin" target="_blank" rel="noopener" class="text-violet hover:underline">Marketplace</a>.
+          </p>
+        </div>
+        <div class="flex shrink-0 flex-wrap gap-3">
+          <a href="/docs/plugins/" class="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition hover:bg-black">Plugin docs</a>
+          <a
+            href="https://github.com/djyde/dalibre-plugin-template"
+            target="_blank"
+            rel="noopener"
+            class="rounded-full border border-sand-6 px-5 py-2.5 text-sm font-medium transition hover:border-sand-9"
+          >Template ↗</a>
+        </div>
+      </section>
+    </main>
+
+    <Footer />
+
+    <script>
+      import { loadMarketplace, reach, type Plugin } from "../lib/marketplace";
+
+      const chip = "rounded-full border border-sand-6 px-3.5 py-1.5 text-sm text-sand-11 transition hover:border-sand-9 hover:text-ink";
+
+      /** An element with classes and children; text is set as text, never as HTML. */
+      function el(tag: string, cls = "", ...kids: (Node | string | null | undefined | false)[]) {
+        const e = document.createElement(tag);
+        if (cls) e.className = cls;
+        for (const k of kids) if (k) e.append(k);
+        return e;
+      }
+      function icon(name: string): Node {
+        const t = document.querySelector<HTMLTemplateElement>(`template[data-icon="${name}"]`) ??
+          document.querySelector<HTMLTemplateElement>('template[data-icon="globe"]')!;
+        return t.content.cloneNode(true);
+      }
+
+      function card(p: Plugin) {
+        const source = p.homepage ?? (p.repo ? `https://github.com/${p.repo}` : undefined);
+        const hosts = p.permissions.hosts ?? [];
+        const body = el(source ? "a" : "div", "flex h-full flex-col rounded-xl border border-sand-4 bg-paper-2 p-4 transition hover:border-sand-7",
+          el("div", "flex items-center gap-2.5",
+            el("span", "grid size-7 shrink-0 place-items-center rounded-md bg-violet/10 text-violet", icon(p.icon ?? "globe")),
+            el("p", "min-w-0 flex-1 truncate font-medium", p.name),
+            el("span", "shrink-0 font-mono text-[11px] text-sand-9", p.version)),
+          el("p", "mt-2 line-clamp-2 text-sm leading-snug text-sand-11", p.description),
+          el("p", "mt-auto flex items-center gap-1.5 pt-3 text-xs text-sand-9", icon("shield"), reach(p)));
+        if (source) Object.assign(body, { href: source, target: "_blank", rel: "noopener" });
+        // The full list of sites, on hover, for a plugin that reaches several.
+        if (hosts.length > 1) body.title = `Reaches ${hosts.join(", ")}`;
+        const li = el("li", "scroll-mt-20", body);
+        li.id = p.id;
+        return li;
+      }
+
+      async function render() {
+        const root = document.getElementById("marketplace")!;
+        const nav = document.getElementById("categories")!;
+        try {
+          const { categories, plugins } = await loadMarketplace();
+          const groups = categories
+            .map((c) => ({
+              ...c,
+              plugins: plugins
+                .filter((p) => p.category === c.id)
+                .sort((a, b) => (b.downloads ?? 0) - (a.downloads ?? 0) || a.name.localeCompare(b.name)),
+            }))
+            .filter((c) => c.plugins.length);
+          root.replaceChildren(...groups.map((c) => {
+            const s = el("section", "scroll-mt-20 border-t border-sand-4 py-10",
+              el("h2", "font-serif text-3xl tracking-tight", c.title),
+              el("ul", "mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3", ...c.plugins.map(card)));
+            s.id = c.id;
+            return s;
+          }));
+          nav.prepend(...groups.map((c) =>
+            Object.assign(el("a", chip, c.title, " ", el("span", "font-mono text-xs text-sand-9", String(c.plugins.length))), { href: `#${c.id}` })));
+          // A link to a plugin or category works once it is drawn.
+          if (location.hash) document.getElementById(decodeURIComponent(location.hash.slice(1)))?.scrollIntoView();
+        } catch {
+          root.replaceChildren(el("section", "border-t border-sand-4 py-12",
+            el("p", "text-sand-11", "The Marketplace didn’t load. ",
+              Object.assign(el("a", "text-violet hover:underline", "See its plugins on GitHub ↗"),
+                { href: "https://github.com/djyde/dalibre/tree/main/marketplace", target: "_blank", rel: "noopener" }))));
+        }
+      }
+      render();
+    </script>
+  </body>
+</html>

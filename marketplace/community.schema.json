@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Community plugins in the Dalibre Marketplace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["plugins"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "plugins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["repo", "category"],
+        "properties": {
+          "repo": {
+            "description": "The plugin's GitHub repository, owner/name. plugin.json at its root or in a plugin folder, and at least one release.",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+          },
+          "category": { "enum": ["library", "metadata", "epub", "language", "sources"] },
+          "calibre": {
+            "description": "The calibre plugin it does the work of, as named on plugins.calibre-ebook.com.",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

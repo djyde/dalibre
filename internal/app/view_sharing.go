@@ -450,6 +450,9 @@ var mcpToolInfo = map[string]func() string{
 	"update_books": locales.McpToolUpdateBooks, "set_cover": locales.McpToolSetCover, "add_books": locales.McpToolAddBooks,
 	"add_format": locales.McpToolAddFormat, "remove_format": locales.McpToolRemoveFormat, "remove_books": locales.McpToolRemoveBooks,
 	"find_books": locales.McpToolFindBooks, "download_book": locales.McpToolDownloadBook, "find_metadata": locales.McpToolFindMetadata,
+	"list_plugins": locales.McpToolListPlugins, "create_plugin": locales.McpToolCreatePlugin, "add_plugin": locales.McpToolAddPlugin,
+	"reload_plugins": locales.McpToolReloadPlugins, "test_plugin": locales.McpToolTestPlugin, "enable_plugin": locales.McpToolEnablePlugin,
+	"remove_plugin": locales.McpToolRemovePlugin, "list_actions": locales.McpToolListActions, "run_action": locales.McpToolRunAction,
 }
 
 // mcpTools lists the tools agents get, by group; those they don't have
@@ -458,7 +461,7 @@ func (a *App) mcpTools(c *ui.Context) {
 	groups := []struct {
 		group mcp.Group
 		title func() string
-	}{{mcp.ReadGroup, locales.McpGroupRead}, {mcp.ChangeGroup, locales.McpGroupChange}, {mcp.SourceGroup, locales.McpGroupSources}}
+	}{{mcp.ReadGroup, locales.McpGroupRead}, {mcp.ChangeGroup, locales.McpGroupChange}, {mcp.SourceGroup, locales.McpGroupSources}, {mcp.PluginGroup, locales.McpGroupPlugins}}
 	total, have := 0, 0
 	for _, g := range groups {
 		n := len(mcp.Tools(g.group))

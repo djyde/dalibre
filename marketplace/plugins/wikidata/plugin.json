@@ -1,0 +1,133 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.wikidata",
+  "name": "Wikidata",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "Book details and covers from Wikidata",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/wikidata",
+  "license": "GPL-3.0-or-later",
+  "icon": "network",
+  "capabilities": {
+    "metadata": {
+      "fields": [
+        "title",
+        "authors",
+        "series",
+        "tags",
+        "pubdate",
+        "identifiers",
+        "cover"
+      ]
+    }
+  },
+  "permissions": {
+    "hosts": [
+      "query.wikidata.org",
+      "commons.wikimedia.org",
+      "upload.wikimedia.org"
+    ],
+    "library": "read"
+  },
+  "settings": [
+    {
+      "key": "lang",
+      "title": "Language code",
+      "type": "text",
+      "default": "en",
+      "description": "For exact matches and labels."
+    },
+    {
+      "key": "inexact",
+      "title": "Try inexact searches",
+      "type": "toggle",
+      "default": "false",
+      "description": "Title alone, then every work by the author. May find the wrong book."
+    },
+    {
+      "key": "inexact_limit",
+      "title": "Search limit",
+      "type": "number",
+      "default": "100",
+      "description": "How many works by the author an inexact search checks."
+    },
+    {
+      "key": "slowsearch",
+      "title": "Slow search",
+      "type": "toggle",
+      "default": "false",
+      "description": "With inexact searches, a regex over titles."
+    },
+    {
+      "key": "strip_subtitle",
+      "title": "Strip subtitle",
+      "type": "toggle",
+      "default": "false"
+    },
+    {
+      "key": "instance_tags",
+      "title": "Instance of as tags",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "genre_tags",
+      "title": "Genres as tags",
+      "type": "toggle",
+      "default": "false"
+    },
+    {
+      "key": "tagmode",
+      "title": "Tag format",
+      "type": "select",
+      "default": "label",
+      "options": [
+        {
+          "value": "label",
+          "title": "Native language label"
+        },
+        {
+          "value": "wdcode",
+          "title": "Wikidata Q code"
+        },
+        {
+          "value": "both",
+          "title": "Both"
+        }
+      ]
+    },
+    {
+      "key": "save_isbn",
+      "title": "Save ISBNs found in Wikidata",
+      "type": "toggle",
+      "default": "false",
+      "description": "May not match your edition."
+    },
+    {
+      "key": "gutensave",
+      "title": "Save Gutenberg ids",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "gutenfix",
+      "title": "Add a found Gutenberg id to every match",
+      "type": "toggle",
+      "default": "false"
+    },
+    {
+      "key": "gutensearch",
+      "title": "Search by Gutenberg id",
+      "type": "toggle",
+      "default": "true"
+    },
+    {
+      "key": "ignorewdid",
+      "title": "Ignore the book's Wikidata id",
+      "type": "toggle",
+      "default": "false"
+    }
+  ]
+}

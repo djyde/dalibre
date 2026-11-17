@@ -1,0 +1,589 @@
+---
+// The landing page, in one of the site's languages (src/i18n).
+import "../styles/global.css";
+import BookLock from "@lucide/astro/icons/book-lock";
+import Eye from "@lucide/astro/icons/eye";
+import Globe from "@lucide/astro/icons/globe";
+import Laptop from "@lucide/astro/icons/laptop";
+import LayoutGrid from "@lucide/astro/icons/layout-grid";
+import Library from "@lucide/astro/icons/library";
+import Pencil from "@lucide/astro/icons/pencil";
+import Search from "@lucide/astro/icons/search";
+import Send from "@lucide/astro/icons/send";
+import Tags from "@lucide/astro/icons/tags";
+import { fmt, locale as findLocale, strings } from "../i18n";
+import { dalibreMB } from "../lib/app-size";
+import { release } from "../lib/release";
+import AppWindow from "./AppWindow.astro";
+import ChatCard from "./ChatCard.astro";
+import Footer from "./Footer.astro";
+import LanguageBanner from "./LanguageBanner.astro";
+import SendToDevice from "./SendToDevice.astro";
+import Seo from "./Seo.astro";
+import SiteHeader from "./SiteHeader.astro";
+
+interface Props {
+  locale: string;
+}
+const locale = findLocale(Astro.props.locale);
+const t = strings(locale.code);
+
+// calibre 9.18 as installed on macOS (du -sm calibre.app).
+const calibreMB = 1397;
+const ratio = Math.round(calibreMB / dalibreMB);
+const dalibrePct = ((dalibreMB / calibreMB) * 100).toFixed(2);
+const calibreGB = `${(calibreMB / 1024).toFixed(2)} GB`;
+
+const handIcons = [LayoutGrid, Search, Pencil, Send];
+const featureIcons = [Laptop, Eye, BookLock];
+const builtins = [
+  { name: "Project Gutenberg", source: true },
+  { name: "NeoDB", source: false },
+  { name: "Google Books", source: false },
+];
+// Lucide paths of the MCP popover's activity: plus, book-open, pencil, search.
+const activity = [
+  ["M5 12h14M12 5v14", "10:42"],
+  ["M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z", "10:41"],
+  ["M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z", "10:41"],
+  ["m21 21-4.34-4.34M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0", "10:40"],
+];
+
+const faq = t.faq.items.map(({ q, a }) => ({ q, a: fmt(a, { ratio }) }));
+const [downloadBefore, downloadAfter = ""] = t.hero.downloadFor.split("{os}");
+
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "Dalibre",
+    url: new URL(locale.path, Astro.site).href,
+    image: "https://dalibre.randynamic.org/icon.png",
+    description: t.meta.description,
+    inLanguage: locale.lang,
+    applicationCategory: "UtilitiesApplication",
+    operatingSystem: "macOS, Windows, Linux",
+    fileSize: `${dalibreMB}MB`,
+    featureList: t.meta.features,
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    inLanguage: locale.lang,
+    mainEntity: faq.map(({ q, a }) => ({
+      "@type": "Question",
+      name: q,
+      acceptedAnswer: { "@type": "Answer", text: a },
+    })),
+  },
+];
+
+const eyebrow = (n: number, text: string) => `${String(n).padStart(2, "0")} · ${text}`;
+---
+
+<!doctype html>
+<html lang={locale.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Seo title={t.meta.title} description={t.meta.description} schema={schema} locale={locale.code} imageAlt={t.meta.ogAlt} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="font-sans">
+    <div class="grain pointer-events-none fixed inset-0 z-50 opacity-70"></div>
+
+    <SiteHeader locale={locale.code} />
+
+    <main>
+      <!-- Hero -->
+      <section class="relative overflow-hidden">
+        <div
+          class="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
+          style="background: radial-gradient(closest-side, #e1e9ff, transparent);"
+        ></div>
+
+        <div class="relative mx-auto max-w-6xl px-5 pt-20 pb-10 sm:pt-28">
+          <div>
+            <div>
+              <p class="rise font-mono text-xs tracking-widest text-sand-11 uppercase">{t.hero.eyebrow}</p>
+              <h1
+                class="rise mt-5 max-w-4xl font-serif text-[48px] leading-[0.98] tracking-tight sm:text-[76px]"
+                style="animation-delay:.08s"
+              >
+                {t.hero.title1}<br />
+                <em class="text-accent">{t.hero.title2}</em>
+              </h1>
+              <p class="rise mt-7 max-w-xl text-lg leading-relaxed text-sand-11" style="animation-delay:.16s">
+                {t.hero.lead}
+              </p>
+              <div class="rise relative z-20 mt-9 flex flex-wrap items-center gap-3" style="animation-delay:.24s">
+                <div class="flex items-stretch rounded-full bg-ink text-sm font-medium text-paper">
+                  <a
+                    id="download"
+                    href={release.downloads[0].url}
+                    class="rounded-l-full py-2.5 pr-4 pl-5 transition hover:bg-black"
+                  >
+                    {downloadBefore}<span data-download-label>{release.downloads[0].os}</span>{downloadAfter}
+                  </a>
+                  <details class="download-menu relative">
+                    <summary
+                      aria-label={t.hero.otherPlatforms}
+                      class="flex h-full cursor-pointer list-none items-center rounded-r-full border-l border-white/20 pr-4 pl-3 transition hover:bg-black"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+                    </summary>
+                    <div class="absolute top-full left-0 mt-2 w-64 rounded-2xl border border-sand-6 bg-paper p-1.5 text-ink shadow-lg">
+                      {release.downloads.map((d) => (
+                        <a
+                          href={d.url}
+                          data-download={d.id}
+                          data-os={d.os}
+                          data-size={d.size}
+                          class="flex items-center justify-between rounded-xl px-3 py-2 hover:bg-sand-3"
+                        >
+                          <span>{d.label}</span>
+                          <span class="font-mono text-xs text-sand-11">{d.size}</span>
+                        </a>
+                      ))}
+                      <div class="mx-3 my-1 h-px bg-sand-5" aria-hidden="true"></div>
+                      <a href={release.page} class="block rounded-xl px-3 py-2 text-sand-11 hover:bg-sand-3 hover:text-ink">
+                        {t.hero.allDownloads}
+                      </a>
+                    </div>
+                  </details>
+                </div>
+                <span class="font-mono text-xs text-sand-11">
+                  <span data-download-size>{release.downloads[0].size}</span> · v{release.version}
+                </span>
+              </div>
+              <div class="rise mt-8" style="animation-delay:.28s">
+                <p class="font-mono text-[10px] tracking-widest text-sand-9 uppercase">{t.hero.sponsoredBy}</p>
+                <a
+                  href="https://nowdex.app/?utm_source=dalibre&utm_medium=referral&utm_campaign=sponsor"
+                  target="_blank"
+                  rel="noopener"
+                  class="group mt-2.5 inline-flex items-center gap-3 grayscale transition hover:grayscale-0"
+                >
+                  <img src="/sponsors/nowdex.png" alt="" width="32" height="32" class="size-8 rounded-[8px] opacity-70 transition group-hover:opacity-100" />
+                  <span class="text-sm leading-tight">
+                    <span class="block font-medium text-sand-11 transition group-hover:text-ink">nowdex.app</span>
+                    <span class="block text-sand-9">{t.hero.sponsorTagline}</span>
+                  </span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- App window, redrawn from the Figma file -->
+          <div class="rise mt-16 sm:mt-20" style="animation-delay:.32s">
+            <div class="mb-4 flex justify-end text-xs text-sand-11">
+              <div class="flex rounded-full border border-sand-6 bg-paper p-0.5" role="group" aria-label={t.hero.windowTheme}>
+                <button data-theme-btn="light" aria-pressed="true" class="theme-btn rounded-full px-3 py-1 font-medium">{t.hero.light}</button>
+                <button data-theme-btn="dark" aria-pressed="false" class="theme-btn rounded-full px-3 py-1 font-medium">{t.hero.dark}</button>
+              </div>
+            </div>
+            <AppWindow demo={t.demo} />
+          </div>
+        </div>
+      </section>
+
+      <!-- Lightweight -->
+      <section id="light" class="scroll-mt-14 border-t border-sand-4 bg-paper-2">
+        <div class="mx-auto max-w-6xl px-5 py-24 sm:py-32">
+          <div class="grid gap-14 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
+            <div>
+              <p class="font-mono text-xs tracking-widest text-accent uppercase">{eyebrow(1, t.light.eyebrow)}</p>
+              <h2 class="mt-4 font-serif text-5xl leading-[1.02] tracking-tight sm:text-6xl">
+                {fmt(t.light.title1, { ratio })}<br />{fmt(t.light.title2, { ratio })}
+              </h2>
+              <p class="mt-6 max-w-md leading-relaxed text-sand-11">{t.light.lead}</p>
+            </div>
+
+            <div class="size-chart self-center">
+              <div class="space-y-9">
+                <div>
+                  <div class="mb-2.5 flex items-baseline justify-between text-sm">
+                    <span class="font-medium">calibre <span class="text-sand-9">9.18</span></span>
+                    <span class="font-mono text-sand-11">{calibreGB}</span>
+                  </div>
+                  <div class="h-12 overflow-hidden rounded-lg bg-sand-3">
+                    <div
+                      class="bar h-full rounded-lg"
+                      style="background: repeating-linear-gradient(-45deg, #bcbbb5 0 6px, #cfceca 6px 12px);"
+                    ></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="mb-2.5 flex items-baseline justify-between text-sm">
+                    <span class="font-medium">Dalibre <span class="text-sand-9">{release.version}</span></span>
+                    <span class="font-mono text-accent">{dalibreMB} MB</span>
+                  </div>
+                  <div class="relative h-12 rounded-lg bg-sand-3">
+                    <div
+                      class="bar h-full rounded-lg bg-accent"
+                      style={`width:max(${dalibrePct}%, 10px); animation-delay:.3s`}
+                    ></div>
+                    <span class="absolute top-1/2 left-6 -translate-y-1/2 text-sm text-sand-11">{t.light.wholeApp}</span>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-6 text-xs text-sand-9">{t.light.note}</p>
+
+              <table class="mt-12 w-full text-left text-[15px]">
+                <thead>
+                  <tr class="border-b border-sand-6 text-xs text-sand-11">
+                    <th class="py-3 pr-4 font-normal"></th>
+                    <th class="w-20 py-3 text-center font-medium sm:w-24">calibre</th>
+                    <th class="w-20 py-3 text-center font-medium text-accent sm:w-24">Dalibre</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-sand-6">
+                  {t.light.rows.map((row, i) => (
+                    <tr>
+                      <td class="py-3.5 pr-4">{row}</td>
+                      <td class="text-center text-sand-11">✓</td>
+                      {i === t.light.rows.length - 1 ? (
+                        <td class="text-center text-xs text-sand-9">{t.light.notYet}</td>
+                      ) : (
+                        <td class="text-center font-medium text-accent">✓</td>
+                      )}
+                    </tr>
+                  ))}
+                  <tr class="border-b border-sand-6">
+                    <td class="py-3.5 pr-4">{t.light.size}</td>
+                    <td class="text-center font-mono text-xs text-sand-11">{calibreGB}</td>
+                    <td class="text-center font-mono text-xs text-accent">{dalibreMB} MB</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- For both -->
+      <section id="both" class="scroll-mt-14 border-t border-sand-4">
+        <div class="mx-auto max-w-6xl px-5 py-24 sm:py-32">
+          <div class="max-w-2xl">
+            <p class="font-mono text-xs tracking-widest text-accent uppercase">{eyebrow(2, t.both.eyebrow)}</p>
+            <h2 class="mt-4 font-serif text-5xl leading-[1.02] tracking-tight sm:text-6xl">
+              {t.both.title1}<br /><em class="text-accent">{t.both.title2}</em>
+            </h2>
+            <p class="mt-6 max-w-xl leading-relaxed text-sand-11">{t.both.lead}</p>
+          </div>
+
+          <div class="mt-14 grid gap-5 lg:grid-cols-2">
+            <div class="rounded-[20px] border border-sand-4 bg-paper-2 p-7 pb-5 sm:p-9 sm:pb-7">
+              <p class="font-mono text-[11px] tracking-wider text-sand-9 uppercase">{t.both.hand.label}</p>
+              <h3 class="mt-3.5 font-serif text-4xl leading-[1.1] tracking-tight">{t.both.hand.title}</h3>
+              <p class="mt-2 text-[15px] leading-relaxed text-sand-11">{t.both.hand.lead}</p>
+              <ul class="mt-6 divide-y divide-sand-4 border-t border-sand-4 text-[15px]">
+                {t.both.hand.items.map((text, i) => {
+                  const Icon = handIcons[i];
+                  return (
+                    <li class="flex items-center gap-3.5 py-3.5">
+                      <Icon size={18} stroke-width={1.75} class="shrink-0 text-accent" aria-hidden="true" />
+                      {text}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            <div class="rounded-[20px] border border-[#d2deff] bg-[#f7f9ff] p-7 sm:p-9 sm:pb-8">
+              <p class="font-mono text-[11px] tracking-wider text-accent uppercase">{t.both.ai.label}</p>
+              <h3 class="mt-3.5 font-serif text-4xl leading-[1.1] tracking-tight">{t.both.ai.title}</h3>
+              <p class="mt-2 text-[15px] leading-relaxed text-sand-11">{t.both.ai.lead}</p>
+              <ul class="mt-7 flex flex-col gap-2.5 text-[15px] leading-[22px]">
+                {t.both.ai.asks.map((q, i) => (
+                  <li
+                    class:list={[
+                      "w-fit rounded-[18px] border border-[#d2deff] bg-paper px-4 py-[9px]",
+                      i % 2 ? "self-end rounded-br-md" : "rounded-bl-md",
+                    ]}
+                  >
+                    {q}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MCP -->
+      <section id="mcp" class="scroll-mt-14 border-t border-sand-4 bg-paper-2">
+        <div class="mx-auto max-w-6xl px-5 py-24 sm:py-32">
+          <div class="max-w-2xl">
+            <p class="font-mono text-xs tracking-widest text-accent uppercase">{eyebrow(3, t.manage.eyebrow)}</p>
+            <h2 class="mt-4 font-serif text-5xl leading-[1.02] tracking-tight sm:text-6xl">
+              {t.manage.title1}<br /><em class="text-accent">{t.manage.title2}</em>
+            </h2>
+            <p class="mt-6 max-w-xl leading-relaxed text-sand-11">{t.manage.lead}</p>
+          </div>
+
+          <div class="mt-14 grid gap-5 lg:grid-cols-2">
+            <ChatCard class="self-start shadow-xl shadow-ink/5" {...t.chat.manage} />
+
+            <!-- Dalibre's side: the MCP popover -->
+            <div class="rounded-2xl border border-sand-6 bg-paper p-2 text-sm shadow-xl shadow-ink/5">
+              <div class="flex items-center gap-3 px-3 pt-2 pb-3">
+                <div class="min-w-0 flex-1">
+                  <p class="font-semibold">MCP</p>
+                  <p class="text-xs text-green">{t.manage.popover.status}</p>
+                </div>
+                <span class="flex h-4 w-7 items-center justify-end rounded-full bg-accent px-0.5" aria-hidden="true"><i class="size-3 rounded-full bg-white"></i></span>
+              </div>
+              <div class="border-t border-sand-4 px-3 py-3">
+                <p class="text-[11px] font-semibold tracking-wider text-sand-9 uppercase">{t.manage.popover.agents}</p>
+                <div class="mt-2 flex items-center gap-2.5">
+                  <span class="flex size-6 items-center justify-center rounded-md bg-[#cc7852] text-[10px] font-semibold text-white">CC</span>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-medium">Claude Code</p>
+                    <p class="text-xs text-green">{t.manage.popover.working}</p>
+                  </div>
+                  <i class="size-2 rounded-full bg-green"></i>
+                </div>
+              </div>
+              <div class="border-t border-sand-4 px-3 pt-3 pb-1">
+                <p class="text-[11px] font-semibold tracking-wider text-sand-9 uppercase">{t.manage.popover.activity}</p>
+                <ul class="mt-1">
+                  {activity.map(([d, time], i) => (
+                    <li class="flex items-start gap-2.5 py-2">
+                      <svg class="mt-0.5 size-4 shrink-0 text-sand-11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d={d} /></svg>
+                      <div>
+                        <p>{t.manage.popover.items[i]}</p>
+                        <p class="text-xs text-sand-9">Claude Code · {time}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <ul class="mt-10 grid gap-x-10 gap-y-6 text-sm sm:grid-cols-3">
+            {t.manage.features.map((f, i) => {
+              const Icon = featureIcons[i];
+              return (
+                <li>
+                  <Icon size={20} stroke-width={1.75} class="text-accent" aria-hidden="true" />
+                  <p class="mt-3 font-medium">{f.title}</p>
+                  <p class="mt-1 leading-relaxed text-sand-11">{f.text}</p>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div class="mt-12 flex flex-wrap items-center gap-3">
+            <a
+              href="/docs/mcp/#connect-an-agent"
+              class="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition hover:bg-black"
+            >
+              {t.manage.connect}
+            </a>
+            <a
+              href="/docs/mcp/"
+              class="rounded-full border border-sand-6 bg-paper px-5 py-2.5 text-sm font-medium transition hover:border-sand-9"
+            >
+              {t.manage.docs}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Plugins -->
+      <section id="plugins" class="scroll-mt-14 border-t border-sand-4">
+        <div class="mx-auto max-w-6xl px-5 py-24 sm:py-32">
+          <div class="max-w-2xl">
+            <p class="font-mono text-xs tracking-widest text-violet uppercase">{eyebrow(4, t.extend.eyebrow)}</p>
+            <h2 class="mt-4 font-serif text-5xl leading-[1.02] tracking-tight sm:text-6xl">
+              {t.extend.title1}<br /><em class="text-violet">{t.extend.title2}</em>
+            </h2>
+            <p class="mt-6 max-w-xl leading-relaxed text-sand-11">{t.extend.lead}</p>
+          </div>
+
+          <!-- An agent writes one -->
+          <div class="mt-14 grid items-center gap-5 lg:grid-cols-[1fr_400px]">
+            <ChatCard tone="violet" class="shadow-xl shadow-ink/5" {...t.chat.extend} />
+            <div class="rounded-[20px] border border-sand-6 bg-paper p-6 pb-5 shadow-xl shadow-ink/5">
+              <p class="font-mono text-[11px] tracking-wider text-sand-9 uppercase">{t.extend.dialog.label}</p>
+              <p class="mt-3.5 text-lg font-semibold">{t.extend.dialog.title}</p>
+              <p class="mt-1.5 text-sm leading-relaxed text-sand-11">{t.extend.dialog.lead}</p>
+              <p class="mt-4 flex items-center gap-2.5 rounded-[10px] border border-sand-4 bg-paper-2 px-3.5 py-3 text-sm">
+                <Globe size={16} stroke-width={1.75} class="shrink-0 text-violet" aria-hidden="true" />
+                standardebooks.org
+              </p>
+              <p class="mt-3 text-[13px] leading-relaxed text-sand-11">{t.extend.dialog.note}</p>
+              <div class="mt-5 flex justify-end gap-2 text-[13px] font-medium" aria-hidden="true">
+                <span class="rounded-lg border border-sand-6 px-3.5 py-2">{t.extend.dialog.deny}</span>
+                <span class="rounded-lg bg-accent px-3.5 py-2 text-white">{t.extend.dialog.allow}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Built in -->
+          <div class="mt-16">
+            <h3 class="font-mono text-xs tracking-widest text-sand-9 uppercase">{t.extend.builtIn}</h3>
+            <ul class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {builtins.map((p, i) => (
+                <li class="rounded-2xl border border-sand-4 bg-paper-2 p-6">
+                  <div class:list={["flex items-center gap-2", p.source ? "text-accent" : "text-violet"]}>
+                    {p.source ? <Library size={16} stroke-width={1.75} aria-hidden="true" /> : <Tags size={16} stroke-width={1.75} aria-hidden="true" />}
+                    <span class="font-mono text-[11px]">{p.source ? t.extend.kindSource : t.extend.kindMetadata}</span>
+                  </div>
+                  <p class="mt-3 font-medium">{p.name}</p>
+                  <p class="mt-2 text-sm leading-relaxed text-sand-11">{t.extend.builtins[i]}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <a
+              href="/docs/plugins/"
+              class="rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-paper transition hover:bg-black"
+            >
+              {t.extend.docs}
+            </a>
+            <a href="/plugins/" class="text-sm font-medium text-violet hover:underline">
+              {t.extend.browse}
+            </a>
+            <a href="/docs/plugins/#permissions-and-limits" class="text-sm font-medium text-violet hover:underline">
+              {t.extend.safe}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Send to device -->
+      <section id="devices" class="scroll-mt-14 border-t border-sand-4 bg-paper-2">
+        <div class="mx-auto max-w-6xl px-5 py-24 sm:py-32">
+          <div class="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div class="max-w-2xl">
+              <p class="font-mono text-xs tracking-widest text-green uppercase">{eyebrow(5, t.devices.eyebrow)}</p>
+              <h2 class="mt-4 font-serif text-5xl leading-[1.02] tracking-tight sm:text-6xl">
+                {t.devices.title1}<br /><em class="text-green">{t.devices.title2}</em>
+              </h2>
+              <p class="mt-6 leading-relaxed text-sand-11">{t.devices.lead}</p>
+            </div>
+            <ol class="grid gap-3 text-sm text-sand-11 sm:grid-cols-3 lg:w-[420px] lg:grid-cols-1">
+              {t.devices.steps.map((s, i) => (
+                <li class="flex gap-3"><span class="font-mono text-green">{i + 1}</span>{s}</li>
+              ))}
+            </ol>
+          </div>
+
+          <div class="mt-16">
+            <SendToDevice title={t.devices.oneBookTitle} text={t.devices.oneBookText} />
+          </div>
+        </div>
+      </section>
+
+      <!-- Calibre compatibility -->
+      <section id="calibre" class="scroll-mt-14 border-t border-sand-4">
+        <div class="mx-auto grid max-w-6xl gap-12 px-5 py-24 sm:py-28 lg:grid-cols-2">
+          <div>
+            <p class="font-mono text-xs tracking-widest text-green uppercase">{eyebrow(6, t.calibre.eyebrow)}</p>
+            <h2 class="mt-4 font-serif text-5xl leading-[1.02] tracking-tight">
+              {t.calibre.title1}<br />{t.calibre.title2}
+            </h2>
+            <p class="mt-6 max-w-md leading-relaxed text-sand-11">{t.calibre.lead}</p>
+          </div>
+          <ul class="calibre-list divide-y divide-sand-6 border-y border-sand-6 text-[15px]">
+            {t.calibre.items.map((item) => (
+              <li class="flex gap-4 py-4"><span class="font-mono text-sand-9">→</span><span set:html={item} /></li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="faq" class="scroll-mt-14 border-t border-sand-4 bg-paper-2">
+        <div class="mx-auto grid max-w-6xl gap-12 px-5 py-24 sm:py-28 lg:grid-cols-[1fr_1.6fr]">
+          <div>
+            <p class="font-mono text-xs tracking-widest text-accent uppercase">{eyebrow(7, t.faq.eyebrow)}</p>
+            <h2 class="mt-4 font-serif text-5xl leading-[1.02] tracking-tight">
+              {t.faq.title1}<br />{t.faq.title2}
+            </h2>
+            <p class="mt-6 max-w-sm leading-relaxed text-sand-11">{t.faq.lead}</p>
+          </div>
+          <div class="divide-y divide-sand-6 border-y border-sand-6">
+            {faq.map(({ q, a }, i) => (
+              <details class="group py-1" open={i === 0}>
+                <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 text-[17px] font-medium [&::-webkit-details-marker]:hidden">
+                  <h3>{q}</h3>
+                  <span class="font-mono text-sand-9 transition group-open:rotate-45" aria-hidden="true">+</span>
+                </summary>
+                <p class="pb-5 leading-relaxed text-sand-11">{a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="border-t border-sand-4">
+        <div class="mx-auto max-w-6xl px-5 py-28 text-center sm:py-36">
+          <img src="/icon.png" alt="" class="mx-auto size-20" />
+          <h2 class="mx-auto mt-8 max-w-2xl font-serif text-5xl leading-[1.02] tracking-tight sm:text-7xl">
+            {t.cta.title1} <em class="text-accent">{t.cta.title2}</em>
+          </h2>
+          <p class="mt-6 text-sand-11">{t.cta.lead}</p>
+        </div>
+      </section>
+    </main>
+
+    <Footer locale={locale.code} />
+    <LanguageBanner locale={locale.code} />
+
+    <script>
+      // Point the download button at the installer for the visitor's OS.
+      {
+        const ua = navigator.userAgent;
+        const id = /Windows/.test(ua) ? "win-amd64" : /Linux|X11/.test(ua) && !/Android/.test(ua) ? "linux-amd64" : null;
+        const link = id && document.querySelector<HTMLAnchorElement>(`[data-download="${id}"]`);
+        const button = document.querySelector<HTMLAnchorElement>("#download");
+        if (link && button) {
+          button.href = link.href;
+          button.querySelector("[data-download-label]")!.textContent = link.dataset.os!;
+          document.querySelector("[data-download-size]")!.textContent = link.dataset.size!;
+        }
+        const menu = document.querySelector<HTMLDetailsElement>(".download-menu");
+        document.addEventListener("click", (e) => {
+          if (menu?.open && !menu.contains(e.target as Node)) menu.open = false;
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && menu) menu.open = false;
+        });
+      }
+
+      const chart = document.querySelector(".size-chart");
+      if (chart) {
+        new IntersectionObserver(
+          ([e], o) => {
+            if (e.isIntersecting) {
+              chart.classList.add("in-view");
+              o.disconnect();
+            }
+          },
+          { threshold: 0.4 },
+        ).observe(chart);
+      }
+
+      const frame = document.querySelector(".dw-frame");
+      const themeBtns = document.querySelectorAll<HTMLButtonElement>("[data-theme-btn]");
+      themeBtns.forEach((b) =>
+        b.addEventListener("click", () => {
+          frame?.classList.toggle("dark", b.dataset.themeBtn === "dark");
+          themeBtns.forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        }),
+      );
+    </script>
+  </body>
+</html>

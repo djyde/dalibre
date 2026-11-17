@@ -41,8 +41,6 @@ body { -webkit-font-smoothing: antialiased; }
   .rise, .bar { animation: none; }
 }
 
-.panel pre { background: transparent !important; }
-
 .theme-btn[aria-pressed="true"] { background: var(--color-ink); color: var(--color-paper); }
 .theme-btn[aria-pressed="false"]:hover { color: var(--color-ink); }
 
@@ -136,3 +134,5 @@ body { -webkit-font-smoothing: antialiased; }
 .prose td:first-child code { white-space: nowrap; }
 
 .toc-link.is-active { color: var(--color-accent); font-weight: 500; }
+
+.calibre-list code { font-family: var(--font-mono); font-size: .875rem; }

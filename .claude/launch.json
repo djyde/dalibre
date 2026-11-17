@@ -39,6 +39,19 @@
       ],
       "port": 4347,
       "autoPort": false
+    },
+    {
+      "name": "site-dist-3",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "4361",
+        "-d",
+        "site/dist"
+      ],
+      "port": 4361,
+      "autoPort": false
     }
   ]
 }

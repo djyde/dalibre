@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.quality-check",
+  "name": "Quality Check",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/quality-check",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "description": "Finds books with missing or messy metadata",
+  "icon": "library",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "check",
+        "title": "Quality check…",
+        "icon": "check-circle",
+        "scope": "library"
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

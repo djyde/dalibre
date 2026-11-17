@@ -158,7 +158,7 @@ function book(id, title, authors) {
 
 /** @param {string} url @returns {Promise<string>} */
 async function fetchText(url) {
-  const res = await dalibre.fetch(url, { headers: { Accept: "application/atom+xml" } });
+  const res = await fetch(url, { headers: { Accept: "application/atom+xml" } });
   if (res.status === 404) throw dalibre.error("notFound", "Project Gutenberg doesn’t have that page.");
   if (res.status === 429) throw dalibre.error("rateLimited");
   if (!res.ok) throw dalibre.error("unavailable", `Project Gutenberg answered ${res.status} ${res.statusText}.`);

@@ -152,12 +152,8 @@ func (a *App) welcomeContent(c *ui.Context) {
 			}
 		})
 	case w.found != "":
-		meta := ""
-		if w.foundBooks >= 0 {
-			meta = locales.CommonBookCount(w.foundBooks)
-		}
 		libraryList(c, locales.WelcomeFoundOnThisMac(), func() {
-			a.libraryRow(c, w.found, meta, false, true)
+			a.libraryRow(c, w.found, "", false, true)
 		})
 	}
 }

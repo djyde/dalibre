@@ -98,7 +98,7 @@ func (a *App) fetchCandidatesColumn(c *ui.Context, srcs []*plugin.Plugin, cands 
 	}
 	if len(srcs) == 0 {
 		fetchEmpty(c, icons.Puzzle, false, locales.FetchMetaNoPluginTitle(), locales.FetchMetaNoPluginBody(),
-			icons.Settings, locales.FetchMetaOpenSettings(), func() { a.openSettings(sectionPlugins) })
+			icons.Settings, locales.FetchMetaOpenSettings(), func() { a.openPlugins("") })
 		return
 	}
 	if len(cands) == 0 {

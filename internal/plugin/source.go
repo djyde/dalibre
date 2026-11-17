@@ -104,7 +104,10 @@ type Format struct {
 
 // Request is where the host downloads a file from.
 type Request struct {
-	URL      string            `json:"url"`
+	URL string `json:"url,omitempty"`
+	// Path is a file the plugin made, under /work or /data, as a tool
+	// downloads one: the book, in place of URL.
+	Path     string            `json:"path,omitempty"`
 	Headers  map[string]string `json:"headers,omitempty"`
 	Filename string            `json:"filename,omitempty"`
 }
@@ -449,9 +452,15 @@ func (p *Plugin) Resolve(ctx context.Context, r Result, format string) (Request,
 	if err := strictJSON(raw, &req); err != nil {
 		var uf *unknownFieldError
 		if !errors.As(err, &uf) {
-			return Request{}, invalid("returned " + jsonProblem(err) + "; want {url, headers?, filename?}")
+			return Request{}, invalid("returned " + jsonProblem(err) + "; want {url, headers?, filename?} or {path, filename?}")
 		}
 		p.logf("[%s] warning: resolve returned %s; ignored", p.Manifest.ID, jsonProblem(err))
+	}
+	if req.Path != "" {
+		if _, err := p.hostPath(req.Path); err != nil {
+			return Request{}, invalid(strings.Replace(err.Error(), "the new file", "the book's file", 1))
+		}
+		return req, nil
 	}
 	if !isWebURL(req.URL) {
 		return Request{}, invalid(fmt.Sprintf("url %q isn’t an absolute http(s) URL", req.URL))
@@ -467,6 +476,13 @@ func (p *Plugin) Download(ctx context.Context, r Result, format, dir string, pro
 	if err != nil {
 		return "", err
 	}
+	return p.DownloadResolved(ctx, req, r, format, dir, progress)
+}
+
+// DownloadResolved is Download of what Resolve said, for a caller that
+// resolved already: resolving again would make a plugin's tool download
+// the book again.
+func (p *Plugin) DownloadResolved(ctx context.Context, req Request, r Result, format, dir string, progress func(done, total int64)) (string, error) {
 	fail := func(kind ErrorKind, err error) (string, error) {
 		switch {
 		case errors.Is(err, ErrHostNotAllowed):
@@ -475,6 +491,9 @@ func (p *Plugin) Download(ctx context.Context, r Result, format, dir string, pro
 			kind = KindTimeout
 		}
 		return "", &Error{Plugin: p.Manifest.ID, Kind: kind, Msg: "download: " + err.Error(), Err: err}
+	}
+	if req.Path != "" {
+		return p.moveMade(req, r, format, dir)
 	}
 	resp, err := p.get(ctx, req.URL, req.Headers)
 	if err != nil {
@@ -535,18 +554,60 @@ func (p *Plugin) Download(ctx context.Context, r Result, format, dir string, pro
 	return path, nil
 }
 
-// Cover fetches r's cover image, from a host the plugin may reach.
+// moveMade moves the book's file the plugin made (resolve's path) into
+// dir, named as a download would be.
+func (p *Plugin) moveMade(req Request, r Result, format, dir string) (string, error) {
+	src, err := p.hostPath(req.Path)
+	if err != nil {
+		return "", &Error{Plugin: p.Manifest.ID, Call: "resolve", Kind: KindInvalid, Msg: err.Error()}
+	}
+	st, err := os.Stat(src)
+	switch {
+	case err != nil:
+		return "", err
+	case st.Size() == 0:
+		return "", &Error{Plugin: p.Manifest.ID, Call: "resolve", Kind: KindInvalid, Msg: "the file is empty"}
+	case st.Size() > MaxDownload:
+		return "", &Error{Plugin: p.Manifest.ID, Call: "resolve", Kind: KindInvalid, Msg: fmt.Sprintf("the file is over %d GB", MaxDownload>>30)}
+	}
+	name := req.Filename
+	if name == "" {
+		name = filepath.Base(src)
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	dst := filepath.Join(dir, fileName(name, r.Title, format))
+	if err := moveFile(src, dst); err != nil {
+		return "", err
+	}
+	return dst, nil
+}
+
+// Cover fetches r's cover image, from a host the plugin may reach, or,
+// with permissions.covers "any", from any https host.
 func (p *Plugin) Cover(ctx context.Context, r Result) ([]byte, error) {
 	if r.Cover == "" {
 		return nil, nil
 	}
-	resp, err := p.get(ctx, r.Cover, nil)
+	var resp *http.Response
+	var err error
+	if u, perr := url.Parse(r.Cover); perr == nil && p.Manifest.Permissions.CoverHosts == CoversAny && !p.Manifest.Permissions.allows(u.Hostname()) {
+		resp, err = p.anyCover(ctx, u)
+	} else {
+		resp, err = p.get(ctx, r.Cover, nil)
+	}
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return nil, fmt.Errorf("cover %s: %s", resp.Request.URL.Redacted(), resp.Status)
+	}
+	if p.Manifest.Permissions.CoverHosts == CoversAny {
+		if ct, _, _ := mime.ParseMediaType(resp.Header.Get("Content-Type")); ct != "" && !strings.HasPrefix(ct, "image/") && ct != "application/octet-stream" {
+			return nil, fmt.Errorf("cover %s is %s, not an image", resp.Request.URL.Redacted(), ct)
+		}
 	}
 	data, err := io.ReadAll(io.LimitReader(resp.Body, MaxCover+1))
 	if err != nil {
@@ -556,6 +617,38 @@ func (p *Plugin) Cover(ctx context.Context, r Result) ([]byte, error) {
 		return nil, fmt.Errorf("cover %s is over %d MB", resp.Request.URL.Redacted(), MaxCover>>20)
 	}
 	return data, nil
+}
+
+// anyCover requests a cover from any https host, as permissions.covers
+// "any" allows: without the plugin's credentials or cookies, following
+// redirects only over https, and still never to this computer or the
+// local network unless the plugin may reach them.
+func (p *Plugin) anyCover(ctx context.Context, u *url.URL) (*http.Response, error) {
+	https := func(u *url.URL) error {
+		if u.Scheme != "https" || u.User != nil || u.Hostname() == "" {
+			return fmt.Errorf("%w: a cover from another host must be an https URL", ErrHostNotAllowed)
+		}
+		return nil
+	}
+	if err := https(u); err != nil {
+		return nil, err
+	}
+	client := &http.Client{
+		Transport: p.client.Transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= MaxRedirects {
+				return errors.New("too many redirects")
+			}
+			return https(req.URL)
+		},
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("Accept", "image/*")
+	return client.Do(req)
 }
 
 // get makes a GET request the plugin may make, outside its script.

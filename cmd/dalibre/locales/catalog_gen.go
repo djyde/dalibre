@@ -915,11 +915,11 @@ func (msgs Messages) FetchMetaNoPluginTitle() string {
 	return Catalog.Format(msgs.locale, "fetchMetaNoPluginTitle", nil)
 }
 
-// FetchMetaNoPluginBody says "Plugins in Settings › Plugins can add sources like NeoDB."
+// FetchMetaNoPluginBody says "Plugins can add sources like NeoDB: find them in Plugins › Marketplace, from the toolbar."
 // in the language the app shows.
 func FetchMetaNoPluginBody() string { return In(i18n.Locale()).FetchMetaNoPluginBody() }
 
-// FetchMetaNoPluginBody says "Plugins in Settings › Plugins can add sources like NeoDB."
+// FetchMetaNoPluginBody says "Plugins can add sources like NeoDB: find them in Plugins › Marketplace, from the toolbar."
 // in the language of msgs.
 func (msgs Messages) FetchMetaNoPluginBody() string {
 	return Catalog.Format(msgs.locale, "fetchMetaNoPluginBody", nil)
@@ -3961,14 +3961,14 @@ func (msgs Messages) SettingsSectionOPDS() string {
 	return Catalog.Format(msgs.locale, "settingsSectionOPDS", nil)
 }
 
-// SettingsSectionPlugins says "Plugins"
+// PluginsTitle says "Plugins"
 // in the language the app shows.
-func SettingsSectionPlugins() string { return In(i18n.Locale()).SettingsSectionPlugins() }
+func PluginsTitle() string { return In(i18n.Locale()).PluginsTitle() }
 
-// SettingsSectionPlugins says "Plugins"
+// PluginsTitle says "Plugins"
 // in the language of msgs.
-func (msgs Messages) SettingsSectionPlugins() string {
-	return Catalog.Format(msgs.locale, "settingsSectionPlugins", nil)
+func (msgs Messages) PluginsTitle() string {
+	return Catalog.Format(msgs.locale, "pluginsTitle", nil)
 }
 
 // SettingsChangesApplyNote says "Changes apply right away."
@@ -6229,6 +6229,88 @@ func (msgs Messages) McpDownloadedMany(count int) string {
 	return Catalog.Format(msgs.locale, "mcpDownloadedMany", map[string]any{"count": count})
 }
 
+// McpListedPlugins says "Listed the plugins"
+// in the language the app shows.
+func McpListedPlugins() string { return In(i18n.Locale()).McpListedPlugins() }
+
+// McpListedPlugins says "Listed the plugins"
+// in the language of msgs.
+func (msgs Messages) McpListedPlugins() string {
+	return Catalog.Format(msgs.locale, "mcpListedPlugins", nil)
+}
+
+// McpCreatedPlugin says "Started a plugin in {folder}"
+// in the language the app shows.
+func McpCreatedPlugin(folder string) string { return In(i18n.Locale()).McpCreatedPlugin(folder) }
+
+// McpCreatedPlugin says "Started a plugin in {folder}"
+// in the language of msgs.
+func (msgs Messages) McpCreatedPlugin(folder string) string {
+	return Catalog.Format(msgs.locale, "mcpCreatedPlugin", map[string]any{"folder": folder})
+}
+
+// McpAddedPlugin says "Added the plugin in {folder}"
+// in the language the app shows.
+func McpAddedPlugin(folder string) string { return In(i18n.Locale()).McpAddedPlugin(folder) }
+
+// McpAddedPlugin says "Added the plugin in {folder}"
+// in the language of msgs.
+func (msgs Messages) McpAddedPlugin(folder string) string {
+	return Catalog.Format(msgs.locale, "mcpAddedPlugin", map[string]any{"folder": folder})
+}
+
+// McpReloadedPlugins says "Reloaded the plugins"
+// in the language the app shows.
+func McpReloadedPlugins() string { return In(i18n.Locale()).McpReloadedPlugins() }
+
+// McpReloadedPlugins says "Reloaded the plugins"
+// in the language of msgs.
+func (msgs Messages) McpReloadedPlugins() string {
+	return Catalog.Format(msgs.locale, "mcpReloadedPlugins", nil)
+}
+
+// McpTestedPlugin says "Tested {call} of {plugin}"
+// in the language the app shows.
+func McpTestedPlugin(call string, plugin string) string {
+	return In(i18n.Locale()).McpTestedPlugin(call, plugin)
+}
+
+// McpTestedPlugin says "Tested {call} of {plugin}"
+// in the language of msgs.
+func (msgs Messages) McpTestedPlugin(call string, plugin string) string {
+	return Catalog.Format(msgs.locale, "mcpTestedPlugin", map[string]any{"call": call, "plugin": plugin})
+}
+
+// McpEnabledPlugin says "Turned on {plugin}"
+// in the language the app shows.
+func McpEnabledPlugin(plugin string) string { return In(i18n.Locale()).McpEnabledPlugin(plugin) }
+
+// McpEnabledPlugin says "Turned on {plugin}"
+// in the language of msgs.
+func (msgs Messages) McpEnabledPlugin(plugin string) string {
+	return Catalog.Format(msgs.locale, "mcpEnabledPlugin", map[string]any{"plugin": plugin})
+}
+
+// McpDisabledPlugin says "Turned off {plugin}"
+// in the language the app shows.
+func McpDisabledPlugin(plugin string) string { return In(i18n.Locale()).McpDisabledPlugin(plugin) }
+
+// McpDisabledPlugin says "Turned off {plugin}"
+// in the language of msgs.
+func (msgs Messages) McpDisabledPlugin(plugin string) string {
+	return Catalog.Format(msgs.locale, "mcpDisabledPlugin", map[string]any{"plugin": plugin})
+}
+
+// McpRemovedPlugin says "Removed the plugin {plugin}"
+// in the language the app shows.
+func McpRemovedPlugin(plugin string) string { return In(i18n.Locale()).McpRemovedPlugin(plugin) }
+
+// McpRemovedPlugin says "Removed the plugin {plugin}"
+// in the language of msgs.
+func (msgs Messages) McpRemovedPlugin(plugin string) string {
+	return Catalog.Format(msgs.locale, "mcpRemovedPlugin", map[string]any{"plugin": plugin})
+}
+
 // McpFoundMetadata says "Looked up metadata for “{title}”"
 // in the language the app shows.
 func McpFoundMetadata(title string) string { return In(i18n.Locale()).McpFoundMetadata(title) }
@@ -6279,6 +6361,16 @@ func McpGroupChange() string { return In(i18n.Locale()).McpGroupChange() }
 // in the language of msgs.
 func (msgs Messages) McpGroupChange() string {
 	return Catalog.Format(msgs.locale, "mcpGroupChange", nil)
+}
+
+// McpGroupPlugins says "Plugins"
+// in the language the app shows.
+func McpGroupPlugins() string { return In(i18n.Locale()).McpGroupPlugins() }
+
+// McpGroupPlugins says "Plugins"
+// in the language of msgs.
+func (msgs Messages) McpGroupPlugins() string {
+	return Catalog.Format(msgs.locale, "mcpGroupPlugins", nil)
 }
 
 // McpGroupSources says "Get books"
@@ -6409,6 +6501,76 @@ func McpToolDownloadBook() string { return In(i18n.Locale()).McpToolDownloadBook
 // in the language of msgs.
 func (msgs Messages) McpToolDownloadBook() string {
 	return Catalog.Format(msgs.locale, "mcpToolDownloadBook", nil)
+}
+
+// McpToolListPlugins says "List the plugins and how each is doing."
+// in the language the app shows.
+func McpToolListPlugins() string { return In(i18n.Locale()).McpToolListPlugins() }
+
+// McpToolListPlugins says "List the plugins and how each is doing."
+// in the language of msgs.
+func (msgs Messages) McpToolListPlugins() string {
+	return Catalog.Format(msgs.locale, "mcpToolListPlugins", nil)
+}
+
+// McpToolCreatePlugin says "Start a new plugin from the template."
+// in the language the app shows.
+func McpToolCreatePlugin() string { return In(i18n.Locale()).McpToolCreatePlugin() }
+
+// McpToolCreatePlugin says "Start a new plugin from the template."
+// in the language of msgs.
+func (msgs Messages) McpToolCreatePlugin() string {
+	return Catalog.Format(msgs.locale, "mcpToolCreatePlugin", nil)
+}
+
+// McpToolAddPlugin says "Add a plugin from its folder, once you allow it."
+// in the language the app shows.
+func McpToolAddPlugin() string { return In(i18n.Locale()).McpToolAddPlugin() }
+
+// McpToolAddPlugin says "Add a plugin from its folder, once you allow it."
+// in the language of msgs.
+func (msgs Messages) McpToolAddPlugin() string {
+	return Catalog.Format(msgs.locale, "mcpToolAddPlugin", nil)
+}
+
+// McpToolReloadPlugins says "Load the plugins again after an edit."
+// in the language the app shows.
+func McpToolReloadPlugins() string { return In(i18n.Locale()).McpToolReloadPlugins() }
+
+// McpToolReloadPlugins says "Load the plugins again after an edit."
+// in the language of msgs.
+func (msgs Messages) McpToolReloadPlugins() string {
+	return Catalog.Format(msgs.locale, "mcpToolReloadPlugins", nil)
+}
+
+// McpToolTestPlugin says "Call a plugin’s function to try it."
+// in the language the app shows.
+func McpToolTestPlugin() string { return In(i18n.Locale()).McpToolTestPlugin() }
+
+// McpToolTestPlugin says "Call a plugin’s function to try it."
+// in the language of msgs.
+func (msgs Messages) McpToolTestPlugin() string {
+	return Catalog.Format(msgs.locale, "mcpToolTestPlugin", nil)
+}
+
+// McpToolEnablePlugin says "Turn a plugin on or off."
+// in the language the app shows.
+func McpToolEnablePlugin() string { return In(i18n.Locale()).McpToolEnablePlugin() }
+
+// McpToolEnablePlugin says "Turn a plugin on or off."
+// in the language of msgs.
+func (msgs Messages) McpToolEnablePlugin() string {
+	return Catalog.Format(msgs.locale, "mcpToolEnablePlugin", nil)
+}
+
+// McpToolRemovePlugin says "Remove a plugin added from a folder."
+// in the language the app shows.
+func McpToolRemovePlugin() string { return In(i18n.Locale()).McpToolRemovePlugin() }
+
+// McpToolRemovePlugin says "Remove a plugin added from a folder."
+// in the language of msgs.
+func (msgs Messages) McpToolRemovePlugin() string {
+	return Catalog.Format(msgs.locale, "mcpToolRemovePlugin", nil)
 }
 
 // McpToolFindMetadata says "Look up a book’s metadata with metadata plugins."
@@ -6833,4 +6995,1996 @@ func EditorCloseFind() string { return In(i18n.Locale()).EditorCloseFind() }
 // in the language of msgs.
 func (msgs Messages) EditorCloseFind() string {
 	return Catalog.Format(msgs.locale, "editorCloseFind", nil)
+}
+
+// PluginsProcessFailed says "{plugin} couldn’t process {file}, so it was added as it was: {reason}"
+// in the language the app shows.
+func PluginsProcessFailed(plugin string, file string, reason string) string {
+	return In(i18n.Locale()).PluginsProcessFailed(plugin, file, reason)
+}
+
+// PluginsProcessFailed says "{plugin} couldn’t process {file}, so it was added as it was: {reason}"
+// in the language of msgs.
+func (msgs Messages) PluginsProcessFailed(plugin string, file string, reason string) string {
+	return Catalog.Format(msgs.locale, "pluginsProcessFailed", map[string]any{"plugin": plugin, "file": file, "reason": reason})
+}
+
+// BooksMenuPlugins says "Plugins"
+// in the language the app shows.
+func BooksMenuPlugins() string { return In(i18n.Locale()).BooksMenuPlugins() }
+
+// BooksMenuPlugins says "Plugins"
+// in the language of msgs.
+func (msgs Messages) BooksMenuPlugins() string {
+	return Catalog.Format(msgs.locale, "booksMenuPlugins", nil)
+}
+
+// PluginsCapBookFiles says "Book files"
+// in the language the app shows.
+func PluginsCapBookFiles() string { return In(i18n.Locale()).PluginsCapBookFiles() }
+
+// PluginsCapBookFiles says "Book files"
+// in the language of msgs.
+func (msgs Messages) PluginsCapBookFiles() string {
+	return Catalog.Format(msgs.locale, "pluginsCapBookFiles", nil)
+}
+
+// PluginsBookFilesNote says "Book files: {name} works on the file of each book you add, and of the books you run it on from the book menu."
+// in the language the app shows.
+func PluginsBookFilesNote(name string) string { return In(i18n.Locale()).PluginsBookFilesNote(name) }
+
+// PluginsBookFilesNote says "Book files: {name} works on the file of each book you add, and of the books you run it on from the book menu."
+// in the language of msgs.
+func (msgs Messages) PluginsBookFilesNote(name string) string {
+	return Catalog.Format(msgs.locale, "pluginsBookFilesNote", map[string]any{"name": name})
+}
+
+// PluginsBookFilesManualNote says "Book files: {name} works on the files of the books you run it on from the book menu."
+// in the language the app shows.
+func PluginsBookFilesManualNote(name string) string {
+	return In(i18n.Locale()).PluginsBookFilesManualNote(name)
+}
+
+// PluginsBookFilesManualNote says "Book files: {name} works on the files of the books you run it on from the book menu."
+// in the language of msgs.
+func (msgs Messages) PluginsBookFilesManualNote(name string) string {
+	return Catalog.Format(msgs.locale, "pluginsBookFilesManualNote", map[string]any{"name": name})
+}
+
+// PluginsBookFilesAccess says "Your books’ files"
+// in the language the app shows.
+func PluginsBookFilesAccess() string { return In(i18n.Locale()).PluginsBookFilesAccess() }
+
+// PluginsBookFilesAccess says "Your books’ files"
+// in the language of msgs.
+func (msgs Messages) PluginsBookFilesAccess() string {
+	return Catalog.Format(msgs.locale, "pluginsBookFilesAccess", nil)
+}
+
+// PluginsBookFilesAccessDetail says "The books you add, and those you run it on. Only through Dalibre, never your other files."
+// in the language the app shows.
+func PluginsBookFilesAccessDetail() string { return In(i18n.Locale()).PluginsBookFilesAccessDetail() }
+
+// PluginsBookFilesAccessDetail says "The books you add, and those you run it on. Only through Dalibre, never your other files."
+// in the language of msgs.
+func (msgs Messages) PluginsBookFilesAccessDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsBookFilesAccessDetail", nil)
+}
+
+// PluginsFileNone says "No file chosen"
+// in the language the app shows.
+func PluginsFileNone() string { return In(i18n.Locale()).PluginsFileNone() }
+
+// PluginsFileNone says "No file chosen"
+// in the language of msgs.
+func (msgs Messages) PluginsFileNone() string {
+	return Catalog.Format(msgs.locale, "pluginsFileNone", nil)
+}
+
+// PluginsFileChoose says "Choose file…"
+// in the language the app shows.
+func PluginsFileChoose() string { return In(i18n.Locale()).PluginsFileChoose() }
+
+// PluginsFileChoose says "Choose file…"
+// in the language of msgs.
+func (msgs Messages) PluginsFileChoose() string {
+	return Catalog.Format(msgs.locale, "pluginsFileChoose", nil)
+}
+
+// CommonUndo says "Undo"
+// in the language the app shows.
+func CommonUndo() string { return In(i18n.Locale()).CommonUndo() }
+
+// CommonUndo says "Undo"
+// in the language of msgs.
+func (msgs Messages) CommonUndo() string {
+	return Catalog.Format(msgs.locale, "commonUndo", nil)
+}
+
+// RunPluginChanged says "{action} · {count, plural, one {# book} other {# books}} changed"
+// in the language the app shows.
+func RunPluginChanged(action string, count int) string {
+	return In(i18n.Locale()).RunPluginChanged(action, count)
+}
+
+// RunPluginChanged says "{action} · {count, plural, one {# book} other {# books}} changed"
+// in the language of msgs.
+func (msgs Messages) RunPluginChanged(action string, count int) string {
+	return Catalog.Format(msgs.locale, "runPluginChanged", map[string]any{"action": action, "count": count})
+}
+
+// RunPluginNothing says "{action} · Nothing to change"
+// in the language the app shows.
+func RunPluginNothing(action string) string { return In(i18n.Locale()).RunPluginNothing(action) }
+
+// RunPluginNothing says "{action} · Nothing to change"
+// in the language of msgs.
+func (msgs Messages) RunPluginNothing(action string) string {
+	return Catalog.Format(msgs.locale, "runPluginNothing", map[string]any{"action": action})
+}
+
+// RunPluginFailedOn says "{action} failed on {count, plural, one {# book} other {# books}}: {reason}"
+// in the language the app shows.
+func RunPluginFailedOn(action string, count int, reason string) string {
+	return In(i18n.Locale()).RunPluginFailedOn(action, count, reason)
+}
+
+// RunPluginFailedOn says "{action} failed on {count, plural, one {# book} other {# books}}: {reason}"
+// in the language of msgs.
+func (msgs Messages) RunPluginFailedOn(action string, count int, reason string) string {
+	return Catalog.Format(msgs.locale, "runPluginFailedOn", map[string]any{"action": action, "count": count, "reason": reason})
+}
+
+// RunPluginNeedsSetup says "{plugin} needs setting up: {reason}"
+// in the language the app shows.
+func RunPluginNeedsSetup(plugin string, reason string) string {
+	return In(i18n.Locale()).RunPluginNeedsSetup(plugin, reason)
+}
+
+// RunPluginNeedsSetup says "{plugin} needs setting up: {reason}"
+// in the language of msgs.
+func (msgs Messages) RunPluginNeedsSetup(plugin string, reason string) string {
+	return Catalog.Format(msgs.locale, "runPluginNeedsSetup", map[string]any{"plugin": plugin, "reason": reason})
+}
+
+// RunPluginFillIn says "fill in {settings}"
+// in the language the app shows.
+func RunPluginFillIn(settings string) string { return In(i18n.Locale()).RunPluginFillIn(settings) }
+
+// RunPluginFillIn says "fill in {settings}"
+// in the language of msgs.
+func (msgs Messages) RunPluginFillIn(settings string) string {
+	return Catalog.Format(msgs.locale, "runPluginFillIn", map[string]any{"settings": settings})
+}
+
+// PluginsFileChange says "Change…"
+// in the language the app shows.
+func PluginsFileChange() string { return In(i18n.Locale()).PluginsFileChange() }
+
+// PluginsFileChange says "Change…"
+// in the language of msgs.
+func (msgs Messages) PluginsFileChange() string {
+	return Catalog.Format(msgs.locale, "pluginsFileChange", nil)
+}
+
+// PluginsLibraryWrite says "Change your books’ details"
+// in the language the app shows.
+func PluginsLibraryWrite() string { return In(i18n.Locale()).PluginsLibraryWrite() }
+
+// PluginsLibraryWrite says "Change your books’ details"
+// in the language of msgs.
+func (msgs Messages) PluginsLibraryWrite() string {
+	return Catalog.Format(msgs.locale, "pluginsLibraryWrite", nil)
+}
+
+// PluginsLibraryWriteDetail says "Title, authors, tags and other details of the books it runs for, without asking each time."
+// in the language the app shows.
+func PluginsLibraryWriteDetail() string { return In(i18n.Locale()).PluginsLibraryWriteDetail() }
+
+// PluginsLibraryWriteDetail says "Title, authors, tags and other details of the books it runs for, without asking each time."
+// in the language of msgs.
+func (msgs Messages) PluginsLibraryWriteDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsLibraryWriteDetail", nil)
+}
+
+// PluginsLibraryReadHooksDetail says "Title, authors, tags and other details of the books it runs for"
+// in the language the app shows.
+func PluginsLibraryReadHooksDetail() string { return In(i18n.Locale()).PluginsLibraryReadHooksDetail() }
+
+// PluginsLibraryReadHooksDetail says "Title, authors, tags and other details of the books it runs for"
+// in the language of msgs.
+func (msgs Messages) PluginsLibraryReadHooksDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsLibraryReadHooksDetail", nil)
+}
+
+// PluginsBookFilesHooksNote says "It also runs after books are added and formats removed."
+// in the language the app shows.
+func PluginsBookFilesHooksNote() string { return In(i18n.Locale()).PluginsBookFilesHooksNote() }
+
+// PluginsBookFilesHooksNote says "It also runs after books are added and formats removed."
+// in the language of msgs.
+func (msgs Messages) PluginsBookFilesHooksNote() string {
+	return Catalog.Format(msgs.locale, "pluginsBookFilesHooksNote", nil)
+}
+
+// PluginsBookFilesHooksOnlyNote says "Book files: {name} runs after books are added and formats removed."
+// in the language the app shows.
+func PluginsBookFilesHooksOnlyNote(name string) string {
+	return In(i18n.Locale()).PluginsBookFilesHooksOnlyNote(name)
+}
+
+// PluginsBookFilesHooksOnlyNote says "Book files: {name} runs after books are added and formats removed."
+// in the language of msgs.
+func (msgs Messages) PluginsBookFilesHooksOnlyNote(name string) string {
+	return Catalog.Format(msgs.locale, "pluginsBookFilesHooksOnlyNote", map[string]any{"name": name})
+}
+
+// MainNavTools says "Tools"
+// in the language the app shows.
+func MainNavTools() string { return In(i18n.Locale()).MainNavTools() }
+
+// MainNavTools says "Tools"
+// in the language of msgs.
+func (msgs Messages) MainNavTools() string {
+	return Catalog.Format(msgs.locale, "mainNavTools", nil)
+}
+
+// ActionFailed says "{action} failed: {reason}"
+// in the language the app shows.
+func ActionFailed(action string, reason string) string {
+	return In(i18n.Locale()).ActionFailed(action, reason)
+}
+
+// ActionFailed says "{action} failed: {reason}"
+// in the language of msgs.
+func (msgs Messages) ActionFailed(action string, reason string) string {
+	return Catalog.Format(msgs.locale, "actionFailed", map[string]any{"action": action, "reason": reason})
+}
+
+// ActionAdded says "{action} · {count, plural, one {# book} other {# books}} added"
+// in the language the app shows.
+func ActionAdded(action string, count int) string {
+	return In(i18n.Locale()).ActionAdded(action, count)
+}
+
+// ActionAdded says "{action} · {count, plural, one {# book} other {# books}} added"
+// in the language of msgs.
+func (msgs Messages) ActionAdded(action string, count int) string {
+	return Catalog.Format(msgs.locale, "actionAdded", map[string]any{"action": action, "count": count})
+}
+
+// ActionShow says "Show"
+// in the language the app shows.
+func ActionShow() string { return In(i18n.Locale()).ActionShow() }
+
+// ActionShow says "Show"
+// in the language of msgs.
+func (msgs Messages) ActionShow() string {
+	return Catalog.Format(msgs.locale, "actionShow", nil)
+}
+
+// ActionGroups says "{count, plural, one {# group} other {# groups}}"
+// in the language the app shows.
+func ActionGroups(count int) string { return In(i18n.Locale()).ActionGroups(count) }
+
+// ActionGroups says "{count, plural, one {# group} other {# groups}}"
+// in the language of msgs.
+func (msgs Messages) ActionGroups(count int) string {
+	return Catalog.Format(msgs.locale, "actionGroups", map[string]any{"count": count})
+}
+
+// ActionRunAgain says "Run again"
+// in the language the app shows.
+func ActionRunAgain() string { return In(i18n.Locale()).ActionRunAgain() }
+
+// ActionRunAgain says "Run again"
+// in the language of msgs.
+func (msgs Messages) ActionRunAgain() string {
+	return Catalog.Format(msgs.locale, "actionRunAgain", nil)
+}
+
+// ActionReviewNote says "{books, plural, one {# book} other {# books}} · {fields, plural, one {# change} other {# changes}}"
+// in the language the app shows.
+func ActionReviewNote(books int, fields int) string {
+	return In(i18n.Locale()).ActionReviewNote(books, fields)
+}
+
+// ActionReviewNote says "{books, plural, one {# book} other {# books}} · {fields, plural, one {# change} other {# changes}}"
+// in the language of msgs.
+func (msgs Messages) ActionReviewNote(books int, fields int) string {
+	return Catalog.Format(msgs.locale, "actionReviewNote", map[string]any{"books": books, "fields": fields})
+}
+
+// ActionApply says "Apply changes"
+// in the language the app shows.
+func ActionApply() string { return In(i18n.Locale()).ActionApply() }
+
+// ActionApply says "Apply changes"
+// in the language of msgs.
+func (msgs Messages) ActionApply() string {
+	return Catalog.Format(msgs.locale, "actionApply", nil)
+}
+
+// ActionStop says "Stop {action}"
+// in the language the app shows.
+func ActionStop(action string) string { return In(i18n.Locale()).ActionStop(action) }
+
+// ActionStop says "Stop {action}"
+// in the language of msgs.
+func (msgs Messages) ActionStop(action string) string {
+	return Catalog.Format(msgs.locale, "actionStop", map[string]any{"action": action})
+}
+
+// PluginsLibraryActions says "Your books’ details"
+// in the language the app shows.
+func PluginsLibraryActions() string { return In(i18n.Locale()).PluginsLibraryActions() }
+
+// PluginsLibraryActions says "Your books’ details"
+// in the language of msgs.
+func (msgs Messages) PluginsLibraryActions() string {
+	return Catalog.Format(msgs.locale, "pluginsLibraryActions", nil)
+}
+
+// PluginsLibraryActionsDetail says "Title, authors, tags and other details of the books you run it on"
+// in the language the app shows.
+func PluginsLibraryActionsDetail() string { return In(i18n.Locale()).PluginsLibraryActionsDetail() }
+
+// PluginsLibraryActionsDetail says "Title, authors, tags and other details of the books you run it on"
+// in the language of msgs.
+func (msgs Messages) PluginsLibraryActionsDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsLibraryActionsDetail", nil)
+}
+
+// PluginsLibraryAllDetail says "Title, authors, tags and other details of every book in your library, when you run its tools"
+// in the language the app shows.
+func PluginsLibraryAllDetail() string { return In(i18n.Locale()).PluginsLibraryAllDetail() }
+
+// PluginsLibraryAllDetail says "Title, authors, tags and other details of every book in your library, when you run its tools"
+// in the language of msgs.
+func (msgs Messages) PluginsLibraryAllDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsLibraryAllDetail", nil)
+}
+
+// McpToolListActions says "List what plugins can do with books and the library."
+// in the language the app shows.
+func McpToolListActions() string { return In(i18n.Locale()).McpToolListActions() }
+
+// McpToolListActions says "List what plugins can do with books and the library."
+// in the language of msgs.
+func (msgs Messages) McpToolListActions() string {
+	return Catalog.Format(msgs.locale, "mcpToolListActions", nil)
+}
+
+// McpToolRunAction says "Run a plugin’s action, as the book menu and Tools do."
+// in the language the app shows.
+func McpToolRunAction() string { return In(i18n.Locale()).McpToolRunAction() }
+
+// McpToolRunAction says "Run a plugin’s action, as the book menu and Tools do."
+// in the language of msgs.
+func (msgs Messages) McpToolRunAction() string {
+	return Catalog.Format(msgs.locale, "mcpToolRunAction", nil)
+}
+
+// McpListedActions says "Listed the plugins’ actions"
+// in the language the app shows.
+func McpListedActions() string { return In(i18n.Locale()).McpListedActions() }
+
+// McpListedActions says "Listed the plugins’ actions"
+// in the language of msgs.
+func (msgs Messages) McpListedActions() string {
+	return Catalog.Format(msgs.locale, "mcpListedActions", nil)
+}
+
+// McpRanAction says "Ran {action}"
+// in the language the app shows.
+func McpRanAction(action string) string { return In(i18n.Locale()).McpRanAction(action) }
+
+// McpRanAction says "Ran {action}"
+// in the language of msgs.
+func (msgs Messages) McpRanAction(action string) string {
+	return Catalog.Format(msgs.locale, "mcpRanAction", map[string]any{"action": action})
+}
+
+// PluginsTabInstalled says "Installed"
+// in the language the app shows.
+func PluginsTabInstalled() string { return In(i18n.Locale()).PluginsTabInstalled() }
+
+// PluginsTabInstalled says "Installed"
+// in the language of msgs.
+func (msgs Messages) PluginsTabInstalled() string {
+	return Catalog.Format(msgs.locale, "pluginsTabInstalled", nil)
+}
+
+// PluginsTabMarketplace says "Marketplace"
+// in the language the app shows.
+func PluginsTabMarketplace() string { return In(i18n.Locale()).PluginsTabMarketplace() }
+
+// PluginsTabMarketplace says "Marketplace"
+// in the language of msgs.
+func (msgs Messages) PluginsTabMarketplace() string {
+	return Catalog.Format(msgs.locale, "pluginsTabMarketplace", nil)
+}
+
+// MarketSearch says "Search plugins"
+// in the language the app shows.
+func MarketSearch() string { return In(i18n.Locale()).MarketSearch() }
+
+// MarketSearch says "Search plugins"
+// in the language of msgs.
+func (msgs Messages) MarketSearch() string {
+	return Catalog.Format(msgs.locale, "marketSearch", nil)
+}
+
+// MarketAll says "All"
+// in the language the app shows.
+func MarketAll() string { return In(i18n.Locale()).MarketAll() }
+
+// MarketAll says "All"
+// in the language of msgs.
+func (msgs Messages) MarketAll() string {
+	return Catalog.Format(msgs.locale, "marketAll", nil)
+}
+
+// MarketLoading says "Loading the Marketplace…"
+// in the language the app shows.
+func MarketLoading() string { return In(i18n.Locale()).MarketLoading() }
+
+// MarketLoading says "Loading the Marketplace…"
+// in the language of msgs.
+func (msgs Messages) MarketLoading() string {
+	return Catalog.Format(msgs.locale, "marketLoading", nil)
+}
+
+// MarketFailed says "Couldn’t load the Marketplace: {error}"
+// in the language the app shows.
+func MarketFailed(error string) string { return In(i18n.Locale()).MarketFailed(error) }
+
+// MarketFailed says "Couldn’t load the Marketplace: {error}"
+// in the language of msgs.
+func (msgs Messages) MarketFailed(error string) string {
+	return Catalog.Format(msgs.locale, "marketFailed", map[string]any{"error": error})
+}
+
+// MarketStale says "Couldn’t refresh the Marketplace; showing the last copy."
+// in the language the app shows.
+func MarketStale() string { return In(i18n.Locale()).MarketStale() }
+
+// MarketStale says "Couldn’t refresh the Marketplace; showing the last copy."
+// in the language of msgs.
+func (msgs Messages) MarketStale() string {
+	return Catalog.Format(msgs.locale, "marketStale", nil)
+}
+
+// MarketTryAgain says "Try again"
+// in the language the app shows.
+func MarketTryAgain() string { return In(i18n.Locale()).MarketTryAgain() }
+
+// MarketTryAgain says "Try again"
+// in the language of msgs.
+func (msgs Messages) MarketTryAgain() string {
+	return Catalog.Format(msgs.locale, "marketTryAgain", nil)
+}
+
+// MarketNoMatch says "No plugins match."
+// in the language the app shows.
+func MarketNoMatch() string { return In(i18n.Locale()).MarketNoMatch() }
+
+// MarketNoMatch says "No plugins match."
+// in the language of msgs.
+func (msgs Messages) MarketNoMatch() string {
+	return Catalog.Format(msgs.locale, "marketNoMatch", nil)
+}
+
+// MarketUpdateTo says "Update to {version}"
+// in the language the app shows.
+func MarketUpdateTo(version string) string { return In(i18n.Locale()).MarketUpdateTo(version) }
+
+// MarketUpdateTo says "Update to {version}"
+// in the language of msgs.
+func (msgs Messages) MarketUpdateTo(version string) string {
+	return Catalog.Format(msgs.locale, "marketUpdateTo", map[string]any{"version": version})
+}
+
+// MarketInstallingLabel says "Installing {name}"
+// in the language the app shows.
+func MarketInstallingLabel(name string) string { return In(i18n.Locale()).MarketInstallingLabel(name) }
+
+// MarketInstallingLabel says "Installing {name}"
+// in the language of msgs.
+func (msgs Messages) MarketInstallingLabel(name string) string {
+	return Catalog.Format(msgs.locale, "marketInstallingLabel", map[string]any{"name": name})
+}
+
+// MarketInstalled says "Installed"
+// in the language the app shows.
+func MarketInstalled() string { return In(i18n.Locale()).MarketInstalled() }
+
+// MarketInstalled says "Installed"
+// in the language of msgs.
+func (msgs Messages) MarketInstalled() string {
+	return Catalog.Format(msgs.locale, "marketInstalled", nil)
+}
+
+// MarketInstall says "Install"
+// in the language the app shows.
+func MarketInstall() string { return In(i18n.Locale()).MarketInstall() }
+
+// MarketInstall says "Install"
+// in the language of msgs.
+func (msgs Messages) MarketInstall() string {
+	return Catalog.Format(msgs.locale, "marketInstall", nil)
+}
+
+// MarketVersionInstalled says "Version {installed} installed · {available} available"
+// in the language the app shows.
+func MarketVersionInstalled(installed string, available string) string {
+	return In(i18n.Locale()).MarketVersionInstalled(installed, available)
+}
+
+// MarketVersionInstalled says "Version {installed} installed · {available} available"
+// in the language of msgs.
+func (msgs Messages) MarketVersionInstalled(installed string, available string) string {
+	return Catalog.Format(msgs.locale, "marketVersionInstalled", map[string]any{"installed": installed, "available": available})
+}
+
+// MarketNoInternet says "No internet access"
+// in the language the app shows.
+func MarketNoInternet() string { return In(i18n.Locale()).MarketNoInternet() }
+
+// MarketNoInternet says "No internet access"
+// in the language of msgs.
+func (msgs Messages) MarketNoInternet() string {
+	return Catalog.Format(msgs.locale, "marketNoInternet", nil)
+}
+
+// MarketNoteAllow says "You allow this when you install it."
+// in the language the app shows.
+func MarketNoteAllow() string { return In(i18n.Locale()).MarketNoteAllow() }
+
+// MarketNoteAllow says "You allow this when you install it."
+// in the language of msgs.
+func (msgs Messages) MarketNoteAllow() string {
+	return Catalog.Format(msgs.locale, "marketNoteAllow", nil)
+}
+
+// MarketCommunity says "Community"
+// in the language the app shows.
+func MarketCommunity() string { return In(i18n.Locale()).MarketCommunity() }
+
+// MarketCommunity says "Community"
+// in the language of msgs.
+func (msgs Messages) MarketCommunity() string {
+	return Catalog.Format(msgs.locale, "marketCommunity", nil)
+}
+
+// MarketCommunityNote says "Made by the community, in {repo}"
+// in the language the app shows.
+func MarketCommunityNote(repo string) string { return In(i18n.Locale()).MarketCommunityNote(repo) }
+
+// MarketCommunityNote says "Made by the community, in {repo}"
+// in the language of msgs.
+func (msgs Messages) MarketCommunityNote(repo string) string {
+	return Catalog.Format(msgs.locale, "marketCommunityNote", map[string]any{"repo": repo})
+}
+
+// MarketShowInstalled says "Settings…"
+// in the language the app shows.
+func MarketShowInstalled() string { return In(i18n.Locale()).MarketShowInstalled() }
+
+// MarketShowInstalled says "Settings…"
+// in the language of msgs.
+func (msgs Messages) MarketShowInstalled() string {
+	return Catalog.Format(msgs.locale, "marketShowInstalled", nil)
+}
+
+// PluginsCapBookMenu says "Book menu"
+// in the language the app shows.
+func PluginsCapBookMenu() string { return In(i18n.Locale()).PluginsCapBookMenu() }
+
+// PluginsCapBookMenu says "Book menu"
+// in the language of msgs.
+func (msgs Messages) PluginsCapBookMenu() string {
+	return Catalog.Format(msgs.locale, "pluginsCapBookMenu", nil)
+}
+
+// PluginsNotANumber says "{name} must be a number."
+// in the language the app shows.
+func PluginsNotANumber(name string) string { return In(i18n.Locale()).PluginsNotANumber(name) }
+
+// PluginsNotANumber says "{name} must be a number."
+// in the language of msgs.
+func (msgs Messages) PluginsNotANumber(name string) string {
+	return Catalog.Format(msgs.locale, "pluginsNotANumber", map[string]any{"name": name})
+}
+
+// MarketNeedsDalibre says "Needs Dalibre {version}"
+// in the language the app shows.
+func MarketNeedsDalibre(version string) string { return In(i18n.Locale()).MarketNeedsDalibre(version) }
+
+// MarketNeedsDalibre says "Needs Dalibre {version}"
+// in the language of msgs.
+func (msgs Messages) MarketNeedsDalibre(version string) string {
+	return Catalog.Format(msgs.locale, "marketNeedsDalibre", map[string]any{"version": version})
+}
+
+// MarketNeedsDalibreNote says "It needs Dalibre {version} or newer: update Dalibre to install it."
+// in the language the app shows.
+func MarketNeedsDalibreNote(version string) string {
+	return In(i18n.Locale()).MarketNeedsDalibreNote(version)
+}
+
+// MarketNeedsDalibreNote says "It needs Dalibre {version} or newer: update Dalibre to install it."
+// in the language of msgs.
+func (msgs Messages) MarketNeedsDalibreNote(version string) string {
+	return Catalog.Format(msgs.locale, "marketNeedsDalibreNote", map[string]any{"version": version})
+}
+
+// PluginsSandboxNote says "Plugins run sandboxed, with only what you allow."
+// in the language the app shows.
+func PluginsSandboxNote() string { return In(i18n.Locale()).PluginsSandboxNote() }
+
+// PluginsSandboxNote says "Plugins run sandboxed, with only what you allow."
+// in the language of msgs.
+func (msgs Messages) PluginsSandboxNote() string {
+	return Catalog.Format(msgs.locale, "pluginsSandboxNote", nil)
+}
+
+// MarketCount says "{count, plural, one {# plugin} other {# plugins}}"
+// in the language the app shows.
+func MarketCount(count int) string { return In(i18n.Locale()).MarketCount(count) }
+
+// MarketCount says "{count, plural, one {# plugin} other {# plugins}}"
+// in the language of msgs.
+func (msgs Messages) MarketCount(count int) string {
+	return Catalog.Format(msgs.locale, "marketCount", map[string]any{"count": count})
+}
+
+// PluginsWriteOne says "Write a plugin"
+// in the language the app shows.
+func PluginsWriteOne() string { return In(i18n.Locale()).PluginsWriteOne() }
+
+// PluginsWriteOne says "Write a plugin"
+// in the language of msgs.
+func (msgs Messages) PluginsWriteOne() string {
+	return Catalog.Format(msgs.locale, "pluginsWriteOne", nil)
+}
+
+// ToolsTitle says "TOOLS"
+// in the language the app shows.
+func ToolsTitle() string { return In(i18n.Locale()).ToolsTitle() }
+
+// ToolsTitle says "TOOLS"
+// in the language of msgs.
+func (msgs Messages) ToolsTitle() string {
+	return Catalog.Format(msgs.locale, "toolsTitle", nil)
+}
+
+// ToolsRun says "Run {tool} {version} on this computer"
+// in the language the app shows.
+func ToolsRun(tool string, version string) string { return In(i18n.Locale()).ToolsRun(tool, version) }
+
+// ToolsRun says "Run {tool} {version} on this computer"
+// in the language of msgs.
+func (msgs Messages) ToolsRun(tool string, version string) string {
+	return Catalog.Format(msgs.locale, "toolsRun", map[string]any{"tool": tool, "version": version})
+}
+
+// ToolsNotSandboxed says "Not sandboxed: it can read and write your files."
+// in the language the app shows.
+func ToolsNotSandboxed() string { return In(i18n.Locale()).ToolsNotSandboxed() }
+
+// ToolsNotSandboxed says "Not sandboxed: it can read and write your files."
+// in the language of msgs.
+func (msgs Messages) ToolsNotSandboxed() string {
+	return Catalog.Format(msgs.locale, "toolsNotSandboxed", nil)
+}
+
+// ToolsInstallsWith says "Dalibre installs it with {command}."
+// in the language the app shows.
+func ToolsInstallsWith(command string) string { return In(i18n.Locale()).ToolsInstallsWith(command) }
+
+// ToolsInstallsWith says "Dalibre installs it with {command}."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallsWith(command string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallsWith", map[string]any{"command": command})
+}
+
+// ToolsNoBuildChoose says "There’s no {tool} for this computer to download. Choose one you have, or the plugin stays off."
+// in the language the app shows.
+func ToolsNoBuildChoose(tool string) string { return In(i18n.Locale()).ToolsNoBuildChoose(tool) }
+
+// ToolsNoBuildChoose says "There’s no {tool} for this computer to download. Choose one you have, or the plugin stays off."
+// in the language of msgs.
+func (msgs Messages) ToolsNoBuildChoose(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsNoBuildChoose", map[string]any{"tool": tool})
+}
+
+// ToolsSourceLabel says "Where {tool} comes from: {source}"
+// in the language the app shows.
+func ToolsSourceLabel(tool string, source string) string {
+	return In(i18n.Locale()).ToolsSourceLabel(tool, source)
+}
+
+// ToolsSourceLabel says "Where {tool} comes from: {source}"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceLabel(tool string, source string) string {
+	return Catalog.Format(msgs.locale, "toolsSourceLabel", map[string]any{"tool": tool, "source": source})
+}
+
+// ToolsSourceDownload says "Download"
+// in the language the app shows.
+func ToolsSourceDownload() string { return In(i18n.Locale()).ToolsSourceDownload() }
+
+// ToolsSourceDownload says "Download"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceDownload() string {
+	return Catalog.Format(msgs.locale, "toolsSourceDownload", nil)
+}
+
+// ToolsSourceDownloadSize says "Download · {size}"
+// in the language the app shows.
+func ToolsSourceDownloadSize(size string) string {
+	return In(i18n.Locale()).ToolsSourceDownloadSize(size)
+}
+
+// ToolsSourceDownloadSize says "Download · {size}"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceDownloadSize(size string) string {
+	return Catalog.Format(msgs.locale, "toolsSourceDownloadSize", map[string]any{"size": size})
+}
+
+// ToolsSourceInstalled says "Installed · {manager}"
+// in the language the app shows.
+func ToolsSourceInstalled(manager string) string {
+	return In(i18n.Locale()).ToolsSourceInstalled(manager)
+}
+
+// ToolsSourceInstalled says "Installed · {manager}"
+// in the language of msgs.
+func (msgs Messages) ToolsSourceInstalled(manager string) string {
+	return Catalog.Format(msgs.locale, "toolsSourceInstalled", map[string]any{"manager": manager})
+}
+
+// ToolsChooseFile says "Choose file…"
+// in the language the app shows.
+func ToolsChooseFile() string { return In(i18n.Locale()).ToolsChooseFile() }
+
+// ToolsChooseFile says "Choose file…"
+// in the language of msgs.
+func (msgs Messages) ToolsChooseFile() string {
+	return Catalog.Format(msgs.locale, "toolsChooseFile", nil)
+}
+
+// ToolsChooseFileTitle says "Choose {tool}"
+// in the language the app shows.
+func ToolsChooseFileTitle(tool string) string { return In(i18n.Locale()).ToolsChooseFileTitle(tool) }
+
+// ToolsChooseFileTitle says "Choose {tool}"
+// in the language of msgs.
+func (msgs Messages) ToolsChooseFileTitle(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsChooseFileTitle", map[string]any{"tool": tool})
+}
+
+// ToolsDownloadTitle says "Download with Dalibre"
+// in the language the app shows.
+func ToolsDownloadTitle() string { return In(i18n.Locale()).ToolsDownloadTitle() }
+
+// ToolsDownloadTitle says "Download with Dalibre"
+// in the language of msgs.
+func (msgs Messages) ToolsDownloadTitle() string {
+	return Catalog.Format(msgs.locale, "toolsDownloadTitle", nil)
+}
+
+// ToolsDownloadDetail says "From {host}. Only Dalibre uses it, and it goes with the plugin."
+// in the language the app shows.
+func ToolsDownloadDetail(host string) string { return In(i18n.Locale()).ToolsDownloadDetail(host) }
+
+// ToolsDownloadDetail says "From {host}. Only Dalibre uses it, and it goes with the plugin."
+// in the language of msgs.
+func (msgs Messages) ToolsDownloadDetail(host string) string {
+	return Catalog.Format(msgs.locale, "toolsDownloadDetail", map[string]any{"host": host})
+}
+
+// ToolsInstallWith says "Install with {manager}"
+// in the language the app shows.
+func ToolsInstallWith(manager string) string { return In(i18n.Locale()).ToolsInstallWith(manager) }
+
+// ToolsInstallWith says "Install with {manager}"
+// in the language of msgs.
+func (msgs Messages) ToolsInstallWith(manager string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallWith", map[string]any{"manager": manager})
+}
+
+// ToolsInstallWithDetail says "Dalibre runs {command}. You can use it in Terminal too, and it updates with the others."
+// in the language the app shows.
+func ToolsInstallWithDetail(command string) string {
+	return In(i18n.Locale()).ToolsInstallWithDetail(command)
+}
+
+// ToolsInstallWithDetail says "Dalibre runs {command}. You can use it in Terminal too, and it updates with the others."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallWithDetail(command string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallWithDetail", map[string]any{"command": command})
+}
+
+// ToolsInstallWithWingetDetail says "Dalibre runs winget for you, accepting the package’s license. You can use it in Terminal too."
+// in the language the app shows.
+func ToolsInstallWithWingetDetail() string { return In(i18n.Locale()).ToolsInstallWithWingetDetail() }
+
+// ToolsInstallWithWingetDetail says "Dalibre runs winget for you, accepting the package’s license. You can use it in Terminal too."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallWithWingetDetail() string {
+	return Catalog.Format(msgs.locale, "toolsInstallWithWingetDetail", nil)
+}
+
+// ToolsUseInstalled says "Use {manager}’s {tool} {version}"
+// in the language the app shows.
+func ToolsUseInstalled(manager string, tool string, version string) string {
+	return In(i18n.Locale()).ToolsUseInstalled(manager, tool, version)
+}
+
+// ToolsUseInstalled says "Use {manager}’s {tool} {version}"
+// in the language of msgs.
+func (msgs Messages) ToolsUseInstalled(manager string, tool string, version string) string {
+	return Catalog.Format(msgs.locale, "toolsUseInstalled", map[string]any{"manager": manager, "tool": tool, "version": version})
+}
+
+// ToolsUseMine says "Use a {tool} I have…"
+// in the language the app shows.
+func ToolsUseMine(tool string) string { return In(i18n.Locale()).ToolsUseMine(tool) }
+
+// ToolsUseMine says "Use a {tool} I have…"
+// in the language of msgs.
+func (msgs Messages) ToolsUseMine(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsUseMine", map[string]any{"tool": tool})
+}
+
+// ToolsUseMineDetail says "Choose its file. It must be {min} or later."
+// in the language the app shows.
+func ToolsUseMineDetail(min string) string { return In(i18n.Locale()).ToolsUseMineDetail(min) }
+
+// ToolsUseMineDetail says "Choose its file. It must be {min} or later."
+// in the language of msgs.
+func (msgs Messages) ToolsUseMineDetail(min string) string {
+	return Catalog.Format(msgs.locale, "toolsUseMineDetail", map[string]any{"min": min})
+}
+
+// ToolsSandboxNote says "The plugin runs sandboxed. {tools} runs as any app you install does."
+// in the language the app shows.
+func ToolsSandboxNote(tools string) string { return In(i18n.Locale()).ToolsSandboxNote(tools) }
+
+// ToolsSandboxNote says "The plugin runs sandboxed. {tools} runs as any app you install does."
+// in the language of msgs.
+func (msgs Messages) ToolsSandboxNote(tools string) string {
+	return Catalog.Format(msgs.locale, "toolsSandboxNote", map[string]any{"tools": tools})
+}
+
+// ToolsSectionNote says "{tools} runs outside the sandbox. Uninstalling the plugin removes only what Dalibre downloaded."
+// in the language the app shows.
+func ToolsSectionNote(tools string) string { return In(i18n.Locale()).ToolsSectionNote(tools) }
+
+// ToolsSectionNote says "{tools} runs outside the sandbox. Uninstalling the plugin removes only what Dalibre downloaded."
+// in the language of msgs.
+func (msgs Messages) ToolsSectionNote(tools string) string {
+	return Catalog.Format(msgs.locale, "toolsSectionNote", map[string]any{"tools": tools})
+}
+
+// ToolsDownloading says "Downloading from {host} · {progress}"
+// in the language the app shows.
+func ToolsDownloading(host string, progress string) string {
+	return In(i18n.Locale()).ToolsDownloading(host, progress)
+}
+
+// ToolsDownloading says "Downloading from {host} · {progress}"
+// in the language of msgs.
+func (msgs Messages) ToolsDownloading(host string, progress string) string {
+	return Catalog.Format(msgs.locale, "toolsDownloading", map[string]any{"host": host, "progress": progress})
+}
+
+// ToolsRunning says "Running {command} · {elapsed}"
+// in the language the app shows.
+func ToolsRunning(command string, elapsed string) string {
+	return In(i18n.Locale()).ToolsRunning(command, elapsed)
+}
+
+// ToolsRunning says "Running {command} · {elapsed}"
+// in the language of msgs.
+func (msgs Messages) ToolsRunning(command string, elapsed string) string {
+	return Catalog.Format(msgs.locale, "toolsRunning", map[string]any{"command": command, "elapsed": elapsed})
+}
+
+// ToolsFailed says "Couldn’t get it: {error}"
+// in the language the app shows.
+func ToolsFailed(error string) string { return In(i18n.Locale()).ToolsFailed(error) }
+
+// ToolsFailed says "Couldn’t get it: {error}"
+// in the language of msgs.
+func (msgs Messages) ToolsFailed(error string) string {
+	return Catalog.Format(msgs.locale, "toolsFailed", map[string]any{"error": error})
+}
+
+// ToolsFromDownload says "Downloaded by Dalibre · {size}"
+// in the language the app shows.
+func ToolsFromDownload(size string) string { return In(i18n.Locale()).ToolsFromDownload(size) }
+
+// ToolsFromDownload says "Downloaded by Dalibre · {size}"
+// in the language of msgs.
+func (msgs Messages) ToolsFromDownload(size string) string {
+	return Catalog.Format(msgs.locale, "toolsFromDownload", map[string]any{"size": size})
+}
+
+// ToolsFromFile says "Your file · {path}"
+// in the language the app shows.
+func ToolsFromFile(path string) string { return In(i18n.Locale()).ToolsFromFile(path) }
+
+// ToolsFromFile says "Your file · {path}"
+// in the language of msgs.
+func (msgs Messages) ToolsFromFile(path string) string {
+	return Catalog.Format(msgs.locale, "toolsFromFile", map[string]any{"path": path})
+}
+
+// ToolsFromManager says "From {manager} · {path}"
+// in the language the app shows.
+func ToolsFromManager(manager string, path string) string {
+	return In(i18n.Locale()).ToolsFromManager(manager, path)
+}
+
+// ToolsFromManager says "From {manager} · {path}"
+// in the language of msgs.
+func (msgs Messages) ToolsFromManager(manager string, path string) string {
+	return Catalog.Format(msgs.locale, "toolsFromManager", map[string]any{"manager": manager, "path": path})
+}
+
+// ToolsMissing says "Not on this computer yet: {plugin} stays off until it is."
+// in the language the app shows.
+func ToolsMissing(plugin string) string { return In(i18n.Locale()).ToolsMissing(plugin) }
+
+// ToolsMissing says "Not on this computer yet: {plugin} stays off until it is."
+// in the language of msgs.
+func (msgs Messages) ToolsMissing(plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsMissing", map[string]any{"plugin": plugin})
+}
+
+// ToolsWaiting says "Looking for it…"
+// in the language the app shows.
+func ToolsWaiting() string { return In(i18n.Locale()).ToolsWaiting() }
+
+// ToolsWaiting says "Looking for it…"
+// in the language of msgs.
+func (msgs Messages) ToolsWaiting() string {
+	return Catalog.Format(msgs.locale, "toolsWaiting", nil)
+}
+
+// ToolsShowOutput says "Show output"
+// in the language the app shows.
+func ToolsShowOutput() string { return In(i18n.Locale()).ToolsShowOutput() }
+
+// ToolsShowOutput says "Show output"
+// in the language of msgs.
+func (msgs Messages) ToolsShowOutput() string {
+	return Catalog.Format(msgs.locale, "toolsShowOutput", nil)
+}
+
+// ToolsTryAgain says "Try again"
+// in the language the app shows.
+func ToolsTryAgain() string { return In(i18n.Locale()).ToolsTryAgain() }
+
+// ToolsTryAgain says "Try again"
+// in the language of msgs.
+func (msgs Messages) ToolsTryAgain() string {
+	return Catalog.Format(msgs.locale, "toolsTryAgain", nil)
+}
+
+// ToolsGet says "Get it"
+// in the language the app shows.
+func ToolsGet() string { return In(i18n.Locale()).ToolsGet() }
+
+// ToolsGet says "Get it"
+// in the language of msgs.
+func (msgs Messages) ToolsGet() string {
+	return Catalog.Format(msgs.locale, "toolsGet", nil)
+}
+
+// ToolsChange says "Change"
+// in the language the app shows.
+func ToolsChange() string { return In(i18n.Locale()).ToolsChange() }
+
+// ToolsChange says "Change"
+// in the language of msgs.
+func (msgs Messages) ToolsChange() string {
+	return Catalog.Format(msgs.locale, "toolsChange", nil)
+}
+
+// ToolsChangeLabel says "Change where {tool} comes from"
+// in the language the app shows.
+func ToolsChangeLabel(tool string) string { return In(i18n.Locale()).ToolsChangeLabel(tool) }
+
+// ToolsChangeLabel says "Change where {tool} comes from"
+// in the language of msgs.
+func (msgs Messages) ToolsChangeLabel(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsChangeLabel", map[string]any{"tool": tool})
+}
+
+// ToolsInstallingTitle says "Installing “{plugin}”"
+// in the language the app shows.
+func ToolsInstallingTitle(plugin string) string {
+	return In(i18n.Locale()).ToolsInstallingTitle(plugin)
+}
+
+// ToolsInstallingTitle says "Installing “{plugin}”"
+// in the language of msgs.
+func (msgs Messages) ToolsInstallingTitle(plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallingTitle", map[string]any{"plugin": plugin})
+}
+
+// ToolsInstallingBody says "The plugin is installed. It turns on when {tool} is ready."
+// in the language the app shows.
+func ToolsInstallingBody(tool string) string { return In(i18n.Locale()).ToolsInstallingBody(tool) }
+
+// ToolsInstallingBody says "The plugin is installed. It turns on when {tool} is ready."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallingBody(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallingBody", map[string]any{"tool": tool})
+}
+
+// ToolsRunningLabel says "Running"
+// in the language the app shows.
+func ToolsRunningLabel() string { return In(i18n.Locale()).ToolsRunningLabel() }
+
+// ToolsRunningLabel says "Running"
+// in the language of msgs.
+func (msgs Messages) ToolsRunningLabel() string {
+	return Catalog.Format(msgs.locale, "toolsRunningLabel", nil)
+}
+
+// ToolsRunningCommand says "Running {command}…"
+// in the language the app shows.
+func ToolsRunningCommand(command string) string {
+	return In(i18n.Locale()).ToolsRunningCommand(command)
+}
+
+// ToolsRunningCommand says "Running {command}…"
+// in the language of msgs.
+func (msgs Messages) ToolsRunningCommand(command string) string {
+	return Catalog.Format(msgs.locale, "toolsRunningCommand", map[string]any{"command": command})
+}
+
+// ToolsCloseKeepsGoing says "You can close this. It keeps going in the background, and Plugins shows its progress."
+// in the language the app shows.
+func ToolsCloseKeepsGoing() string { return In(i18n.Locale()).ToolsCloseKeepsGoing() }
+
+// ToolsCloseKeepsGoing says "You can close this. It keeps going in the background, and Plugins shows its progress."
+// in the language of msgs.
+func (msgs Messages) ToolsCloseKeepsGoing() string {
+	return Catalog.Format(msgs.locale, "toolsCloseKeepsGoing", nil)
+}
+
+// ToolsInstallFailedTitle says "{manager} couldn’t install {tool}"
+// in the language the app shows.
+func ToolsInstallFailedTitle(manager string, tool string) string {
+	return In(i18n.Locale()).ToolsInstallFailedTitle(manager, tool)
+}
+
+// ToolsInstallFailedTitle says "{manager} couldn’t install {tool}"
+// in the language of msgs.
+func (msgs Messages) ToolsInstallFailedTitle(manager string, tool string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallFailedTitle", map[string]any{"manager": manager, "tool": tool})
+}
+
+// ToolsInstallFailedBody says "{plugin} stays off until it has the tool. Dalibre can download it itself instead."
+// in the language the app shows.
+func ToolsInstallFailedBody(plugin string) string {
+	return In(i18n.Locale()).ToolsInstallFailedBody(plugin)
+}
+
+// ToolsInstallFailedBody says "{plugin} stays off until it has the tool. Dalibre can download it itself instead."
+// in the language of msgs.
+func (msgs Messages) ToolsInstallFailedBody(plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsInstallFailedBody", map[string]any{"plugin": plugin})
+}
+
+// ToolsWhatItSaid says "What {manager} said"
+// in the language the app shows.
+func ToolsWhatItSaid(manager string) string { return In(i18n.Locale()).ToolsWhatItSaid(manager) }
+
+// ToolsWhatItSaid says "What {manager} said"
+// in the language of msgs.
+func (msgs Messages) ToolsWhatItSaid(manager string) string {
+	return Catalog.Format(msgs.locale, "toolsWhatItSaid", map[string]any{"manager": manager})
+}
+
+// ToolsCopyLog says "Copy log"
+// in the language the app shows.
+func ToolsCopyLog() string { return In(i18n.Locale()).ToolsCopyLog() }
+
+// ToolsCopyLog says "Copy log"
+// in the language of msgs.
+func (msgs Messages) ToolsCopyLog() string {
+	return Catalog.Format(msgs.locale, "toolsCopyLog", nil)
+}
+
+// ToolsDownloadInstead says "Download with Dalibre · {size}"
+// in the language the app shows.
+func ToolsDownloadInstead(size string) string { return In(i18n.Locale()).ToolsDownloadInstead(size) }
+
+// ToolsDownloadInstead says "Download with Dalibre · {size}"
+// in the language of msgs.
+func (msgs Messages) ToolsDownloadInstead(size string) string {
+	return Catalog.Format(msgs.locale, "toolsDownloadInstead", map[string]any{"size": size})
+}
+
+// ToolsStop says "Stop"
+// in the language the app shows.
+func ToolsStop() string { return In(i18n.Locale()).ToolsStop() }
+
+// ToolsStop says "Stop"
+// in the language of msgs.
+func (msgs Messages) ToolsStop() string {
+	return Catalog.Format(msgs.locale, "toolsStop", nil)
+}
+
+// ToolsClose says "Close"
+// in the language the app shows.
+func ToolsClose() string { return In(i18n.Locale()).ToolsClose() }
+
+// ToolsClose says "Close"
+// in the language of msgs.
+func (msgs Messages) ToolsClose() string {
+	return Catalog.Format(msgs.locale, "toolsClose", nil)
+}
+
+// ToolsReady says "{tool} is ready: {plugin} is on"
+// in the language the app shows.
+func ToolsReady(tool string, plugin string) string { return In(i18n.Locale()).ToolsReady(tool, plugin) }
+
+// ToolsReady says "{tool} is ready: {plugin} is on"
+// in the language of msgs.
+func (msgs Messages) ToolsReady(tool string, plugin string) string {
+	return Catalog.Format(msgs.locale, "toolsReady", map[string]any{"tool": tool, "plugin": plugin})
+}
+
+// ToolsFileGone says "{path} isn’t there any more"
+// in the language the app shows.
+func ToolsFileGone(path string) string { return In(i18n.Locale()).ToolsFileGone(path) }
+
+// ToolsFileGone says "{path} isn’t there any more"
+// in the language of msgs.
+func (msgs Messages) ToolsFileGone(path string) string {
+	return Catalog.Format(msgs.locale, "toolsFileGone", map[string]any{"path": path})
+}
+
+// ToolsNoBuild says "There’s no {tool} for this computer to download"
+// in the language the app shows.
+func ToolsNoBuild(tool string) string { return In(i18n.Locale()).ToolsNoBuild(tool) }
+
+// ToolsNoBuild says "There’s no {tool} for this computer to download"
+// in the language of msgs.
+func (msgs Messages) ToolsNoBuild(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsNoBuild", map[string]any{"tool": tool})
+}
+
+// ToolsInstalledNotFound says "{manager} finished, but Dalibre can’t find {tool} {min} or later from it"
+// in the language the app shows.
+func ToolsInstalledNotFound(manager string, tool string, min string) string {
+	return In(i18n.Locale()).ToolsInstalledNotFound(manager, tool, min)
+}
+
+// ToolsInstalledNotFound says "{manager} finished, but Dalibre can’t find {tool} {min} or later from it"
+// in the language of msgs.
+func (msgs Messages) ToolsInstalledNotFound(manager string, tool string, min string) string {
+	return Catalog.Format(msgs.locale, "toolsInstalledNotFound", map[string]any{"manager": manager, "tool": tool, "min": min})
+}
+
+// ToolsStatusGetting says "Getting {tool}…"
+// in the language the app shows.
+func ToolsStatusGetting(tool string) string { return In(i18n.Locale()).ToolsStatusGetting(tool) }
+
+// ToolsStatusGetting says "Getting {tool}…"
+// in the language of msgs.
+func (msgs Messages) ToolsStatusGetting(tool string) string {
+	return Catalog.Format(msgs.locale, "toolsStatusGetting", map[string]any{"tool": tool})
+}
+
+// ToolsStatusNeeds says "Needs {tools}"
+// in the language the app shows.
+func ToolsStatusNeeds(tools string) string { return In(i18n.Locale()).ToolsStatusNeeds(tools) }
+
+// ToolsStatusNeeds says "Needs {tools}"
+// in the language of msgs.
+func (msgs Messages) ToolsStatusNeeds(tools string) string {
+	return Catalog.Format(msgs.locale, "toolsStatusNeeds", map[string]any{"tools": tools})
+}
+
+// GithubInstallBody says "Install from a release or a branch. Read what it does before you install it."
+// in the language the app shows.
+func GithubInstallBody() string { return In(i18n.Locale()).GithubInstallBody() }
+
+// GithubInstallBody says "Install from a release or a branch. Read what it does before you install it."
+// in the language of msgs.
+func (msgs Messages) GithubInstallBody() string {
+	return Catalog.Format(msgs.locale, "githubInstallBody", nil)
+}
+
+// GithubNoReadme says "This repository has no README."
+// in the language the app shows.
+func GithubNoReadme() string { return In(i18n.Locale()).GithubNoReadme() }
+
+// GithubNoReadme says "This repository has no README."
+// in the language of msgs.
+func (msgs Messages) GithubNoReadme() string {
+	return Catalog.Format(msgs.locale, "githubNoReadme", nil)
+}
+
+// GithubNotAPlugin says "No plugin chosen yet."
+// in the language the app shows.
+func GithubNotAPlugin() string { return In(i18n.Locale()).GithubNotAPlugin() }
+
+// GithubNotAPlugin says "No plugin chosen yet."
+// in the language of msgs.
+func (msgs Messages) GithubNotAPlugin() string {
+	return Catalog.Format(msgs.locale, "githubNotAPlugin", nil)
+}
+
+// PluginsCoversAny says "Load book covers from any website"
+// in the language the app shows.
+func PluginsCoversAny() string { return In(i18n.Locale()).PluginsCoversAny() }
+
+// PluginsCoversAny says "Load book covers from any website"
+// in the language of msgs.
+func (msgs Messages) PluginsCoversAny() string {
+	return Catalog.Format(msgs.locale, "pluginsCoversAny", nil)
+}
+
+// PluginsCoversAnyDetail says "Only images, without your account or the plugin’s; never from your computer or network."
+// in the language the app shows.
+func PluginsCoversAnyDetail() string { return In(i18n.Locale()).PluginsCoversAnyDetail() }
+
+// PluginsCoversAnyDetail says "Only images, without your account or the plugin’s; never from your computer or network."
+// in the language of msgs.
+func (msgs Messages) PluginsCoversAnyDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsCoversAnyDetail", nil)
+}
+
+// DeviceConnected says "{device} connected"
+// in the language the app shows.
+func DeviceConnected(device string) string { return In(i18n.Locale()).DeviceConnected(device) }
+
+// DeviceConnected says "{device} connected"
+// in the language of msgs.
+func (msgs Messages) DeviceConnected(device string) string {
+	return Catalog.Format(msgs.locale, "deviceConnected", map[string]any{"device": device})
+}
+
+// DeviceShow says "Show"
+// in the language the app shows.
+func DeviceShow() string { return In(i18n.Locale()).DeviceShow() }
+
+// DeviceShow says "Show"
+// in the language of msgs.
+func (msgs Messages) DeviceShow() string {
+	return Catalog.Format(msgs.locale, "deviceShow", nil)
+}
+
+// DeviceFree says "{size} free"
+// in the language the app shows.
+func DeviceFree(size string) string { return In(i18n.Locale()).DeviceFree(size) }
+
+// DeviceFree says "{size} free"
+// in the language of msgs.
+func (msgs Messages) DeviceFree(size string) string {
+	return Catalog.Format(msgs.locale, "deviceFree", map[string]any{"size": size})
+}
+
+// DeviceEject says "Eject"
+// in the language the app shows.
+func DeviceEject() string { return In(i18n.Locale()).DeviceEject() }
+
+// DeviceEject says "Eject"
+// in the language of msgs.
+func (msgs Messages) DeviceEject() string {
+	return Catalog.Format(msgs.locale, "deviceEject", nil)
+}
+
+// DeviceEjectTooltip says "Eject {device} so it can be unplugged"
+// in the language the app shows.
+func DeviceEjectTooltip(device string) string { return In(i18n.Locale()).DeviceEjectTooltip(device) }
+
+// DeviceEjectTooltip says "Eject {device} so it can be unplugged"
+// in the language of msgs.
+func (msgs Messages) DeviceEjectTooltip(device string) string {
+	return Catalog.Format(msgs.locale, "deviceEjectTooltip", map[string]any{"device": device})
+}
+
+// DeviceEjected says "{device} can be unplugged"
+// in the language the app shows.
+func DeviceEjected(device string) string { return In(i18n.Locale()).DeviceEjected(device) }
+
+// DeviceEjected says "{device} can be unplugged"
+// in the language of msgs.
+func (msgs Messages) DeviceEjected(device string) string {
+	return Catalog.Format(msgs.locale, "deviceEjected", map[string]any{"device": device})
+}
+
+// DeviceOpenFailed says "Couldn’t read {device}: {error}"
+// in the language the app shows.
+func DeviceOpenFailed(device string, error string) string {
+	return In(i18n.Locale()).DeviceOpenFailed(device, error)
+}
+
+// DeviceOpenFailed says "Couldn’t read {device}: {error}"
+// in the language of msgs.
+func (msgs Messages) DeviceOpenFailed(device string, error string) string {
+	return Catalog.Format(msgs.locale, "deviceOpenFailed", map[string]any{"device": device, "error": error})
+}
+
+// DeviceSending says "Sending to {device}"
+// in the language the app shows.
+func DeviceSending(device string) string { return In(i18n.Locale()).DeviceSending(device) }
+
+// DeviceSending says "Sending to {device}"
+// in the language of msgs.
+func (msgs Messages) DeviceSending(device string) string {
+	return Catalog.Format(msgs.locale, "deviceSending", map[string]any{"device": device})
+}
+
+// DeviceAddToLibrary says "Add to library"
+// in the language the app shows.
+func DeviceAddToLibrary() string { return In(i18n.Locale()).DeviceAddToLibrary() }
+
+// DeviceAddToLibrary says "Add to library"
+// in the language of msgs.
+func (msgs Messages) DeviceAddToLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceAddToLibrary", nil)
+}
+
+// DeviceAdding says "Adding to library"
+// in the language the app shows.
+func DeviceAdding() string { return In(i18n.Locale()).DeviceAdding() }
+
+// DeviceAdding says "Adding to library"
+// in the language of msgs.
+func (msgs Messages) DeviceAdding() string {
+	return Catalog.Format(msgs.locale, "deviceAdding", nil)
+}
+
+// DeviceAdded says "Added {count, plural, one {# book} other {# books}} to the library"
+// in the language the app shows.
+func DeviceAdded(count int) string { return In(i18n.Locale()).DeviceAdded(count) }
+
+// DeviceAdded says "Added {count, plural, one {# book} other {# books}} to the library"
+// in the language of msgs.
+func (msgs Messages) DeviceAdded(count int) string {
+	return Catalog.Format(msgs.locale, "deviceAdded", map[string]any{"count": count})
+}
+
+// DeviceInLibrary says "In your library"
+// in the language the app shows.
+func DeviceInLibrary() string { return In(i18n.Locale()).DeviceInLibrary() }
+
+// DeviceInLibrary says "In your library"
+// in the language of msgs.
+func (msgs Messages) DeviceInLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceInLibrary", nil)
+}
+
+// DeviceNotInLibrary says "Not in your library"
+// in the language the app shows.
+func DeviceNotInLibrary() string { return In(i18n.Locale()).DeviceNotInLibrary() }
+
+// DeviceNotInLibrary says "Not in your library"
+// in the language of msgs.
+func (msgs Messages) DeviceNotInLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceNotInLibrary", nil)
+}
+
+// DeviceShowInLibrary says "Show in library"
+// in the language the app shows.
+func DeviceShowInLibrary() string { return In(i18n.Locale()).DeviceShowInLibrary() }
+
+// DeviceShowInLibrary says "Show in library"
+// in the language of msgs.
+func (msgs Messages) DeviceShowInLibrary() string {
+	return Catalog.Format(msgs.locale, "deviceShowInLibrary", nil)
+}
+
+// DeviceOnReader says "On {device}"
+// in the language the app shows.
+func DeviceOnReader(device string) string { return In(i18n.Locale()).DeviceOnReader(device) }
+
+// DeviceOnReader says "On {device}"
+// in the language of msgs.
+func (msgs Messages) DeviceOnReader(device string) string {
+	return Catalog.Format(msgs.locale, "deviceOnReader", map[string]any{"device": device})
+}
+
+// DeviceRemoveBookTitle says "Remove “{title}” from {device}?"
+// in the language the app shows.
+func DeviceRemoveBookTitle(title string, device string) string {
+	return In(i18n.Locale()).DeviceRemoveBookTitle(title, device)
+}
+
+// DeviceRemoveBookTitle says "Remove “{title}” from {device}?"
+// in the language of msgs.
+func (msgs Messages) DeviceRemoveBookTitle(title string, device string) string {
+	return Catalog.Format(msgs.locale, "deviceRemoveBookTitle", map[string]any{"title": title, "device": device})
+}
+
+// DeviceRemoveBooksTitle says "Remove {count, plural, one {# book} other {# books}} from {device}?"
+// in the language the app shows.
+func DeviceRemoveBooksTitle(count int, device string) string {
+	return In(i18n.Locale()).DeviceRemoveBooksTitle(count, device)
+}
+
+// DeviceRemoveBooksTitle says "Remove {count, plural, one {# book} other {# books}} from {device}?"
+// in the language of msgs.
+func (msgs Messages) DeviceRemoveBooksTitle(count int, device string) string {
+	return Catalog.Format(msgs.locale, "deviceRemoveBooksTitle", map[string]any{"count": count, "device": device})
+}
+
+// DeviceEmptyTitle says "No books on {device}"
+// in the language the app shows.
+func DeviceEmptyTitle(device string) string { return In(i18n.Locale()).DeviceEmptyTitle(device) }
+
+// DeviceEmptyTitle says "No books on {device}"
+// in the language of msgs.
+func (msgs Messages) DeviceEmptyTitle(device string) string {
+	return Catalog.Format(msgs.locale, "deviceEmptyTitle", map[string]any{"device": device})
+}
+
+// DeviceDropTitle says "Drop to send to {device}"
+// in the language the app shows.
+func DeviceDropTitle(device string) string { return In(i18n.Locale()).DeviceDropTitle(device) }
+
+// DeviceDropTitle says "Drop to send to {device}"
+// in the language of msgs.
+func (msgs Messages) DeviceDropTitle(device string) string {
+	return Catalog.Format(msgs.locale, "deviceDropTitle", map[string]any{"device": device})
+}
+
+// DeviceFile says "File"
+// in the language the app shows.
+func DeviceFile() string { return In(i18n.Locale()).DeviceFile() }
+
+// DeviceFile says "File"
+// in the language of msgs.
+func (msgs Messages) DeviceFile() string {
+	return Catalog.Format(msgs.locale, "deviceFile", nil)
+}
+
+// DeviceNotMounted says "Not mounted"
+// in the language the app shows.
+func DeviceNotMounted() string { return In(i18n.Locale()).DeviceNotMounted() }
+
+// DeviceNotMounted says "Not mounted"
+// in the language of msgs.
+func (msgs Messages) DeviceNotMounted() string {
+	return Catalog.Format(msgs.locale, "deviceNotMounted", nil)
+}
+
+// DeviceMounting says "Mounting…"
+// in the language the app shows.
+func DeviceMounting() string { return In(i18n.Locale()).DeviceMounting() }
+
+// DeviceMounting says "Mounting…"
+// in the language of msgs.
+func (msgs Messages) DeviceMounting() string {
+	return Catalog.Format(msgs.locale, "deviceMounting", nil)
+}
+
+// DeviceMountFailed says "Couldn’t mount {device}: {error}"
+// in the language the app shows.
+func DeviceMountFailed(device string, error string) string {
+	return In(i18n.Locale()).DeviceMountFailed(device, error)
+}
+
+// DeviceMountFailed says "Couldn’t mount {device}: {error}"
+// in the language of msgs.
+func (msgs Messages) DeviceMountFailed(device string, error string) string {
+	return Catalog.Format(msgs.locale, "deviceMountFailed", map[string]any{"device": device, "error": error})
+}
+
+// ExportMenu says "Export to folder…"
+// in the language the app shows.
+func ExportMenu() string { return In(i18n.Locale()).ExportMenu() }
+
+// ExportMenu says "Export to folder…"
+// in the language of msgs.
+func (msgs Messages) ExportMenu() string {
+	return Catalog.Format(msgs.locale, "exportMenu", nil)
+}
+
+// ExportTitle says "Export {count, plural, one {# book} other {# books}}"
+// in the language the app shows.
+func ExportTitle(count int) string { return In(i18n.Locale()).ExportTitle(count) }
+
+// ExportTitle says "Export {count, plural, one {# book} other {# books}}"
+// in the language of msgs.
+func (msgs Messages) ExportTitle(count int) string {
+	return Catalog.Format(msgs.locale, "exportTitle", map[string]any{"count": count})
+}
+
+// ExportSubtitle says "Copies of their files, named from their details"
+// in the language the app shows.
+func ExportSubtitle() string { return In(i18n.Locale()).ExportSubtitle() }
+
+// ExportSubtitle says "Copies of their files, named from their details"
+// in the language of msgs.
+func (msgs Messages) ExportSubtitle() string {
+	return Catalog.Format(msgs.locale, "exportSubtitle", nil)
+}
+
+// ExportFolder says "Folder"
+// in the language the app shows.
+func ExportFolder() string { return In(i18n.Locale()).ExportFolder() }
+
+// ExportFolder says "Folder"
+// in the language of msgs.
+func (msgs Messages) ExportFolder() string {
+	return Catalog.Format(msgs.locale, "exportFolder", nil)
+}
+
+// ExportChooseFolder says "Choose…"
+// in the language the app shows.
+func ExportChooseFolder() string { return In(i18n.Locale()).ExportChooseFolder() }
+
+// ExportChooseFolder says "Choose…"
+// in the language of msgs.
+func (msgs Messages) ExportChooseFolder() string {
+	return Catalog.Format(msgs.locale, "exportChooseFolder", nil)
+}
+
+// ExportNoFolder says "No folder chosen"
+// in the language the app shows.
+func ExportNoFolder() string { return In(i18n.Locale()).ExportNoFolder() }
+
+// ExportNoFolder says "No folder chosen"
+// in the language of msgs.
+func (msgs Messages) ExportNoFolder() string {
+	return Catalog.Format(msgs.locale, "exportNoFolder", nil)
+}
+
+// ExportFileNames says "File names"
+// in the language the app shows.
+func ExportFileNames() string { return In(i18n.Locale()).ExportFileNames() }
+
+// ExportFileNames says "File names"
+// in the language of msgs.
+func (msgs Messages) ExportFileNames() string {
+	return Catalog.Format(msgs.locale, "exportFileNames", nil)
+}
+
+// ExportTemplateHint says "A / starts a folder. {example} adds the / only to books in a series. Fields: {fields}"
+// in the language the app shows.
+func ExportTemplateHint(example string, fields string) string {
+	return In(i18n.Locale()).ExportTemplateHint(example, fields)
+}
+
+// ExportTemplateHint says "A / starts a folder. {example} adds the / only to books in a series. Fields: {fields}"
+// in the language of msgs.
+func (msgs Messages) ExportTemplateHint(example string, fields string) string {
+	return Catalog.Format(msgs.locale, "exportTemplateHint", map[string]any{"example": example, "fields": fields})
+}
+
+// ExportFormats says "Formats"
+// in the language the app shows.
+func ExportFormats() string { return In(i18n.Locale()).ExportFormats() }
+
+// ExportFormats says "Formats"
+// in the language of msgs.
+func (msgs Messages) ExportFormats() string {
+	return Catalog.Format(msgs.locale, "exportFormats", nil)
+}
+
+// ExportWhenThere says "When a file is already there"
+// in the language the app shows.
+func ExportWhenThere() string { return In(i18n.Locale()).ExportWhenThere() }
+
+// ExportWhenThere says "When a file is already there"
+// in the language of msgs.
+func (msgs Messages) ExportWhenThere() string {
+	return Catalog.Format(msgs.locale, "exportWhenThere", nil)
+}
+
+// ExportKeepBoth says "Keep both, numbered"
+// in the language the app shows.
+func ExportKeepBoth() string { return In(i18n.Locale()).ExportKeepBoth() }
+
+// ExportKeepBoth says "Keep both, numbered"
+// in the language of msgs.
+func (msgs Messages) ExportKeepBoth() string {
+	return Catalog.Format(msgs.locale, "exportKeepBoth", nil)
+}
+
+// ExportReplace says "Replace it"
+// in the language the app shows.
+func ExportReplace() string { return In(i18n.Locale()).ExportReplace() }
+
+// ExportReplace says "Replace it"
+// in the language of msgs.
+func (msgs Messages) ExportReplace() string {
+	return Catalog.Format(msgs.locale, "exportReplace", nil)
+}
+
+// ExportSkip says "Skip it"
+// in the language the app shows.
+func ExportSkip() string { return In(i18n.Locale()).ExportSkip() }
+
+// ExportSkip says "Skip it"
+// in the language of msgs.
+func (msgs Messages) ExportSkip() string {
+	return Catalog.Format(msgs.locale, "exportSkip", nil)
+}
+
+// ExportExtras says "Save each book’s cover and metadata (.jpg, .opf) beside it"
+// in the language the app shows.
+func ExportExtras() string { return In(i18n.Locale()).ExportExtras() }
+
+// ExportExtras says "Save each book’s cover and metadata (.jpg, .opf) beside it"
+// in the language of msgs.
+func (msgs Messages) ExportExtras() string {
+	return Catalog.Format(msgs.locale, "exportExtras", nil)
+}
+
+// ExportASCII says "ASCII names only (三体 → San Ti)"
+// in the language the app shows.
+func ExportASCII() string { return In(i18n.Locale()).ExportASCII() }
+
+// ExportASCII says "ASCII names only (三体 → San Ti)"
+// in the language of msgs.
+func (msgs Messages) ExportASCII() string {
+	return Catalog.Format(msgs.locale, "exportASCII", nil)
+}
+
+// ExportPreview says "Preview · {count, plural, one {# file} other {# files}}"
+// in the language the app shows.
+func ExportPreview(count int) string { return In(i18n.Locale()).ExportPreview(count) }
+
+// ExportPreview says "Preview · {count, plural, one {# file} other {# files}}"
+// in the language of msgs.
+func (msgs Messages) ExportPreview(count int) string {
+	return Catalog.Format(msgs.locale, "exportPreview", map[string]any{"count": count})
+}
+
+// ExportMore says "and {count} more"
+// in the language the app shows.
+func ExportMore(count int) string { return In(i18n.Locale()).ExportMore(count) }
+
+// ExportMore says "and {count} more"
+// in the language of msgs.
+func (msgs Messages) ExportMore(count int) string {
+	return Catalog.Format(msgs.locale, "exportMore", map[string]any{"count": count})
+}
+
+// ExportNumbered says "Already there"
+// in the language the app shows.
+func ExportNumbered() string { return In(i18n.Locale()).ExportNumbered() }
+
+// ExportNumbered says "Already there"
+// in the language of msgs.
+func (msgs Messages) ExportNumbered() string {
+	return Catalog.Format(msgs.locale, "exportNumbered", nil)
+}
+
+// ExportReplaces says "Replaces"
+// in the language the app shows.
+func ExportReplaces() string { return In(i18n.Locale()).ExportReplaces() }
+
+// ExportReplaces says "Replaces"
+// in the language of msgs.
+func (msgs Messages) ExportReplaces() string {
+	return Catalog.Format(msgs.locale, "exportReplaces", nil)
+}
+
+// ExportSkipped says "Skipped"
+// in the language the app shows.
+func ExportSkipped() string { return In(i18n.Locale()).ExportSkipped() }
+
+// ExportSkipped says "Skipped"
+// in the language of msgs.
+func (msgs Messages) ExportSkipped() string {
+	return Catalog.Format(msgs.locale, "exportSkipped", nil)
+}
+
+// ExportMissing says "Not exported, without these formats: {titles}"
+// in the language the app shows.
+func ExportMissing(titles string) string { return In(i18n.Locale()).ExportMissing(titles) }
+
+// ExportMissing says "Not exported, without these formats: {titles}"
+// in the language of msgs.
+func (msgs Messages) ExportMissing(titles string) string {
+	return Catalog.Format(msgs.locale, "exportMissing", map[string]any{"titles": titles})
+}
+
+// ExportAlreadyThere says "{count, plural, one {# file is already there} other {# files are already there}}"
+// in the language the app shows.
+func ExportAlreadyThere(count int) string { return In(i18n.Locale()).ExportAlreadyThere(count) }
+
+// ExportAlreadyThere says "{count, plural, one {# file is already there} other {# files are already there}}"
+// in the language of msgs.
+func (msgs Messages) ExportAlreadyThere(count int) string {
+	return Catalog.Format(msgs.locale, "exportAlreadyThere", map[string]any{"count": count})
+}
+
+// ExportSubmit says "Export {count, plural, one {# file} other {# files}}"
+// in the language the app shows.
+func ExportSubmit(count int) string { return In(i18n.Locale()).ExportSubmit(count) }
+
+// ExportSubmit says "Export {count, plural, one {# file} other {# files}}"
+// in the language of msgs.
+func (msgs Messages) ExportSubmit(count int) string {
+	return Catalog.Format(msgs.locale, "exportSubmit", map[string]any{"count": count})
+}
+
+// ExportLoading says "Reading the books…"
+// in the language the app shows.
+func ExportLoading() string { return In(i18n.Locale()).ExportLoading() }
+
+// ExportLoading says "Reading the books…"
+// in the language of msgs.
+func (msgs Messages) ExportLoading() string {
+	return Catalog.Format(msgs.locale, "exportLoading", nil)
+}
+
+// ExportBusy says "Exporting"
+// in the language the app shows.
+func ExportBusy() string { return In(i18n.Locale()).ExportBusy() }
+
+// ExportBusy says "Exporting"
+// in the language of msgs.
+func (msgs Messages) ExportBusy() string {
+	return Catalog.Format(msgs.locale, "exportBusy", nil)
+}
+
+// ExportDone says "Exported {count, plural, one {# file} other {# files}} to {folder}"
+// in the language the app shows.
+func ExportDone(count int, folder string) string { return In(i18n.Locale()).ExportDone(count, folder) }
+
+// ExportDone says "Exported {count, plural, one {# file} other {# files}} to {folder}"
+// in the language of msgs.
+func (msgs Messages) ExportDone(count int, folder string) string {
+	return Catalog.Format(msgs.locale, "exportDone", map[string]any{"count": count, "folder": folder})
+}
+
+// SettingsSectionEmail says "Email"
+// in the language the app shows.
+func SettingsSectionEmail() string { return In(i18n.Locale()).SettingsSectionEmail() }
+
+// SettingsSectionEmail says "Email"
+// in the language of msgs.
+func (msgs Messages) SettingsSectionEmail() string {
+	return Catalog.Format(msgs.locale, "settingsSectionEmail", nil)
+}
+
+// EmailKindlesTitle says "Kindles"
+// in the language the app shows.
+func EmailKindlesTitle() string { return In(i18n.Locale()).EmailKindlesTitle() }
+
+// EmailKindlesTitle says "Kindles"
+// in the language of msgs.
+func (msgs Messages) EmailKindlesTitle() string {
+	return Catalog.Format(msgs.locale, "emailKindlesTitle", nil)
+}
+
+// EmailKindlesBody says "Books are emailed to these addresses as attachments. Amazon converts them and puts them on the Kindle, where they syn…"
+// in the language the app shows.
+func EmailKindlesBody() string { return In(i18n.Locale()).EmailKindlesBody() }
+
+// EmailKindlesBody says "Books are emailed to these addresses as attachments. Amazon converts them and puts them on the Kindle, where they syn…"
+// in the language of msgs.
+func (msgs Messages) EmailKindlesBody() string {
+	return Catalog.Format(msgs.locale, "emailKindlesBody", nil)
+}
+
+// EmailAddKindle says "Add Kindle"
+// in the language the app shows.
+func EmailAddKindle() string { return In(i18n.Locale()).EmailAddKindle() }
+
+// EmailAddKindle says "Add Kindle"
+// in the language of msgs.
+func (msgs Messages) EmailAddKindle() string {
+	return Catalog.Format(msgs.locale, "emailAddKindle", nil)
+}
+
+// EmailKindleAddress says "Send to Kindle address"
+// in the language the app shows.
+func EmailKindleAddress() string { return In(i18n.Locale()).EmailKindleAddress() }
+
+// EmailKindleAddress says "Send to Kindle address"
+// in the language of msgs.
+func (msgs Messages) EmailKindleAddress() string {
+	return Catalog.Format(msgs.locale, "emailKindleAddress", nil)
+}
+
+// EmailSenderTitle says "Sender"
+// in the language the app shows.
+func EmailSenderTitle() string { return In(i18n.Locale()).EmailSenderTitle() }
+
+// EmailSenderTitle says "Sender"
+// in the language of msgs.
+func (msgs Messages) EmailSenderTitle() string {
+	return Catalog.Format(msgs.locale, "emailSenderTitle", nil)
+}
+
+// EmailSenderBody says "The mail account Dalibre sends from, as set up in a mail app: its SMTP server, address and password. Gmail, iCloud an…"
+// in the language the app shows.
+func EmailSenderBody() string { return In(i18n.Locale()).EmailSenderBody() }
+
+// EmailSenderBody says "The mail account Dalibre sends from, as set up in a mail app: its SMTP server, address and password. Gmail, iCloud an…"
+// in the language of msgs.
+func (msgs Messages) EmailSenderBody() string {
+	return Catalog.Format(msgs.locale, "emailSenderBody", nil)
+}
+
+// EmailServer says "SMTP server"
+// in the language the app shows.
+func EmailServer() string { return In(i18n.Locale()).EmailServer() }
+
+// EmailServer says "SMTP server"
+// in the language of msgs.
+func (msgs Messages) EmailServer() string {
+	return Catalog.Format(msgs.locale, "emailServer", nil)
+}
+
+// EmailSecurity says "Security"
+// in the language the app shows.
+func EmailSecurity() string { return In(i18n.Locale()).EmailSecurity() }
+
+// EmailSecurity says "Security"
+// in the language of msgs.
+func (msgs Messages) EmailSecurity() string {
+	return Catalog.Format(msgs.locale, "emailSecurity", nil)
+}
+
+// EmailSecurityNone says "None"
+// in the language the app shows.
+func EmailSecurityNone() string { return In(i18n.Locale()).EmailSecurityNone() }
+
+// EmailSecurityNone says "None"
+// in the language of msgs.
+func (msgs Messages) EmailSecurityNone() string {
+	return Catalog.Format(msgs.locale, "emailSecurityNone", nil)
+}
+
+// EmailFrom says "Email"
+// in the language the app shows.
+func EmailFrom() string { return In(i18n.Locale()).EmailFrom() }
+
+// EmailFrom says "Email"
+// in the language of msgs.
+func (msgs Messages) EmailFrom() string {
+	return Catalog.Format(msgs.locale, "emailFrom", nil)
+}
+
+// EmailPassword says "App password"
+// in the language the app shows.
+func EmailPassword() string { return In(i18n.Locale()).EmailPassword() }
+
+// EmailPassword says "App password"
+// in the language of msgs.
+func (msgs Messages) EmailPassword() string {
+	return Catalog.Format(msgs.locale, "emailPassword", nil)
+}
+
+// EmailTest says "Send a test email"
+// in the language the app shows.
+func EmailTest() string { return In(i18n.Locale()).EmailTest() }
+
+// EmailTest says "Send a test email"
+// in the language of msgs.
+func (msgs Messages) EmailTest() string {
+	return Catalog.Format(msgs.locale, "emailTest", nil)
+}
+
+// EmailTestSending says "Sending…"
+// in the language the app shows.
+func EmailTestSending() string { return In(i18n.Locale()).EmailTestSending() }
+
+// EmailTestSending says "Sending…"
+// in the language of msgs.
+func (msgs Messages) EmailTestSending() string {
+	return Catalog.Format(msgs.locale, "emailTestSending", nil)
+}
+
+// EmailTestSent says "Sent to {address} · {time}"
+// in the language the app shows.
+func EmailTestSent(address string, time_ string) string {
+	return In(i18n.Locale()).EmailTestSent(address, time_)
+}
+
+// EmailTestSent says "Sent to {address} · {time}"
+// in the language of msgs.
+func (msgs Messages) EmailTestSent(address string, time_ string) string {
+	return Catalog.Format(msgs.locale, "emailTestSent", map[string]any{"address": address, "time": time_})
+}
+
+// EmailTestSubject says "Dalibre test email"
+// in the language the app shows.
+func EmailTestSubject() string { return In(i18n.Locale()).EmailTestSubject() }
+
+// EmailTestSubject says "Dalibre test email"
+// in the language of msgs.
+func (msgs Messages) EmailTestSubject() string {
+	return Catalog.Format(msgs.locale, "emailTestSubject", nil)
+}
+
+// EmailTestBody says "Dalibre can send mail from this address. Books emailed to your Kindles come from it the same way."
+// in the language the app shows.
+func EmailTestBody() string { return In(i18n.Locale()).EmailTestBody() }
+
+// EmailTestBody says "Dalibre can send mail from this address. Books emailed to your Kindles come from it the same way."
+// in the language of msgs.
+func (msgs Messages) EmailTestBody() string {
+	return Catalog.Format(msgs.locale, "emailTestBody", nil)
+}
+
+// EmailNote says "Amazon delivers only mail from addresses on your Approved Personal Document E-mail List: add the address above there …"
+// in the language the app shows.
+func EmailNote() string { return In(i18n.Locale()).EmailNote() }
+
+// EmailNote says "Amazon delivers only mail from addresses on your Approved Personal Document E-mail List: add the address above there …"
+// in the language of msgs.
+func (msgs Messages) EmailNote() string {
+	return Catalog.Format(msgs.locale, "emailNote", nil)
+}
+
+// EmailTo says "Email to {device}"
+// in the language the app shows.
+func EmailTo(device string) string { return In(i18n.Locale()).EmailTo(device) }
+
+// EmailTo says "Email to {device}"
+// in the language of msgs.
+func (msgs Messages) EmailTo(device string) string {
+	return Catalog.Format(msgs.locale, "emailTo", map[string]any{"device": device})
+}
+
+// EmailSending says "Emailing to {device}"
+// in the language the app shows.
+func EmailSending(device string) string { return In(i18n.Locale()).EmailSending(device) }
+
+// EmailSending says "Emailing to {device}"
+// in the language of msgs.
+func (msgs Messages) EmailSending(device string) string {
+	return Catalog.Format(msgs.locale, "emailSending", map[string]any{"device": device})
+}
+
+// EmailSent says "Emailed {count, plural, one {# book} other {# books}} to {device}"
+// in the language the app shows.
+func EmailSent(count int, device string) string { return In(i18n.Locale()).EmailSent(count, device) }
+
+// EmailSent says "Emailed {count, plural, one {# book} other {# books}} to {device}"
+// in the language of msgs.
+func (msgs Messages) EmailSent(count int, device string) string {
+	return Catalog.Format(msgs.locale, "emailSent", map[string]any{"count": count, "device": device})
+}
+
+// EmailNoFormat says "Not emailed: {titles}. Send to Kindle takes EPUB, PDF, DOCX, RTF, TXT and HTML."
+// in the language the app shows.
+func EmailNoFormat(titles string) string { return In(i18n.Locale()).EmailNoFormat(titles) }
+
+// EmailNoFormat says "Not emailed: {titles}. Send to Kindle takes EPUB, PDF, DOCX, RTF, TXT and HTML."
+// in the language of msgs.
+func (msgs Messages) EmailNoFormat(titles string) string {
+	return Catalog.Format(msgs.locale, "emailNoFormat", map[string]any{"titles": titles})
+}
+
+// EmailTooBig says "Not emailed: {titles}. Send to Kindle takes files up to 50 MB."
+// in the language the app shows.
+func EmailTooBig(titles string) string { return In(i18n.Locale()).EmailTooBig(titles) }
+
+// EmailTooBig says "Not emailed: {titles}. Send to Kindle takes files up to 50 MB."
+// in the language of msgs.
+func (msgs Messages) EmailTooBig(titles string) string {
+	return Catalog.Format(msgs.locale, "emailTooBig", map[string]any{"titles": titles})
+}
+
+// EmailFailed says "Couldn’t email {device}: {reason}"
+// in the language the app shows.
+func EmailFailed(device string, reason string) string {
+	return In(i18n.Locale()).EmailFailed(device, reason)
+}
+
+// EmailFailed says "Couldn’t email {device}: {reason}"
+// in the language of msgs.
+func (msgs Messages) EmailFailed(device string, reason string) string {
+	return Catalog.Format(msgs.locale, "emailFailed", map[string]any{"device": device, "reason": reason})
 }

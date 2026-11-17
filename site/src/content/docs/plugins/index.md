@@ -3,14 +3,17 @@ title: Plugins
 description: Everything about writing Dalibre plugins on one page, from a first book source to the full API reference. Also available as plain Markdown at /docs/plugins.md.
 ---
 
-A Dalibre plugin is a folder with a `plugin.json` and a JavaScript file.
-Plugin API 1 offers two **capabilities**, and one plugin may have either
-or both:
+A Dalibre plugin is a folder with a `plugin.json` and a JavaScript (or
+TypeScript) module.
+Plugin API 1 offers four **capabilities**, and one plugin may have any
+of them:
 
 | Capability | What it does | Where users see it |
 |---|---|---|
 | **Book source** | Searches and browses a catalogue, and says where each book's file is. Dalibre downloads the file and adds the book to the library, with the metadata the plugin gave. | The **Get books** page |
 | **Metadata source** | Looks a book up by its title, authors and identifiers, and returns candidates with their details. | Edit metadata › **Fetch metadata** |
+| **File type** | Works on books' files: each file Dalibre adds, and the books the user runs it on. Cleans up, converts or unlocks with the user's own key, as calibre's file type plugins do. | Nowhere as files are added; the **book menu** to run it on books |
+| **Actions** | Runs on the books the user chose, or on the whole library: find duplicates, check the library, merge books. Returns what it found and what it wants changed; Dalibre shows the books and applies the changes. | The **book menu**, and the sidebar's **Tools** |
 
 **On this page:**
 
@@ -19,8 +22,11 @@ or both:
 - [plugin.json](#pluginjson)
 - [Book sources](#book-sources)
 - [Metadata sources](#metadata-sources)
+- [File type plugins](#file-type-plugins)
+- [Plugin actions](#plugin-actions)
 - [Runtime and errors](#runtime-and-errors)
 - [Permissions and limits](#permissions-and-limits)
+- [The dalibre-plugin tool](#the-dalibre-plugin-tool)
 - [Publishing](#publishing)
 - [Type reference](#type-reference)
 
@@ -47,14 +53,15 @@ That's a deliberate trade:
 
 ### How a plugin runs
 
-Plugins are plain JavaScript modules (ES2023), run by the
-[QuickJS](https://bellard.org/quickjs/) interpreter built into Dalibre.
-There is no Node, no browser and no build step.
+Plugins are JavaScript or TypeScript modules (ES2023), run by the
+JavaScript engine built into Dalibre ([moejs](https://github.com/MoeForge/moejs)).
+They use the standard APIs you know: `fetch`, `URL`, `setTimeout`,
+`TextEncoder`, `node:fs`. There is no build step.
 
 ```text
 my-source/
 ├── plugin.json        what the plugin is, adds and asks for
-├── main.js            the functions Dalibre calls
+├── main.js            the functions Dalibre calls (or main.ts)
 ├── lib/…              more modules, imported by relative path (optional)
 ├── dalibre.d.ts       types for your editor (optional)
 └── jsconfig.json
@@ -67,12 +74,13 @@ my-source/
 3. Dalibre calls your exports (`search`, `identify`, …) with plain
    objects, and checks what you return. Bad results are dropped with a
    warning; the rest are shown.
-4. Network access goes through `dalibre.fetch`, limited to the hosts you
-   declared. Files are downloaded by Dalibre, not by your script.
+4. Your script reaches the network with `fetch`, limited to the hosts
+   you declared, and reads and writes files only in its own folders.
+   Books are downloaded by Dalibre, not by your script.
 
 Calls into one plugin run one at a time; different plugins run in
-parallel. A plugin that throws, runs out of time or out of memory only
-fails that one call.
+parallel. A plugin that throws or runs out of time only fails that one
+call.
 
 ### What a book source looks like
 
@@ -90,10 +98,10 @@ fails that one call.
 ```js
 // @ts-check
 export async function search({ text, page }) {
-  const res = await dalibre.fetch(
+  const res = await fetch(
     `https://books.example.com/api?q=${encodeURIComponent(text)}&p=${page}`
   );
-  const { books, next } = res.json();
+  const { books, next } = await res.json();
   return {
     items: books.map((b) => ({
       id: b.id,
@@ -129,12 +137,19 @@ Three plugins ship inside Dalibre, and are good worked examples:
 
 ## Quick start
 
+> **The fastest start: [dalibre-plugin-template](https://github.com/djyde/dalibre-plugin-template).** On GitHub,
+> click **Use this template**, clone your new repository, and set your own
+> `id` and `name` in `plugin.json`. It has a starter `main.js`, the types
+> and schema for your editor, and a workflow that checks the plugin on
+> each push and publishes a release when you push a tag. The same files
+> come from `npx dalibre-plugin init my-plugin`.
+
 In this guide you'll write a book source for Project Gutenberg's
 70,000 public-domain books, read from its OPDS catalog. By the end it
 will search, filter by language, show covers, offer shelves to browse
 and download EPUBs into your library.
 
-You need Dalibre and a text editor. No Node, no npm, no build step.
+You need Dalibre and a text editor. You don’t need Node or npm, and there is no build step.
 
 ### 1. Make a folder
 
@@ -157,6 +172,9 @@ done
 They're optional, but worth it: with `// @ts-check` at the top of
 `main.js`, VS Code and other editors check your code and complete the
 API as you type, and `plugin.json` is validated as you write it.
+
+> Started from the [template](https://github.com/djyde/dalibre-plugin-template) or `npx dalibre-plugin init`? These
+> files are there already.
 
 ### 2. Pick an id
 
@@ -250,10 +268,10 @@ async function feed(text, language, sort, page) {
   let url = `${SITE}/ebooks/search.opds/?sort_order=${sort}&start_index=${(page - 1) * PER_PAGE + 1}`;
   if (query) url += `&query=${encodeURIComponent(query)}`;
 
-  const res = await dalibre.fetch(url);
+  const res = await fetch(url);
   if (res.status === 429) throw dalibre.error("rateLimited");
   if (!res.ok) throw dalibre.error("unavailable", `Project Gutenberg answered ${res.status}.`);
-  const xml = res.text();
+  const xml = await res.text();
 
   /** @type {Dalibre.Result[]} */
   const items = [];
@@ -310,7 +328,7 @@ What's going on:
 
 ### 5. Load it into Dalibre
 
-In Dalibre, open **Settings › Plugins › Add plugin › From a folder…**
+In Dalibre, open **Plugins › Add plugin › From a folder…**
 and pick the plugin's folder. Grant the hosts it asks for.
 
 Dalibre loads the plugin from that folder, not a copy, and reloads it a
@@ -319,8 +337,16 @@ moment after you save a change. Open **Get books**, pick
 *pride and prejudice*, then *dickens* with the language set to French,
 then download a book into your library.
 
-If the plugin doesn't load, Settings › Plugins shows why: a field
+If the plugin doesn't load, Plugins shows why: a field
 `plugin.json` doesn't allow, a missing export, a script error.
+
+From a terminal, `npx dalibre-plugin dev .` does the same: it adds the
+folder to the running Dalibre and prints each reload, with its errors.
+It needs Dalibre's MCP server on (Settings › MCP).
+
+Your own AI agent can do this loop for you over [MCP](/docs/mcp/#write-a-plugin): it starts
+the plugin, adds its folder, calls its functions and reads their
+results, logs and errors. You still allow the hosts it reaches.
 
 > Dalibre already ships a Project Gutenberg source built on this same
 > catalog. Put yours next to it and compare: the built-in one also
@@ -356,8 +382,9 @@ Save, and the Get books page shows your two shelves, each with *See all*.
 ### 7. Share it
 
 Push the folder to a GitHub repository, with `plugin.json` at its root.
-Anyone can then install it from **Settings › Plugins › Install from
-GitHub**.
+Anyone can then install it from **Plugins › Install from
+GitHub**. Tag releases so they get your updates: see
+[Publishing](#publishing).
 
 ## plugin.json
 
@@ -415,10 +442,11 @@ validates and completes the file as you type.
 | `name` | **Required.** Shown to users; 1 to 64 characters. |
 | `version` | **Required.** A [semantic version](https://semver.org): `1.2.0`, `2.0.0-beta.1`. Bump it in every release, or users won't be offered the update. |
 | `api` | **Required.** The plugin API you wrote for: `1`. |
+| `dalibre` | The oldest Dalibre your plugin works in, as `">=0.4.0"`, when it uses what plugin API 1 gained since it began (actions, `covers`, `remember`, toggle, select and number settings): an older Dalibre refuses it, and its Marketplace shows it as needing an update. `dalibre-plugin check` warns when you need it. |
 | `description` | One line, shown under your name in the source picker and when the user installs. Say what the catalogue holds: "Over 70,000 free public-domain ebooks". |
 | `author`, `homepage`, `license` | Shown when the user installs. `license` is an SPDX id (`MIT`, `Apache-2.0`). The Get books page's *Open site* button opens `homepage`. |
 | `icon` | One of Dalibre's icons: `globe` (default), `library`, `book-open`, `database`, `network`, `building`, `bookmark`, `layers`. Never an image, so a plugin can't dress up as another app. |
-| `main` | The script, relative to `plugin.json`. Default `main.js`. |
+| `main` | The main module, relative to `plugin.json`: a `.js`, `.mjs`, `.ts` or `.mts` file. Default `main.js`. |
 
 > Ids starting with `dalibre` are kept for the plugins that ship inside
 > Dalibre. A package using one isn't installed.
@@ -426,12 +454,14 @@ validates and completes the file as you type.
 ### capabilities
 
 **Required.** What the plugin adds to Dalibre: an object with one or
-both keys.
+more keys.
 
 ```json
 "capabilities": {
   "bookSource": { "collections": true, "filters": [ … ] },
-  "metadata": { "fields": ["title", "authors", "cover", "description"] }
+  "metadata": { "fields": ["title", "authors", "cover", "description"] },
+  "fileType": { "title": "Clean up EPUB" },
+  "actions": [{ "id": "find", "title": "Find duplicates…", "scope": "library" }]
 }
 ```
 
@@ -454,6 +484,23 @@ Lists the plugin in **Fetch metadata**. Export `identify`, and ask for
 | Field | |
 |---|---|
 | `fields` | Optional: what you can fill, from `title`, `authors`, `series`, `tags`, `publisher`, `pubdate`, `language`, `identifiers`, `cover` and `description`. |
+
+#### fileType
+
+Runs the plugin on books' files. Export `process`; see
+[File type plugins](#file-type-plugins). It needs no permission: the
+files are handed to it.
+
+| Field | |
+|---|---|
+| `title` | What the book menu calls running it: `"Clean up EPUB"`. Default: the plugin's name. Up to 64 characters. |
+| `onImport` | `false` to run only from the book menu, not on the files Dalibre adds. Default `true`. |
+| `onPostImport`, `onPostAdd`, `onPostDelete` | `true` to be called after a file is added, a book is added, a format is removed. See [hooks](#hooks). |
+
+#### actions
+
+Adds actions to the book menu and the sidebar's **Tools**: a list of
+`{ id, title, scope, … }`. Export `run`; see [Actions](#plugin-actions).
 
 #### The array form
 
@@ -489,7 +536,7 @@ install; see [Permissions & limits](#permissions-and-limits).
 | Field | |
 |---|---|
 | `hosts` | **Required.** Every host your plugin reaches, through `fetch`, file downloads, covers **and redirects**. `*.example.com` matches any subdomain, not `example.com` itself. |
-| `library` | `"read"`: your plugin sees the title, authors, identifiers and language of the books the user looks up with it. **Required for a metadata source**; the install dialog says so. |
+| `library` | `"read"`: your plugin sees the details of the books it is asked about. **Required for a metadata source** and for [hooks](#hooks). `"write"`: your hooks may also change those details. The install dialog says so. |
 | `localNetwork` | `true` to reach this computer and the local network: a home OPDS or calibre server. Users are warned. Default `false`. |
 
 ### settings
@@ -509,12 +556,31 @@ settings, and your code reads them from `dalibre.settings`.
 |---|---|
 | `key` | **Required.** The name in `dalibre.settings`: a letter, then letters, digits or `_`. |
 | `title` | **Required.** The field's label. |
-| `type` | `text` (default) or `secret`. Secrets are masked, hidden in logs, and kept in the system's keychain rather than Dalibre's settings file. |
+| `type` | `text` (default), `secret` or `file`. Secrets are masked, hidden in logs, and kept in the system's keychain rather than Dalibre's settings file. A `file` setting is a file the user chooses, such as a key: see [file settings](#file-settings). |
 | `description` | A line of help under the field. |
 | `default` | The value until the user sets one. |
 | `required` | The plugin isn't called until it's filled; the source shows *Needs setup* instead. |
 
 All values are strings.
+
+#### File settings
+
+A `file` setting shows a **Choose file…** button. The file the user
+picks is copied into your [data folder](#your-folders), and the setting's
+value is the path you read it at:
+
+```json
+{ "key": "keyFile", "title": "Key file", "type": "file", "required": true,
+  "description": "Export it from your account page." }
+```
+
+```js
+import { readFile } from "node:fs/promises";
+const key = await readFile(dalibre.settings.keyFile);   // "/data/.settings/keyFile/user-key.der"
+```
+
+It applies as soon as it is chosen; up to 16 MB. With `dalibre-plugin`,
+`--set keyFile=path/to/user-key.der` copies the file in the same way.
 
 ## Book sources
 
@@ -685,7 +751,7 @@ listing has, and `get` fills in the rest. The `id` is kept; formats and
 
 ```js
 export async function get(item) {
-  const b = (await dalibre.fetch(`${API}/books/${item.id}`)).json();
+  const b = await (await fetch(`${API}/books/${item.id}`)).json();
   return {
     ...item,
     description: b.summary,
@@ -712,12 +778,12 @@ links expire, need a second request, or need headers:
 ```js
 export async function resolve(item, format) {
   const auth = { Authorization: `Bearer ${dalibre.settings.apiKey}` };
-  const res = await dalibre.fetch(
+  const res = await fetch(
     `https://api.example.com/books/${item.id}/download?format=${format}`,
     { headers: auth },
   );
   if (res.status === 404) throw dalibre.error("notFound");
-  return { url: res.json().url, headers: auth };
+  return { url: (await res.json()).url, headers: auth };
 }
 ```
 
@@ -812,13 +878,14 @@ the library is sent.**
 export async function identify({ title, authors, identifiers }) {
   const q = identifiers.isbn || [title, authors[0]].filter(Boolean).join(" ");
   if (!q) return [];
-  const res = await dalibre.fetch(
+  const res = await fetch(
     `https://api.example.com/books?q=${encodeURIComponent(q)}`
   );
   if (res.status === 429) throw dalibre.error("rateLimited");
   if (!res.ok) throw dalibre.error("unavailable");
 
-  return res.json().books.map((b) => ({
+  const { books } = await res.json();
+  return books.map((b) => ({
     id: b.key,
     title: b.title,
     authors: b.authors,
@@ -871,16 +938,246 @@ picked in its source menu. Candidates are listed by plugin, then by your
 rank.
 
 
+## File type plugins
+
+A file type plugin works on books' files, as calibre's file type plugins
+do: it cleans them up, converts them, or unlocks them with the user's own
+key. It gets a copy of a book's file and returns a new one.
+
+```json
+"capabilities": { "fileType": { "title": "Clean up EPUB" } }
+```
+
+```js
+import { readFile, writeFile } from "node:fs/promises";
+
+/** @param {Dalibre.File} file @returns {Promise<Dalibre.Processed>} */
+export async function process(file) {
+  if (file.format !== "EPUB") return null;            // not for us: leave it
+  const book = await readFile(file.path);
+  const cleaned = clean(book);
+  if (!cleaned) return null;                          // nothing to change
+  await writeFile(file.path, cleaned);                // in place, or beside it
+  return { path: file.path, report: ["Removed 3 unused fonts"] };
+}
+```
+
+### When it runs
+
+- **As files are added**: every file Dalibre adds, whether dropped,
+  chosen with Add books, downloaded from Get books, added as a format, or
+  added by an AI agent, goes through every file type plugin, one after
+  the other, before it is added. Set `"onImport": false` to skip this.
+- **From the book menu**: your `title` shows in the menu of a book (and
+  of a selection). It runs at once on the books, in the background, with
+  no dialog. Each book's first format you might take is used (EPUB, then
+  AZW3, MOBI, PDF…).
+
+Dalibre writes what you return: in place of the old file, which is kept
+as `ORIGINAL_EPUB` (as calibre does) and can be put back with **Undo**;
+or, when you return another format (a KFX book made into EPUB), as a
+format of its own.
+
+### process
+
+`process(file)` gets:
+
+| | |
+|---|---|
+| `path` | Where to read the file: a copy in `/work`. Change it in place, or write the new file beside it. |
+| `name` | The file's own name: `"Dune - Frank Herbert.epub"`. |
+| `format` | Its format, upper case: `"EPUB"`. |
+| `reason` | `"import"` as the file is added, `"manual"` from the book menu. |
+| `book` | From the book menu: `{ title, authors, identifiers }`. |
+
+It returns:
+
+- `null`: leave the file as it is. Return it fast for files that aren't
+  yours: every added file comes to you.
+- the new file's path, in `/work` or `/data`, named with its format's
+  extension (`book.epub`);
+- or `{ path, report }`, `report` being a few lines on what you did, shown
+  by `dalibre-plugin process`.
+
+You get the whole file, and memory isn't limited, so a large book is
+fine; the call has 10 minutes.
+
+### When it fails
+
+- As a file is added, a plugin that throws is passed over: the file is
+  added as it was, and the user is told.
+- From the book menu, throw `dalibre.error("auth", …)` when you need
+  something from the user, such as a key: the run stops, and the user is
+  offered your settings. Any other error is counted, and the other books
+  still run.
+
+### Hooks
+
+As calibre's file type plugins, yours can ask to be called after the
+library changed. Ask for each in `plugin.json`, export it, and ask for
+`permissions.library`:
+
+| Ask with | Export | Called after | calibre |
+|---|---|---|---|
+| `onPostImport` | `postimport(event)` | a file was added to a book: a new book, or a new format | `on_postimport` |
+| `onPostAdd` | `postadd(event)` | a book was added, with all its files | `on_postadd` |
+| `onPostDelete` | `postdelete(event)` | a format was removed | `on_postdelete` |
+
+```json
+"capabilities": { "fileType": { "onImport": false, "onPostAdd": true } },
+"permissions": { "library": "write" }
+```
+
+```js
+export async function postadd({ book, files }) {
+  const pages = await countPages(files[0].path);
+  return { metadata: { identifiers: { pages: String(pages) } } };
+}
+```
+
+- `event.book` is the book's details: `{ id, title, authors, series,
+  seriesIndex, tags, publisher, pubdate, languages, identifiers, rating,
+  comments, formats }`. `postimport` also gets `format` and `file` (a copy
+  in `/work`), `postadd` gets `files`, `postdelete` gets `format`.
+- Return `null`, or `{ metadata: { … } }` with the fields to change.
+  calibre's hooks write the database themselves; yours say what to change,
+  and Dalibre writes it. That needs `"library": "write"`, which the user
+  is shown, in a warning, when installing. Identifiers are merged: an
+  empty value removes one.
+- They run after the library changed, in the background. One that fails
+  is logged, as calibre does: what happened to the book stands.
+- A plugin may have only hooks: `"onImport": false` and no `process`. It
+  isn't offered in the book menu then.
+- calibre's conversion hooks (`on_preprocess`, `on_postprocess`,
+  `on_postconvert`) have no counterpart: Dalibre doesn't convert books
+  through plugins.
+
+### Trying it
+
+```sh
+dalibre-plugin process . "My Book.epub"                  # as an import, saved beside
+dalibre-plugin process . "My Book.epub" --manual -o out  # as from the book menu
+dalibre-plugin process . book.epub --set keyFile=user-key.der
+```
+
+## Plugin actions
+
+Actions are what the user runs on the books they chose, from the book
+menu, or on the whole library, from the sidebar's **Tools**: find
+duplicates, check the library, merge books. An action returns what it
+found and what it wants changed; Dalibre shows the books as a list and
+applies the changes.
+
+### Declaring them
+
+A plugin with `"actions"` in its capabilities exports `run(action,
+input)`, called with the id of the action the user chose:
+
+```json
+"capabilities": {
+  "actions": [
+    { "id": "find", "title": "Find duplicates…", "icon": "copy", "scope": "library" },
+    { "id": "exempt", "title": "Not duplicates", "scope": "books", "books": { "min": 2 }, "in": "results" },
+    { "id": "merge", "title": "Merge into one book", "scope": "books",
+      "books": { "min": 2 }, "formats": ["EPUB"], "files": true }
+  ]
+},
+"permissions": { "hosts": [], "library": "read" }
+```
+
+- `scope`: `"books"` runs on the books chosen, from the book menu and the
+  selection's **Plugins** button; `"library"` runs on every book, from
+  the sidebar's **Tools**.
+- `title` is what the menu says; end it in `…` when the action asks
+  something first. `icon` is one of Dalibre's own (the schema lists
+  them).
+- `books` is how many books it takes (`min`, `max`), `formats` the
+  formats it works on (every book must have one): Dalibre greys the item
+  out otherwise, without running your code.
+- `files: true` gives you a copy of each book's file in `/work`;
+  `covers: true` a copy of each one's cover, for the books that have
+  one.
+- `in: "results"` shows the action only among the books your own results
+  list (below), where it comes first.
+
+### run
+
+```js
+export async function run(action, input) {
+  const { by } = await dalibre.form({
+    submit: "Find duplicates",
+    fields: [
+      { key: "by", title: "Compare", type: "select", value: "title",
+        options: [{ value: "title", title: "Title and author" }, { value: "isbn", title: "ISBN" }] },
+    ],
+  });
+  const seen = new Map();
+  let n = 0;
+  for await (const book of dalibre.library.books()) {
+    dalibre.progress(++n, 0);
+    const key = by === "isbn" ? book.identifiers.isbn : book.title + "|" + book.authors.join();
+    if (key) seen.set(key, [...(seen.get(key) ?? []), book]);
+  }
+  const groups = [...seen.values()].filter((books) => books.length > 1)
+    .map((books) => ({ title: books[0].title, books: books.map((b) => ({ id: b.id })) }));
+  return groups.length ? { groups } : { message: "No duplicates" };
+}
+```
+
+`input` is `{ books, files? }`: `books` are the books chosen, in the
+user's order, as a hook sees them (`id`, `title`, `authors`, `tags`,
+`identifiers`, `formats`, `comments`, `titleSort`, `authorSort`,
+`added`, `modified`, `hasCover`, `uuid`…), and empty for a `"library"`
+action; `files` has each book's file by book id (`{ path, name, format
+}`), and `covers` each one's cover's path. Authors are as calibre shows them: "Herbert, Frank", not
+calibre's stored "Herbert| Frank".
+
+### While it runs
+
+An action has three things only Dalibre can give:
+
+| | |
+|---|---|
+| `await dalibre.form({ submit?, fields, remember? })` | Asks the user, in a dialog Dalibre draws under your action's title, and resolves to the answers by `key`. A field is `{ key, title, type, value?, options? }` with `type` `"text"`, `"toggle"`, `"select"` or `"multiselect"`; `value` is what it starts with. With `remember: true` the form starts with the user's last answers to it instead, as calibre plugins keep their options. Cancel rejects with kind `"cancelled"`: leave it uncaught and the run ends quietly. Call it when you know what to ask (after reading the book, say), as often as you need. The run's time doesn't count while it is open. |
+| `dalibre.library.books(options?)` | An async iterator over every book in the library; `comments` only with `{ comments: true }`, which reads more. |
+| `dalibre.progress(done, total)` | The job's bar; `total` 0 when you don't know. |
+
+### What it returns
+
+Return `null`, or what you found and want changed:
+
+| | Dalibre |
+|---|---|
+| `message` | says it in a toast: "No duplicates" |
+| `groups: [{ title, books: [{ id, note? }] }]` | opens the books as a list under each group's title, with `note` under a book's title. It is a book list like any other: the book menu and the detail panel work in it. A book shows once, under the first group that has it |
+| `changes: [{ book, metadata }]` | changes books' details, as a hook's `metadata`: at once with `"library": "write"` (and Undo), else shown to the user first, who applies them. A field left out stays as it is; `""` (or `[]`) clears it: `{ series: "" }` takes a book out of its series |
+| `add: [{ path, metadata? }]` | adds each file as a new book |
+| `formats: [{ book, path }]` | adds the file to the book; a file of the same format is kept as `ORIGINAL_<format>` |
+| `open` | opens the page in the browser; it must be on one of your hosts |
+
+An action never deletes: the books it ran on stay as they were.
+
+### Trying it
+
+A run has 10 minutes and is a job the user can stop. Try it with
+`dalibre-plugin run . find --library ~/Calibre\ Library --answer by=isbn`
+or `dalibre-plugin run . merge a.epub b.epub`, or on books of a library
+with `--library DIR --book 12 --book 40`: without a window, the
+answers to your forms come from `--answer` (as from an AI agent), and
+`dalibre.interactive` is false. Your code is the same either way.
+
 ## Runtime and errors
 
-Plugins run in [QuickJS](https://bellard.org/quickjs/), an ES2023
-interpreter built into Dalibre. It's a small, strict sandbox: no Node, no
-browser, and nothing but what the `dalibre` object hands you.
+Plugins run in [moejs](https://github.com/MoeForge/moejs), an ES2023
+JavaScript engine written in Go and built into Dalibre. A plugin gets the
+standard APIs of the web and a part of Node's, and Dalibre's rules on top:
+the hosts it may reach, its own folders, and a time limit per call.
 
 ### Modules
 
-`main.js` is an ES module, run once when Dalibre loads the plugin. It
-exports the functions Dalibre calls:
+`main.js` (or `main.ts`, set with `"main"` in `plugin.json`) is an ES
+module, run once when Dalibre loads the plugin. It exports the functions
+Dalibre calls:
 
 ```js
 // @ts-check
@@ -896,8 +1193,14 @@ export async function resolve(item, format) { … }   // optional
 `export default { search, resolve }` and CommonJS
 (`module.exports = { search }`, `exports.search = …`) work too.
 
-- **Imports** are relative paths to `.js` files in your plugin's folder.
-  Package names (`"lodash"`) can't be imported; bundle them in.
+- **Imports** are relative paths to `.js`, `.mjs`, `.ts` or `.mts` files
+  in your plugin's folder. As in TypeScript, `"./lib.js"` finds `lib.ts`
+  when there is no `lib.js`, and `"./lib"` finds `lib.ts` or `lib.js`.
+- **Node's modules** `node:fs`, `node:fs/promises` and `node:buffer`
+  (or `fs`, `fs/promises`, `buffer`) can be imported. See
+  [your folders](#your-folders).
+- Package names (`"lodash"`) can't be imported; bundle them in (see
+  [npm packages](#typescript-and-npm-packages)).
 - Modules are **strict mode**: writing to a read-only property (anything
   in `dalibre`) throws, as in browsers.
 - Your functions may be `async`.
@@ -910,72 +1213,154 @@ Keep state across calls in module variables: a token, a cache.
 let token = "";
 async function signIn() {
   if (token) return token;
-  const res = await dalibre.fetch("https://api.example.com/token", { method: "POST", … });
-  return (token = res.json().token);
+  const res = await fetch("https://api.example.com/token", { method: "POST", … });
+  return (token = (await res.json()).token);
 }
 ```
 
 It lasts until Dalibre quits or reloads plugins, **or until a call runs
-out of time or memory**, after which your module is loaded afresh. Don't
-rely on it for anything that must survive.
+out of time**, after which your module is loaded afresh. What must
+survive goes in [your data folder](#your-folders).
 
-### The dalibre object
+### What you can use
 
 | | |
 |---|---|
-| `dalibre.fetch(url, init?)` | The web's `fetch`, cut down. [Below](#dalibrefetch). |
+| Network | `fetch`, `Request`, `Response`, `Headers`, `AbortController`, `AbortSignal` |
+| Streams | `ReadableStream`, `WritableStream`, `TransformStream`, `TextDecoderStream`, `TextEncoderStream` |
+| Text and data | `URL`, `URLSearchParams`, `TextEncoder`, `TextDecoder`, `atob`, `btoa`, `structuredClone`, typed arrays, `Buffer` |
+| Time | `setTimeout`, `setInterval`, `setImmediate` and their `clear…`, `queueMicrotask`, `performance.now()` |
+| Files | `node:fs`, `node:fs/promises` over [your folders](#your-folders) |
+| Formatting | `Intl` (dates and numbers in English, Chinese, Japanese, Korean, German, French, Spanish, Portuguese, Russian and Italian) |
+| Logging | `console.log`, `info`, `warn`, `error`, `debug`: to Dalibre's log and the CLI's stderr, with secret settings masked |
+| Dalibre | [the `dalibre` object](#the-dalibre-object) |
+
+They behave as in browsers and Node. What differs is below.
+
+#### fetch
+
+```js
+const res = await fetch("https://api.example.com/search?q=dune", {
+  headers: { Accept: "application/json" },
+});
+if (!res.ok) throw dalibre.error("unavailable", `example.com answered ${res.status}.`);
+const data = await res.json();
+```
+
+- Only hosts in [`permissions.hosts`](#hosts), redirects included, and
+  not [the local network](#local-network) unless you ask for it.
+- At most **50 requests per call**, 10 redirects per request, and
+  **16 MB per response**. Books are downloaded by Dalibre (return their
+  URL, or a [`resolve`](#resolve) request), not fetched.
+- **Cookies** are kept as a browser keeps them, for your plugin alone and
+  in memory, and sent with later requests and with Dalibre's downloads.
+  Sign in by posting a form once, and stay signed in until the plugin is
+  loaded again.
+- Dalibre sets the `User-Agent` (`Dalibre <id>/<version>`).
+- Requests run in parallel: `Promise.all` over several fetches works.
+- A refused request, a network failure or a response over the limit
+  rejects with a `TypeError` (`"fetch failed"`) whose `cause` says why. If
+  you don't catch it, Dalibre counts it as a `permission` error (your
+  plugin asked for a host it didn't declare) or `unavailable` (the
+  network).
+- Requests a call leaves running end with the call.
+
+#### Timers
+
+Timers work as in Node. A call ends when the promise your export returns
+settles; until then, Dalibre runs your timers, fetches and file
+operations. So you can wait:
+
+```js
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+for (let attempt = 0; ; attempt++) {
+  const res = await fetch(url);
+  if (res.status !== 429 || attempt === 2) return res;
+  await sleep(1000 * 2 ** attempt);   // back off, then try again
+}
+```
+
+- The call's **60 seconds** include the time spent waiting.
+- A timer you leave running after the call settles waits, and fires
+  during your plugin's next call. Clear what you don't need.
+- An exception thrown in a timer's callback fails the call in progress.
+- A promise that nothing can settle any more (no timer, fetch or file
+  operation left) ends the call with "never settled".
+
+#### Your folders
+
+Through `node:fs`, your plugin sees two folders of its own, and nothing
+else:
+
+- `/data` keeps what must survive restarts: a sign-in token, a cache, a
+  downloaded word list, [file settings](#file-settings).
+- `/work` holds the files [`process`](#process) is handed, one folder a
+  call, emptied when the call ends.
+
+```js
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+
+async function cachedToken() {
+  try {
+    return await readFile("/data/token", "utf8");
+  } catch {
+    const token = await signIn();
+    await writeFile("/data/token", token);
+    return token;
+  }
+}
+```
+
+- Relative paths are relative to `/data`. Nothing else can be reached:
+  other paths, `..` and links that lead out fail with `EACCES`.
+- `/data` holds **64 MB**; a write once it's full fails with `ENOSPC`.
+- Only your plugin sees them. Uninstalling the plugin deletes them.
+- They are in a hidden `.data/<id>` folder in Dalibre's plugins folder.
+  With `dalibre-plugin`, it is `.data` in your plugin's folder, which
+  `pack` leaves out.
+- Not there: streams (`createReadStream`), file handles (`fs.open`,
+  `FileHandle`), `watch`. Read and write whole files.
+
+#### What's not there
+
+- `process`, `require`, and Node's other modules (`path`, `crypto`,
+  `child_process`, `net`…).
+- The DOM: no `document`, `window`, `DOMParser`. Parse HTML or XML with
+  regular expressions or a small bundled parser; the built-in Project
+  Gutenberg plugin reads OPDS (Atom XML) with a few regular expressions.
+- `crypto` (WebCrypto), `Blob`, `FormData`, `CompressionStream`,
+  `WebAssembly`, `Temporal`. Bundle a pure-JavaScript library when you
+  need hashing, ciphers or zip.
+
+### The dalibre object
+
+What only Dalibre can give you:
+
+| | |
+|---|---|
 | `dalibre.settings` | The user's values for your [settings](#settings), by key; defaults where unset. Read-only strings. |
 | `dalibre.error(kind, message?)` | An `Error` Dalibre understands. See [errors](#errors). |
-| `dalibre.log(...)` | To Dalibre's log. Secret settings are masked. |
-| `console.log/info/warn/error/debug(...)` | Same as `dalibre.log`. |
 | `dalibre.plugin` | `{ id, version }` from your manifest. |
 | `dalibre.api` | The plugin API version of the running Dalibre. |
 
 Everything in the `dalibre` object is frozen.
 
-#### dalibre.fetch
-
-```js
-const res = await dalibre.fetch("https://api.example.com/search?q=dune", {
-  method: "GET",
-  headers: { Accept: "application/json" },
-});
-if (!res.ok) throw dalibre.error("unavailable", `example.com answered ${res.status}.`);
-const data = res.json();
-```
-
-- `init` is `{ method?, headers?, body? }`, all strings. To post JSON,
-  `JSON.stringify` the body and set `Content-Type`.
-- It resolves to `{ status, statusText, ok, url, headers, text(), json() }`.
-  `url` is the final URL after redirects; `headers` has lowercase names.
-  `text()` and `json()` are synchronous.
-- It **rejects** for a host outside your permissions, a network failure,
-  or a response over 16 MB.
-- **Cookies** are kept as a browser keeps them, for your plugin alone and
-  in memory, and sent with later requests and downloads. Sign in by
-  posting a form once, and stay signed in until the plugin is loaded
-  again.
-- Requests run **one at a time**; `Promise.all` doesn't make them
-  parallel.
-- At most 50 requests per call, and 10 redirects per request.
-
-#### What's not there
-
-There is no `require`, file system, timers (`setTimeout`), `URL`,
-`URLSearchParams`, `TextEncoder` or `Intl`.
-
-- Build query strings with `encodeURIComponent`.
-- Parse XML or HTML with regular expressions, or a small bundled parser.
-  The built-in Project Gutenberg plugin reads OPDS (Atom XML) with a few
-  regular expressions.
-- Need `URL` or a date library? Bundle a small one.
-
 ### TypeScript and npm packages
 
-Put [`dalibre.d.ts`](/sdk/dalibre.d.ts) and
-[`jsconfig.json`](/sdk/jsconfig.json) next to `main.js`. With
-`// @ts-check` at the top of `main.js`, your editor type-checks plain
-JavaScript and completes the API, using JSDoc types:
+Write `main.ts` and set `"main": "main.ts"` in `plugin.json`: Dalibre
+runs TypeScript as it is, dropping the types, so error messages and stack
+traces point into your `.ts` files. TypeScript that changes what the code
+does at run time can't be used: `enum`, namespaces with values,
+constructor parameter properties (`constructor(private x: T)`),
+`import x = require()`, decorators. Types aren't checked when the plugin
+runs; check them in your editor.
+
+For types, put [`dalibre.d.ts`](/sdk/dalibre.d.ts) and
+[`jsconfig.json`](/sdk/jsconfig.json) (or a `tsconfig.json` with the same
+options) next to your main module. It uses TypeScript's `WebWorker`
+library for `fetch`, `URL` and the timers; for `node:fs` and `Buffer`, add
+`@types/node` (`npm i -D @types/node`). In plain JavaScript, `// @ts-check`
+at the top of `main.js` has your editor check JSDoc types:
 
 ```js
 // @ts-check
@@ -983,15 +1368,20 @@ JavaScript and completes the API, using JSDoc types:
 export async function search(query) { … }
 ```
 
-Prefer TypeScript? Write `main.ts` and compile it to one module:
+npm packages are bundled in, as long as they need nothing from the list
+[above](#whats-not-there). Pure-JavaScript libraries do: `fflate` for
+zip, `@noble/ciphers` and `node-forge` for ciphers. Leave Node's modules
+to Dalibre with `--external`:
 
 ```sh
-esbuild main.ts --bundle --format=esm --target=es2023 --outfile=main.js
+esbuild main.ts --bundle --format=esm --target=es2023 --external:'node:*' --outfile=main.js
 ```
 
-Bundling is also how you use npm packages, as long as they don't need
-Node's built-ins or the browser's. Commit the bundled `main.js`: Dalibre
-has no build step.
+`self` is the global object, as in a Web Worker, for libraries that look
+for it.
+
+Then set `"main"` back to `main.js` and ship the bundle: Dalibre has no
+build step.
 
 ### Errors
 
@@ -1014,7 +1404,8 @@ if (text.length < 3) throw dalibre.error("invalid", "Type at least 3 letters.");
 
 - Anything else thrown (a `TypeError`, a plain `Error`) is reported as a
   **bug in the plugin**, with your message; the stack goes to the log.
-- A network failure you don't catch counts as `unavailable`.
+- A `fetch` you don't catch counts as `unavailable` (the network) or
+  `permission` (a host you didn't declare).
 - Messages are shown to users: write them for readers, in a sentence.
 
 ## Permissions and limits
@@ -1052,17 +1443,23 @@ install.
 ### Library
 
 `"library": "read"` lets a metadata source see the title, authors,
-identifiers and language of the books the user looks up with it, and
-nothing else. The install dialog says so. A book source doesn't need it.
+identifiers and language of the books the user looks up with it, and a
+file type plugin's [hooks](#hooks) the details of the books they run for,
+and nothing else. The install dialog says so. A book source doesn't need
+it.
 
-Plugins never write the library. A metadata source returns candidates;
-the user picks the fields, and only *Save* writes.
+`"library": "write"` lets hooks change those details, without asking each
+time. The install dialog shows it as a warning. Even then a plugin never
+writes the library itself: it returns what to change, and Dalibre writes
+it. A metadata source returns candidates; the user picks the fields, and
+only *Save* writes.
 
 ### Consent
 
 Users grant your permissions when they install. The install dialog
 shows your name, author, description, what the plugin adds (Get books,
-Metadata), and every host and permission it asks for.
+Metadata, Book files), and every host and permission it asks for. A file
+type plugin is shown as reaching the user's books' files.
 
 Updates are held to the same consent:
 
@@ -1078,10 +1475,13 @@ CDN node.
 | Limit | |
 |---|---|
 | One call (`search`, `list`, `get`, `resolve`, `identify`…) | 60 seconds; then the script is stopped |
-| Memory | 64 MB for your plugin's interpreter; then the call fails |
+| One `process` call | 10 minutes |
+| Memory | Not limited, as calibre doesn't limit its plugins |
 | Requests per call | 50 |
 | One `fetch` response | 16 MB (files go through the download) |
 | Redirects per request | 10 |
+| `/data` | 64 MB |
+| A file setting's file | 16 MB |
 | Results per page | 100 |
 | Metadata candidates | 20 |
 | Collections | 12 |
@@ -1093,9 +1493,36 @@ CDN node.
 | Filters | 4, of 1 to 64 options each |
 
 Calls into one plugin run one at a time; different plugins run in
-parallel. A plugin that throws, times out or runs out of memory only
-fails that call. The next one runs normally (after a timeout or running
-out of memory, with the module loaded afresh).
+parallel. A plugin that throws or times out only fails that call. The
+next one runs normally (after a timeout, with the module loaded afresh).
+
+## The dalibre-plugin tool
+
+`dalibre-plugin` runs your plugin exactly as Dalibre does, without the
+app: the same interpreter, checks, permissions and limits. It needs
+Node, or nothing at all as a binary from a
+[Dalibre release](https://github.com/djyde/dalibre/releases/latest).
+
+```sh
+npm i -g dalibre-plugin        # or put npx in front of each command
+```
+
+| Command | |
+|---|---|
+| `init <dir> --id ID --name NAME` | Makes what [dalibre-plugin-template](https://github.com/djyde/dalibre-plugin-template) holds: `plugin.json`, `main.js`, the types and schema, `.gitignore`, and a GitHub workflow that checks it on each push and releases it on a `v*` tag |
+| `check .` | Validates `plugin.json`, loads the script, lists its exports and what it asks for |
+| `dev .` | Adds the folder to the running Dalibre, which reloads it as you save, and prints each reload with its errors. Needs Dalibre's MCP server on |
+| `search . "dune"`, `get`, `download`, `collections`, `list` | Calls a book source as the Get books page does; `--json` prints exactly what Dalibre gets |
+| `identify . "Dune" --author "Frank Herbert"` | What Fetch metadata shows |
+| `process . book.epub` | Runs a file type plugin on a file |
+| `run . find --library DIR` | Runs an action; `--answer key=value` answers its forms |
+| `pack .` | Makes `<id>-<version>.dalibre-plugin` |
+| `docs [topic]`, `types [Name]` | This guide by topic, and the API's types, for the tool's version |
+
+`--set key=value` gives a setting; otherwise the values saved in
+Dalibre for your plugin's id are used. Logs go to stderr. Each version
+of the tool is the Dalibre release of the same number, and holds your
+plugin to what that release runs: `dalibre-plugin version`.
 
 ## Publishing
 
@@ -1103,18 +1530,15 @@ out of memory, with the module loaded afresh).
 
 A `.dalibre-plugin` file is a zip of your plugin's folder, with
 `plugin.json` at its root, named `<id>-<version>.dalibre-plugin`.
-Leave out hidden files and `node_modules`:
-
-```sh
-zip -r com.example.books-1.2.0.dalibre-plugin . -x '.*' '*/.*' 'node_modules/*'
-```
+`dalibre-plugin pack .` makes it, leaving out hidden files and
+`node_modules`.
 
 Users can install the file directly. Publish it
 as a GitHub release asset, with your source next to it.
 
 ### Installing from GitHub
 
-Users can install straight from your repository: **Settings › Plugins ›
+Users can install straight from your repository: **Plugins ›
 Install from GitHub**, with `owner/repo` or a github.com link. They pick
 one of your releases (the latest by default) or a branch:
 
@@ -1125,11 +1549,20 @@ one of your releases (the latest by default) or a branch:
   There is no build step: commit what `main.js` imports, bundled output
   included.
 
-A typical release:
+A typical release, with the workflow [the template](https://github.com/djyde/dalibre-plugin-template) and `init`
+give you:
+bump `version` in `plugin.json`, then tag it. The workflow checks the
+plugin, makes sure the tag matches the version, packs it and creates the
+release.
 
 ```sh
-# bump "version" in plugin.json first
-zip -r com.example.books-1.2.0.dalibre-plugin . -x '.*' '*/.*' 'node_modules/*'
+git tag v1.2.0 && git push origin v1.2.0
+```
+
+Without the workflow:
+
+```sh
+npx dalibre-plugin pack .
 gh release create v1.2.0 com.example.books-1.2.0.dalibre-plugin --generate-notes
 ```
 
@@ -1141,6 +1574,27 @@ that isn't a pre-release, or a new commit on the branch followed.
 - An update that asks for **no new permissions** can install by itself.
 - One that asks for **more** waits for the user.
 - **Bump `version` in each release**, or it won't be seen as newer.
+
+### The Marketplace
+
+**Plugins › Marketplace** (the toolbar's Plugins button) lists plugins users install with a
+click: the plugins in Dalibre's [marketplace/](https://github.com/djyde/dalibre/tree/main/marketplace)
+folder, and the community's. To list yours, open a pull request adding
+your repository to
+[marketplace/community.json](https://github.com/djyde/dalibre/blob/main/marketplace/community.json):
+
+```json
+{ "repo": "ann/dalibre-example-books", "category": "sources", "calibre": "Example Books" }
+```
+
+- `category` is one of `library`, `metadata`, `epub`, `language`,
+  `sources`; `calibre`, optional, names the calibre plugin yours does the
+  work of, so calibre's users find it.
+- Your repository needs a release, as above. The Marketplace lists its
+  latest, checked with `dalibre-plugin check`, and picks up new releases
+  within a day.
+- Installing still shows users what your plugin asks for; updates follow
+  the same rules as above.
 
 ### Compatibility
 
@@ -1156,7 +1610,14 @@ Plugin API 1 is a promise:
 - A breaking change will be API 2, announced in Dalibre's release notes,
   with API 1 plugins kept running alongside it for a transition period.
 - A plugin declaring a newer `api` than the user's Dalibre isn't loaded,
-  and the user is told to update Dalibre.
+  and the user is told to update Dalibre; so is one whose `dalibre` asks
+  for a newer Dalibre.
+
+**Moving from `dalibre.fetch`.** Earlier versions of API 1 had
+`dalibre.fetch` and `dalibre.log`; they are gone, for the standard
+`fetch` and `console`. Replace `dalibre.fetch(` with `fetch(`, and await
+the body: `res.json()` and `res.text()` now return promises
+(`await res.json()`).
 
 ### Guidelines
 
@@ -1186,11 +1647,14 @@ its source gets installed.
 Download [`dalibre.d.ts`](/sdk/dalibre.d.ts) next to your code. In plain
 JavaScript, add `// @ts-check` to `main.js` and refer to these types in
 JSDoc (`@param {Dalibre.Query} query`). In TypeScript, they're global.
+`npx dalibre-plugin types <Name>` prints any of them.
 
 ### Exports
 
 What Dalibre calls. A book source implements `Source`; a metadata source
-implements `MetadataSource`; a plugin with both capabilities, both.
+`MetadataSource`; a file type plugin `FileType`; one with actions
+`Actions`; a plugin with several
+capabilities, each of them.
 
 ```ts
 interface Source {
@@ -1209,6 +1673,20 @@ interface Source {
 interface MetadataSource {
   /** Candidates for book, best first; at most 20. [] when nothing matches. */
   identify(book: Book): Candidate[] | Promise<Candidate[]>;
+}
+
+interface FileType {
+  /** A book's file: return null, the new file's path, or { path, report }. */
+  process(file: File): Processed | Promise<Processed>;
+  /** With onPostImport, onPostAdd, onPostDelete: after the library changed. */
+  postimport?(event: HookEvent): HookResult | Promise<HookResult>;
+  postadd?(event: HookEvent): HookResult | Promise<HookResult>;
+  postdelete?(event: HookEvent): HookResult | Promise<HookResult>;
+}
+
+interface Actions {
+  /** action is the id of the action chosen. */
+  run(action: string, input: ActionInput): ActionResult | null | void | Promise<ActionResult | null | void>;
 }
 ```
 
@@ -1350,6 +1828,40 @@ interface Book {
 type Candidate = Omit<Result, "formats" | "extra">;
 ```
 
+### File type plugins
+
+```ts
+interface File {
+  /** Where to read it: a copy of the file in /work, which you may change or write beside. */
+  path: string;
+  /** The file's own name: "Dune - Frank Herbert.epub". */
+  name: string;
+  /** Its format, upper case: "EPUB". */
+  format: string;
+  /** "import": Dalibre is adding it. "manual": the user ran the plugin on the book. */
+  reason: "import" | "manual";
+  /** From the book menu: the book the file belongs to. */
+  book?: Book;
+}
+
+/** null leaves the file; a path (in /work or /data) is the new file. */
+type Processed = null | string | { path?: string; report?: string[] };
+
+interface HookEvent {
+  book: BookInfo;      // id, title, authors, series, seriesIndex, tags, publisher,
+                       // pubdate, languages, identifiers, rating, comments, formats
+  format?: string;     // postimport: the format added; postdelete: removed
+  file?: HookFile;     // postimport: a copy of the file added, in /work
+  files?: HookFile[];  // postadd: copies of the new book's files
+}
+
+/** null, or the details to change: with permissions.library "write". */
+type HookResult = null | { metadata?: Partial<{ title: string; authors: string[];
+  series: string; seriesIndex: number; tags: string[]; publisher: string;
+  pubdate: string; languages: string[]; identifiers: Record<string, string>;
+  rating: number; comments: string }> };
+```
+
 ### The dalibre object
 
 ```ts
@@ -1359,30 +1871,19 @@ declare const dalibre: {
   readonly plugin: { readonly id: string; readonly version: string };
   /** The user's values for the settings in plugin.json; defaults when not set. */
   readonly settings: Readonly<Record<string, string>>;
-  /** The web's fetch, cut down. Only hosts in permissions.hosts. */
-  fetch(url: string, init?: FetchInit): Promise<Response>;
   /** throw dalibre.error("auth", "The API key was refused") */
   error(kind: ErrorKind, message?: string): Error;
-  log(...args: unknown[]): void;
+  /** In an action's run: asks the user a form; resolves to the answers by key. */
+  form(form: Form): Promise<Record<string, string | boolean | string[]>>;
+  /** Whether dalibre.form would show in a window (false for an AI agent or the CLI). */
+  readonly interactive: boolean;
+  /** In an action's run: the job's progress bar. total 0 when unknown. */
+  progress(done: number, total: number): void;
+  readonly library: {
+    /** In an action's run: every book in the library. */
+    books(options?: { comments?: boolean }): AsyncGenerator<BookInfo, void, void>;
+  };
 };
-
-interface FetchInit {
-  method?: string;
-  headers?: Record<string, string>;
-  body?: string;
-}
-
-interface Response {
-  status: number;
-  statusText: string;
-  ok: boolean;
-  /** The final URL, after redirects. */
-  url: string;
-  /** Lowercase names. */
-  headers: Record<string, string>;
-  text(): string;
-  json(): any;
-}
 
 type ErrorKind =
   | "auth"         // credentials missing or refused: Dalibre offers the plugin's settings
@@ -1392,5 +1893,5 @@ type ErrorKind =
   | "invalid";     // the query can't be searched
 ```
 
-`console.log`, `info`, `warn`, `error` and `debug` are there too, and
-write to the same log as `dalibre.log`.
+Everything else (`fetch`, `URL`, the timers, `console`) is the standard
+API: see [what you can use](#what-you-can-use).

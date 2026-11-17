@@ -1,0 +1,46 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.extract-isbn",
+  "name": "Extract ISBN",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "Finds the ISBN printed in a book and sets it",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/extract-isbn",
+  "license": "GPL-3.0-or-later",
+  "icon": "database",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "extract",
+        "title": "Extract ISBN",
+        "icon": "search",
+        "scope": "books",
+        "books": {
+          "min": 1
+        },
+        "formats": [
+          "EPUB",
+          "KEPUB",
+          "TXT",
+          "HTMLZ",
+          "FB2"
+        ],
+        "files": true
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  },
+  "settings": [
+    {
+      "key": "validISBN13Prefix",
+      "title": "Valid ISBN-13 prefixes",
+      "type": "text",
+      "default": "977,978,979"
+    }
+  ]
+}

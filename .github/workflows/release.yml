@@ -14,6 +14,12 @@
 #   APPLE_API_ISSUER             its issuer ID
 # The macOS job signs the app with the Developer ID and notarizes its disk
 # images; the update archives carry the notarized app.
+#
+# It also builds dalibre-plugin, the plugin authors' tool, for every
+# platform, uploads it to the release, and publishes it to npm as
+# dalibre-plugin with Trusted Publishing: each of dalibre-plugin and
+# dalibre-plugin-<os>-<cpu> on npmjs.com trusts this repository's
+# release.yml, so no token is kept here.
 name: Release
 
 on:
@@ -108,3 +114,52 @@ jobs:
           MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
         run: go tool mygo build -platform "${{ matrix.platform }}" -upload ./cmd/dalibre
 
+  plugin-tool:
+    needs: draft-release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write # npm Trusted Publishing
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24 # npm 11.5 or later, for Trusted Publishing
+          registry-url: https://registry.npmjs.org
+      - name: Build dalibre-plugin
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+          for p in darwin/arm64 darwin/amd64 linux/arm64 linux/amd64 windows/arm64 windows/amd64; do
+            os="${p%/*}" arch="${p#*/}" exe=""
+            [ "$os" = windows ] && exe=.exe
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath \
+              -ldflags "-s -w -X main.version=$version" -o "dist/dalibre-plugin-$os-$arch$exe" ./cmd/dalibre-plugin
+          done
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          for f in dalibre-plugin-*; do
+            case "$f" in
+              *.exe) zip -q "${f%.exe}.zip" "$f" && gh release upload "$GITHUB_REF_NAME" "${f%.exe}.zip" --clobber --repo "$GITHUB_REPOSITORY" ;;
+              *) tar -czf "$f.tar.gz" "$f" && gh release upload "$GITHUB_REF_NAME" "$f.tar.gz" --clobber --repo "$GITHUB_REPOSITORY" ;;
+            esac
+          done
+      - name: Publish to npm
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          node sdk/npm/build.mjs "$version" dist npm-out
+          # The platforms' first; a package already published (a re-run) is skipped.
+          for d in npm-out/dalibre-plugin-*/ npm-out/dalibre-plugin/; do
+            name="$(node -p "require('./$d/package.json').name")"
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is published already"
+              continue
+            fi
+            (cd "$d" && npm publish --access public --provenance)
+          done

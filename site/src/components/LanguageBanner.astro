@@ -1,0 +1,95 @@
+---
+// Tells a visitor whose browser prefers another of the site's languages that
+// the page exists in it. Never redirects: every language keeps its own URL,
+// for visitors and for search engines alike. Each offer is written in the
+// language it offers.
+import { locales, strings } from "../i18n";
+
+interface Props {
+  /** The language of this page. */
+  locale: string;
+}
+const { locale } = Astro.props;
+const offers = locales
+  .filter((l) => l.code !== locale)
+  .map((l) => ({ ...l, ...strings(l.code).banner }));
+---
+
+<div
+  data-language-banner
+  hidden
+  class="fixed inset-x-0 bottom-4 z-[60] mx-auto w-fit max-w-[calc(100%-2rem)] rounded-2xl border border-sand-6 bg-paper px-4 py-3 text-sm shadow-xl shadow-ink/10"
+>
+  {
+    offers.map((o) => (
+      <div data-offer={o.code} lang={o.lang} hidden class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <p>{o.text}</p>
+        <div class="flex items-center gap-1.5">
+          <a
+            href={o.path}
+            hreflang={o.lang}
+            class="rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-medium text-paper transition hover:bg-black"
+          >
+            {o.action}
+          </a>
+          <button
+            type="button"
+            data-dismiss
+            aria-label={o.dismiss}
+            title={o.dismiss}
+            class="rounded-full p-1.5 text-sand-11 transition hover:bg-sand-3 hover:text-ink"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          </button>
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  const banner = document.querySelector<HTMLElement>("[data-language-banner]");
+  const key = "dalibre:language-banner";
+  const dismissed = () => {
+    try {
+      return localStorage.getItem(key) === "dismissed";
+    } catch {
+      return false;
+    }
+  };
+
+  // The site's language for one of the browser's, e.g. "pt-BR" → "pt-br",
+  // "de-AT" → "de"; Traditional Chinese has no page.
+  function match(tag: string, codes: string[]): string | undefined {
+    const t = tag.toLowerCase();
+    if (/^zh-(tw|hk|mo|hant)/.test(t)) return undefined;
+    if (codes.includes(t)) return t;
+    const base = t.split("-")[0];
+    return codes.find((c) => c === base) ?? codes.find((c) => c.split("-")[0] === base);
+  }
+
+  if (banner && !dismissed()) {
+    const current = document.documentElement.lang.toLowerCase();
+    const offers = [...banner.querySelectorAll<HTMLElement>("[data-offer]")];
+    const codes = offers.map((o) => o.dataset.offer!);
+    // The browser's first language that the site has decides: this page's
+    // own language means there is nothing to offer.
+    for (const tag of navigator.languages ?? [navigator.language]) {
+      const t = tag.toLowerCase();
+      if (t === current || t.split("-")[0] === current.split("-")[0]) break;
+      const code = match(tag, codes);
+      if (!code) continue;
+      offers.find((o) => o.dataset.offer === code)!.hidden = false;
+      banner.hidden = false;
+      break;
+    }
+    banner.querySelectorAll("[data-dismiss]").forEach((b) =>
+      b.addEventListener("click", () => {
+        banner.hidden = true;
+        try {
+          localStorage.setItem(key, "dismissed");
+        } catch {}
+      }),
+    );
+  }
+</script>

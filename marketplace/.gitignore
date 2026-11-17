@@ -1,0 +1,9 @@
+node_modules/
+.data/
+test/out/
+test/vendor/
+*.dalibre-plugin
+# Bundles: node build.mjs makes them from src/.
+plugins/*/main.js
+.DS_Store
+/dalibre-plugin

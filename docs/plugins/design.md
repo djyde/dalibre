@@ -24,12 +24,22 @@ in [capabilities.md](capabilities.md).
 ## Runtime
 
 JavaScript (ES2023, ES modules) in
-[modernc.org/quickjs](https://pkg.go.dev/modernc.org/quickjs): Fabrice
-Bellard's QuickJS transpiled to pure Go by the author of the
-`modernc.org/sqlite` we already use. One interpreter (VM) per plugin.
+[moejs](https://github.com/MoeForge/moejs), a JavaScript engine written in
+Go: no cgo and no C transpiled to Go. One runtime per plugin, on its own
+event loop.
+
+Plugins get standard APIs rather than Dalibre's own: the engine's
+builtins, and its `webapi`, `eventloop` and `node` packages: `fetch` and
+the Streams, `URL`, timers, `node:fs` over the plugin's data folder,
+`Buffer`. Dalibre adds only what nothing standard covers: `dalibre.settings`,
+`dalibre.error(kind)`, `dalibre.plugin`, `dalibre.api`. Each standard API
+is fenced by Go: `fetch` goes through the plugin's sandboxed
+`http.Client` and an allow hook, `node:fs` through an `os.Root`.
+TypeScript modules run as they are (`CompileTS` erases the types).
 
 | Option | Why not |
 |---|---|
+| modernc.org/quickjs (QuickJS transpiled to Go) | The engine before moejs. A memory bug in transpiled C corrupts our process; its VMs held memory outside Go's heap until closed. |
 | goja (pure-Go JS) | The first version used it. No memory limit: a one-line plugin grew the heap to 1.2 GB in 3 s, stoppable only by timeout. Incomplete ES2015+, no ES modules. |
 | QuickJS via cgo (`buke/quickjs-go`) | cgo breaks the one-binary, no-cgo build. |
 | QuickJS via wasm (`fastschema/qjs`) | v0.0.6, untouched since 2025. |
@@ -37,34 +47,47 @@ Bellard's QuickJS transpiled to pure Go by the author of the
 | Subprocess + JSON-RPC | Users must install a runtime or authors ship binaries per OS; a process has the whole disk and network. |
 | WebAssembly (any language) | Every author needs a compiler and a build; too much for "call an API, map JSON". |
 
-Measured against goja on Windows: a memory bomb is stopped at the 64 MB
-limit in 55 ms; a new VM takes 0.15 ms; the app binary grows by 3.4 MB
-(43.4 → 46.9 MB). Speed is close (modernc's benchmark puts goja slightly
-ahead); plugins wait on the network anyway.
+Against modernc.org/quickjs on macOS (arm64): the app binary grows by
+4.3 MB (40.2 → 44.6 MB). moejs's own benchmarks put a new runtime at
+1.4 µs and a call at about a fifth of QuickJS-in-Go's. Decrypting a 5 MB
+Adept-style EPUB in a plugin with pure-JS libraries (`node-forge` for
+RSA, `@noble/ciphers` for AES, `fflate` for zip) takes about 0.7 s.
+
+Each runtime has its own mutable copy of the builtins
+(`MutableIntrinsics`), so a bundled polyfill that patches a prototype
+works as in a browser; `self` is the global object, as in a Web Worker.
+Memory isn't limited, as calibre doesn't limit its plugins': a file type
+plugin works on whole books, and a limit only turned large ones away.
 
 ### The host boundary
 
-The Go side and the script share four host functions that take and
-return strings, and nothing else:
+Besides the standard APIs, the Go side and the script share three host
+functions that take and return strings:
 
 | | |
 |---|---|
 | `__host_info()` | the API version, plugin id/version and settings, as JSON |
-| `__host_fetch(url, init)` | makes the request (all checks in Go), returns the response or an error as JSON |
 | `__host_log(level, text)` | logs, masking secrets |
-| `__host_settle(json)` | the outcome of the call in progress |
+| `__host_settle(json)` | the outcome of the call in progress; stops the loop |
+| `__host_html(html)` | the tokens of `dalibre.html.tokens`, as JSON |
 
-`internal/plugin/prelude.js` runs first in every VM: it takes those
+`internal/plugin/prelude.js` runs first in every runtime: it takes those
 functions off the global object, builds the frozen `dalibre` object and
 `console` on them, and defines `__dalibre_load` and `__dalibre_call`
 (non-writable), which import the plugin and call its exports, reporting
 each outcome (a value, or a thrown error with its `kind`) through
-`__host_settle`. Go calls one of the two, drains the promise job queue,
-and reads what was settled. Everything crosses as JSON, so neither side
-ever holds the other's objects.
+`__host_settle`. The prelude's value hands Go the same two functions.
+Go calls one inside `Loop.Run`, which runs timers, fetches and file
+operations until `__host_settle` stops it, or until nothing is left that
+could settle the call ("never settled"). Arguments and outcomes cross as
+JSON, so neither side holds the other's objects. A `fetch` the script
+doesn't catch is reported with the kind its cause says (`permission`
+for the allow hook's refusal, `unavailable` for the network).
 
-Modules load through a Go loader: only relative `.js`/`.mjs` paths
-inside the plugin's folder, 4 MB in all.
+Modules load through a Go resolver: only relative `.js`/`.mjs`/`.ts`/
+`.mts` paths inside the plugin's folder (`./lib.js` finds `lib.ts`, as in
+TypeScript), 4 MB in all, each compiled once per runtime; and
+`node:fs`, `node:fs/promises`, `node:buffer` from moejs.
 
 ## Trust model
 
@@ -73,25 +96,31 @@ once, at install.
 
 | Threat | Defence |
 |---|---|
-| Read or write the user's files | The interpreter has no file, process or module APIs. Downloads are written by the host, to a temp folder, under a sanitized name. |
-| Reach hosts it didn't declare | Every request, redirect, download and cover URL is checked against the granted `permissions.hosts`. Only http(s); no credentials in URLs. |
+| Read or write the user's files | `node:fs` reaches only the plugin's own folder (`<plugins>/.data/<id>`), through an `os.Root`, so neither `..` nor a link leaves it, and in it only `/data` (writes stop at 64 MB) and `/work`. A book's file reaches a file type plugin as a copy in `/work`, emptied after each call; what it returns is checked to be in `/work` or `/data` and moved out by the host, which alone writes the library. No process or other Node modules. Downloads are written by the host, to a temp folder, under a sanitized name. |
+| Reach hosts it didn't declare | Every request, redirect, download and cover URL is checked against the granted `permissions.hosts` (for `fetch`, in its allow hook, at every hop). Only http(s); no credentials in URLs. The one exception is `permissions.covers: "any"`, granted at install: covers from any https host, fetched by the host without the plugin's credentials, images only, still never local addresses. |
 | Reach the user's machine or LAN (router admin, local services) | Without `localNetwork`, the dialer refuses loopback, private, link-local, CGNAT, multicast and unspecified addresses **after** DNS resolution, so a listed host resolving to 127.0.0.1 (DNS rebinding) fails too. |
-| Exfiltrate other plugins' secrets | Each plugin has its own runtime and only its own settings. |
-| Hang or overload the app | Per-call deadline (60 s; interrupts the script), 64 MB of memory per plugin, 50 requests per call, 16 MB per fetch body, stack depth cap, 4 MB of scripts, results capped at 100. Calls into one plugin are serialized. A VM that ran out of time or memory is discarded and the plugin loaded afresh on its next call. |
+| Exfiltrate other plugins' secrets | Each plugin has its own runtime, settings, cookies and data folder. |
+| Hang or overload the app | Per-call deadline (60 s, 10 min for `process`; interrupts the script), 50 requests per call, 16 MB per fetch body, 64 MB of data, stack depth cap, 4 MB of scripts, results capped at 100. Calls into one plugin are serialized; the call's deadline also ends its fetches and wakes a loop waiting on a timer. A runtime that ran out of time is discarded and the plugin loaded afresh on its next call. |
 | Huge or hostile files | Downloads capped at 2 GB and streamed; covers 10 MB; packages 32 MB / 1000 files, zip-slip and non-regular entries refused. |
+| Change the library | A plugin never writes it. Hooks return the changes they want, which the host checks and writes, and only with `permissions.library: "write"`, shown as a warning at install. |
+| Run programs | Only the `tools` its manifest declares, each a build pinned by SHA-256 (or a package manager's install of the named package, or a file the user chose), shown at install as unsandboxed; through `dalibre.exec`, without a shell, with a minimal environment, and killed with its process group at the call's end. A changed build is a new permission. See [tools.md](tools.md). |
 | Gain permissions silently in an update | Granted permissions are stored per plugin; a version asking for more stays unloaded until the user grants again. |
 | Deface the host API | `dalibre`, its settings and info are frozen. |
 | Leak secrets through logs | Values of `secret` settings are masked in plugin logs. |
 
 ### Known gaps
 
-- **Memory safety of the engine.** QuickJS is C transpiled to Go: a
-  memory bug in it (QuickJS has had CVEs) corrupts memory in our process,
-  where a bug in a pure-Go engine couldn't. Accepted: it bought the
-  memory limit, which stops an attack anyone can write in one line, while
-  this one needs an unknown engine bug. Keep the dependency current.
-- **VMs are not collected by Go.** Each holds memory outside Go's heap
-  until `Plugin.Close`; the app closes plugins it replaces.
+- **Engine bugs.** A bug in moejs could let a plugin reach past what the
+  host gave it. It is Go, so it can't corrupt memory, and a panic inside
+  it comes back as an error that drops the runtime. Keep the dependency
+  current.
+- **No memory limit.** A plugin that allocates without end takes the
+  computer's memory until the system stops Dalibre, as a calibre plugin
+  can. Accepted, as calibre does: a limit turned large books away, and
+  the deadline still ends a plugin that loops.
+- **The data quota is checked before each write**, from what the folder
+  holds, so one write can pass 64 MB by its own size (at most the memory
+  limit, which bounds what the script can hand over).
 - **CPU in native code.** Interrupts are checked between JS
   instructions; a single huge native call (a giant regex, `JSON.parse` of
   16 MB) can overrun the deadline briefly.
@@ -133,10 +162,10 @@ the old version.
 ## Calls
 
 Arguments and results cross between Go and JS as JSON only. `call` runs
-the export under the deadline and drains the job queue; `fetch` does its
-I/O synchronously and returns a settled promise, so an async export has
-settled by then. A promise still pending means the script awaited
-something that can never settle (there are no timers): an error.
+the export on the plugin's event loop under the deadline, until the
+export's promise settles. A loop that runs out of work first means the
+script awaited something that can never settle: an error. Timers left
+when a call settles stay for the next call.
 
 What a plugin returns is decoded strictly and checked field by field
 (`source.go`):
@@ -181,9 +210,15 @@ Every failure is a `*plugin.Error` with a `Kind` the UI acts on:
 | | |
 |---|---|
 | `internal/plugin/manifest.go` | manifest, validation, permissions, consent check |
-| `internal/plugin/plugin.go` | the interpreter: load, discover, modules, calls, recovery, error mapping |
+| `internal/plugin/plugin.go` | the runtime: load, discover, modules, calls, recovery, error mapping |
 | `internal/plugin/prelude.js` | the script side of the host boundary: `dalibre`, `console`, calling exports |
-| `internal/plugin/host.go` | host functions, `fetch`, network sandbox, error kinds |
+| `internal/plugin/host.go` | host functions, the network sandbox (client, dialer, URL checks), error kinds |
+| `internal/plugin/web.go` | `fetch`'s client and allow hook: hosts, request count, user agent, credentials, body cap |
+| `internal/plugin/files.go` | the plugin's own folder (`/data`, `/work`), its quota, file settings |
+| `internal/plugin/process.go` | the file type contract: `process`, the copy in `/work`, checking and moving out what it returns |
+| `internal/app/filetype.go` | file type plugins on import: the chain every added file goes through |
+| `internal/app/runplugin.go` | running a file type plugin from the book menu, writing its files with ORIGINAL_ kept, Undo |
+| `internal/plugin/hooks.go` | file type hooks: `postimport`, `postadd`, `postdelete`, their events and the changes they return |
 | `internal/plugin/source.go` | the book source contract: search, list, collections, get, checking, resolve, download, cover |
 | `internal/plugin/install.go` | inspect, install, uninstall, pack |
 | `internal/app/plugins.go` | loading (built-in and installed), consent, enable/disable, settings, `downloadBook` |
@@ -192,7 +227,7 @@ Every failure is a `*plugin.Error` with a `Kind` the UI acts on:
 | `internal/calibre/importer.go` | `ImportWith` |
 | `cmd/dalibre-plugin` | the author CLI |
 | `sdk/` | `dalibre.d.ts`, `plugin.schema.json`, the `init` template (embedded) |
-| `plugins/` | built-in plugins, embedded in the app: `gutenberg` (`dalibre.gutenberg`) |
+| `plugins/` | built-in plugins, embedded in the app: `gutenberg`, `neodb`, `googlebooks` |
 
 ## UI
 
@@ -225,17 +260,18 @@ refused.
 - A plugin index (a JSON file in a repo) to browse and install from,
   with signed packages.
 - Secrets in the OS keychain.
-- `dalibre.storage` (small per-plugin key–value store) for login tokens
-  and caches that survive restarts.
-- `dalibre.html` (parse + CSS selectors) for sites without an API;
-  `URL`/`URLSearchParams`.
+- HTML parsing (`DOMParser` or CSS selectors) for sites without an API.
+- `crypto.subtle` and `CompressionStream`, if plugins need more than a
+  bundled library gives; `FileHandle` in `node:fs` for large files.
 - Login flows (open the browser, receive a callback) for OAuth sources.
 - Duplicate check by title and author too, not only by identifier.
 - More capabilities: `metadata` (fetch metadata and covers for existing
   books, as calibre's metadata sources), `opds` (expose a source as OPDS),
   event hooks.
-- A subprocess or wasm runtime behind `"runtime"` in the manifest, for
-  plugins needing native code or a memory limit.
+- Tools: programs a plugin runs outside the sandbox (pandoc, a site's
+  CLI), pinned by hash and fetched or found by Dalibre; see
+  [tools.md](tools.md). A wasm runtime for native code that can stay
+  sandboxed.
 - A `dalibre-plugin test` harness with recorded HTTP fixtures, so
   authors can run their plugin in CI.
 

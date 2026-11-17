@@ -103,3 +103,24 @@ func TestGitHubInstall(t *testing.T) {
 		t.Fatalf("load: %v", err)
 	}
 }
+
+func TestReadme(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/repos/ann/books/readme", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Query().Get("ref") != "v1.0.0" || r.Header.Get("Accept") != "application/vnd.github.raw" {
+			http.Error(w, "bad", 400)
+			return
+		}
+		w.Write([]byte("# Books\n"))
+	})
+	mux.HandleFunc("/repos/ann/none/readme", http.NotFound)
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	g := &GitHub{API: srv.URL}
+	if s, err := g.Readme(context.Background(), Repo{"ann", "books"}, "v1.0.0"); err != nil || s != "# Books\n" {
+		t.Errorf("readme %q %v", s, err)
+	}
+	if s, err := g.Readme(context.Background(), Repo{"ann", "none"}, ""); err != nil || s != "" {
+		t.Errorf("no readme %q %v", s, err)
+	}
+}

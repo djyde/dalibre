@@ -1,0 +1,276 @@
+{
+  "meta": {
+    "title": "Dalibre — une alternative à calibre pour vous et votre agent IA",
+    "description": "Dalibre est une alternative légère à calibre, pour vous et votre agent IA : un gestionnaire d’e-books rapide qui ouvre votre bibliothèque calibre existante et permet à votre agent de la gérer.",
+    "ogAlt": "Dalibre : une bibliothèque pour vous, et pour votre agent IA.",
+    "features": [
+      "Ouvre les bibliothèques calibre existantes",
+      "Modifiez les métadonnées et récupérez-les depuis des sources en ligne",
+      "Récupérez des livres depuis des catalogues et des serveurs OPDS",
+      "Envoyez des livres à vos liseuses via OPDS",
+      "Plugins JavaScript isolés",
+      "Un Marketplace des plugins calibre les plus utilisés, portés",
+      "Serveur MCP pour les agents IA comme Claude Code, Claude Desktop et Cursor",
+      "Les agents IA peuvent écrire, tester et installer des plugins via MCP"
+    ]
+  },
+  "nav": {
+    "agents": "Agents IA",
+    "plugins": "Plugins",
+    "docs": "Docs",
+    "changelog": "Nouveautés",
+    "download": "Télécharger"
+  },
+  "hero": {
+    "eyebrow": "L’alternative à calibre pour vous et votre agent IA",
+    "title1": "Une bibliothèque pour vous,",
+    "title2": "et votre agent IA.",
+    "lead": "Dalibre est un gestionnaire d’e-books calme et rapide qui ouvre la bibliothèque calibre que vous avez déjà. Gérez-la vous-même, ou demandez simplement à votre IA : elle range vos étagères et crée les fonctions qui vous manquent.",
+    "downloadFor": "Télécharger pour {os}",
+    "otherPlatforms": "Autres plateformes",
+    "allDownloads": "Tous les téléchargements →",
+    "sponsoredBy": "Sponsorisé par",
+    "sponsorTagline": "Affichez le quota de votre agent IA sur votre téléphone",
+    "windowTheme": "Thème de la fenêtre",
+    "light": "Clair",
+    "dark": "Sombre"
+  },
+  "demo": {
+    "working": "En cours…",
+    "scenes": [
+      {
+        "ask": "Montrez-moi mes livres de science-fiction.",
+        "done": "Voici vos 9 livres de science-fiction."
+      },
+      {
+        "ask": "Étiquetez tous les livres de Liu Cixin avec « Chinese SF ».",
+        "done": "Terminé. 3 livres sont étiquetés « Chinese SF »."
+      },
+      {
+        "ask": "Trouvez des couvertures pour les livres qui n’en ont pas.",
+        "done": "Couvertures trouvées pour 2 livres."
+      },
+      {
+        "ask": "Créez une version Kindle de Dune.",
+        "done": "Dune a maintenant un fichier AZW3 pour votre Kindle."
+      }
+    ]
+  },
+  "chat": {
+    "manage": {
+      "ask": "Marquez tous les livres de Liu Cixin « Hard SF », et faites-moi une copie Kindle de Dune.",
+      "steps": [
+        "3 livres de Liu Cixin trouvés",
+        "Tagués « Hard SF »",
+        "Dune converti en AZW3, le format Kindle",
+        "Ajouté à Dune dans votre bibliothèque"
+      ],
+      "done": "C’est fait : 3 livres sont tagués « Hard SF », et Dune est prêt pour votre Kindle."
+    },
+    "extend": {
+      "ask": "Je voudrais récupérer des livres depuis Standard Ebooks.",
+      "steps": [
+        "Lecture du guide des plugins de Dalibre",
+        "Écriture d’un plugin pour Standard Ebooks",
+        "Demande d’autorisation pour standardebooks.org",
+        "Essai d’une recherche « Dune », et correction d’une erreur",
+        "Nouvel essai : 3 livres trouvés"
+      ],
+      "done": "Ça marche. Standard Ebooks est maintenant dans « Get books »."
+    }
+  },
+  "light": {
+    "eyebrow": "Léger",
+    "title1": "{ratio}× plus petit",
+    "title2": "que calibre.",
+    "lead": "calibre est une boîte à outils pour tout ce qu’on peut faire à un e-book. Dalibre s’occupe du quotidien : la gestion de votre bibliothèque.",
+    "wholeApp": "← voilà toute l’application",
+    "note": "Taille sur le disque sous macOS : calibre.app 9.18 tel qu’installé, et le binaire de version de Dalibre.",
+    "rows": [
+      "Ouvre votre bibliothèque calibre, sans import",
+      "Les modifications apparaissent dans l’autre application",
+      "Envoie des livres à KOReader via Wi-Fi",
+      "Convertit les formats"
+    ],
+    "notYet": "Pas encore",
+    "size": "Taille sur le disque"
+  },
+  "both": {
+    "eyebrow": "Pour les deux",
+    "title1": "Une bibliothèque.",
+    "title2": "Deux façons d’y accéder.",
+    "lead": "Dalibre est conçu dès le départ pour les personnes comme pour l’IA. Faites les choses vous-même dans une fenêtre calme, ou dites ce que vous voulez et laissez votre IA le faire. Les deux fonctionnent sur les mêmes livres.",
+    "hand": {
+      "label": "À la main",
+      "title": "Faites-le vous-même.",
+      "lead": "Une fenêtre native et calme. Tout est à portée d’un clic.",
+      "items": [
+        "Parcourez les couvertures, les listes et les étagères",
+        "Cherchez et filtrez en tapant",
+        "Modifiez les détails, les couvertures et le texte du livre",
+        "Envoyez des livres à votre liseuse via Wi-Fi"
+      ]
+    },
+    "ai": {
+      "label": "Avec votre IA",
+      "title": "Ou demandez-le simplement.",
+      "lead": "Dites-le avec vos propres mots. Fonctionne avec Claude, Cursor et d’autres applications IA présentes sur votre ordinateur.",
+      "asks": [
+        "Il me manque des livres dans quelles séries ?",
+        "Ajoutez tous les e-books de votre dossier Téléchargements.",
+        "Complétez les couvertures et les éditeurs manquants.",
+        "Faites-moi une copie Kindle de Dune.",
+        "Créez-moi un moyen de récupérer des livres depuis Standard Ebooks."
+      ]
+    }
+  },
+  "manage": {
+    "eyebrow": "Gérer",
+    "title1": "Votre agent IA",
+    "title2": "connaît vos étagères.",
+    "lead": "Demandez à Claude, Cursor ou à toute application IA qui parle MCP de chercher dans votre bibliothèque, de corriger ses détails, d’ajouter des livres ou de convertir des formats. Tout reste sur votre ordinateur, et Dalibre vous montre tout ce qu’il fait.",
+    "popover": {
+      "status": "En cours · peut modifier les livres",
+      "agents": "Agents",
+      "working": "En cours · 5 appels",
+      "activity": "Activité",
+      "items": [
+        "AZW3 ajouté à « Dune »",
+        "« Dune » lu",
+        "3 livres modifiés",
+        "Bibliothèque recherchée · 3 livres"
+      ]
+    },
+    "features": [
+      {
+        "title": "Sur votre ordinateur uniquement",
+        "text": "Le serveur écoute sur 127.0.0.1, et seuls les programmes disposant de son Token peuvent se connecter."
+      },
+      {
+        "title": "Chaque appel visible",
+        "text": "La barre d’outils affiche l’agent en action ; son panneau liste ce que chaque agent a fait."
+      },
+      {
+        "title": "Lecture seule, si vous le souhaitez",
+        "text": "Les agents ont tous les outils par défaut. Un interrupteur les limite à la recherche et à la lecture."
+      }
+    ],
+    "connect": "Connectez votre agent →",
+    "docs": "Lire la documentation MCP"
+  },
+  "extend": {
+    "eyebrow": "Étendre",
+    "title1": "Une fonction vous manque ?",
+    "title2": "Demandez-la.",
+    "lead": "Dalibre grandit grâce aux plugins. Installez les plus utilisés de calibre, portés, depuis le Marketplace, ou demandez à votre IA celui qui vous manque : elle crée le plugin, le teste et corrige ce qui échoue. Vous décidez seulement de ce qu’il peut atteindre.",
+    "dialog": {
+      "label": "Dalibre vous demande",
+      "title": "Ajouter « Standard Ebooks » ?",
+      "lead": "Ce plugin demande à accéder à un seul site :",
+      "note": "Il ne peut rien atteindre d’autre, et ne peut pas lire vos fichiers.",
+      "deny": "Ne pas autoriser",
+      "allow": "Autoriser"
+    },
+    "builtIn": "Intégré",
+    "kindSource": "Source de livres",
+    "kindMetadata": "Métadonnées",
+    "builtins": [
+      "Recherchez et parcourez plus de 70 000 e-books gratuits du domaine public, par langue. Listes « Les plus populaires » et « Ajoutés récemment ».",
+      "Titre, auteurs, séries, tags, éditeur, date, ISBN, couverture et description depuis un catalogue ouvert lié à Douban, Goodreads et d’autres. Aucun compte nécessaire.",
+      "Titre, auteurs, tags, éditeur, date, ISBN, couverture et description depuis Google Books. Ajoutez votre propre clé API pour disposer de votre propre quota."
+    ],
+    "docs": "Lire la documentation des plugins →",
+    "browse": "Parcourir les plugins →",
+    "safe": "Comment les plugins sont protégés →"
+  },
+  "devices": {
+    "eyebrow": "Envoyer vers un appareil",
+    "title1": "De votre bibliothèque",
+    "title2": "à votre liseuse.",
+    "lead": "Activez le partage et Dalibre diffuse votre bibliothèque via OPDS sur votre Wi-Fi. KOReader, Moon+ Reader, Thorium et KyBook la parcourent comme une librairie et téléchargent ce que vous choisissez. Sans câble, sans cloud, sans compte.",
+    "steps": [
+      "Activez le partage dans Settings › OPDS.",
+      "Ajoutez l’adresse dans votre application de lecture.",
+      "Parcourez et téléchargez, depuis le canapé."
+    ],
+    "oneBookTitle": "Un seul livre ?",
+    "oneBookText": "Sur Mac, faites un clic droit sur un format dans le panneau de détails et choisissez Share… pour l’envoyer par AirDrop, Messages ou Mail."
+  },
+  "calibre": {
+    "eyebrow": "Aucune migration",
+    "title1": "Gardez votre bibliothèque.",
+    "title2": "Gardez calibre aussi.",
+    "lead": "Dalibre lit et écrit le format propre à calibre. Ouvrez votre bibliothèque dans l’une ou l’autre application, quand vous voulez ; rien à importer, rien à exporter.",
+    "items": [
+      "Utilise le schéma de <code>metadata.db</code> de calibre, déclencheurs compris",
+      "Dossiers et fichiers nommés comme calibre les nomme",
+      "Les modifications écrivent <code>metadata.opf</code>, que calibre prend en compte",
+      "Les livres supprimés vont dans la corbeille du système, et non dans le néant"
+    ]
+  },
+  "faq": {
+    "eyebrow": "Questions",
+    "title1": "Une alternative à calibre,",
+    "title2": "expliquée.",
+    "lead": "Ce que fait Dalibre, ce qu’il laisse à calibre, et comment les deux partagent une bibliothèque.",
+    "items": [
+      {
+        "q": "Dalibre est-il une alternative à calibre ?",
+        "a": "Oui, pour gérer votre bibliothèque d’e-books. Dalibre assure le quotidien de calibre (parcourir, chercher, modifier les métadonnées, récupérer des livres et les envoyer à votre liseuse) dans une application native {ratio}× plus légère. La conversion de formats est en préparation ; l’éditeur d’e-books de calibre ne fait pas partie du projet."
+      },
+      {
+        "q": "Dois-je migrer ma bibliothèque calibre ?",
+        "a": "Non. Dalibre lit et écrit le format de bibliothèque propre à calibre (metadata.db, sa structure de dossiers et metadata.opf) : il ouvre donc la bibliothèque que vous avez déjà. Rien à importer, rien à exporter."
+      },
+      {
+        "q": "Puis-je utiliser Dalibre et calibre sur la même bibliothèque ?",
+        "a": "Oui. Les deux applications travaillent sur les mêmes fichiers : vous pouvez ouvrir votre bibliothèque dans l’une ou l’autre, quand vous voulez, et garder calibre pour les tâches que Dalibre ne fait pas."
+      },
+      {
+        "q": "Dalibre convertit-il les formats d’e-books ?",
+        "a": "Pas encore. Nous y travaillons. D’ici là, continuez à utiliser calibre sur la même bibliothèque pour convertir entre EPUB, MOBI, AZW3 ou PDF, ou demandez à un agent IA connecté via MCP : il peut convertir un livre avec ebook-convert de calibre et ajouter le résultat à la bibliothèque."
+      },
+      {
+        "q": "Comment mettre des livres sur ma liseuse ?",
+        "a": "Activez le partage et Dalibre diffuse votre bibliothèque via OPDS sur votre Wi-Fi. Les applications de lecture comme KOReader, Moon+ Reader, Thorium et KyBook la parcourent et téléchargent les livres que vous choisissez. Sans câble, sans cloud, sans compte."
+      },
+      {
+        "q": "Les agents IA peuvent-ils utiliser ma bibliothèque ?",
+        "a": "Oui. Activez MCP, et des agents comme Claude Code, Claude Desktop et Cursor peuvent chercher dans votre bibliothèque, modifier les métadonnées, ajouter des livres et convertir des formats avec les outils qu’ils ont déjà. Seuls les programmes de votre ordinateur peuvent se connecter, avec un Token, et Dalibre affiche chaque appel qu’ils font."
+      },
+      {
+        "q": "Un agent IA peut-il écrire un plugin Dalibre pour moi ?",
+        "a": "Oui. Via MCP, un agent peut créer un plugin à partir du modèle, l’ajouter à Dalibre, l’appeler, lire ses résultats, ses journaux et ses erreurs, puis le corriger jusqu’à ce qu’il fonctionne. Dalibre vous demande toujours d’autoriser les sites que le plugin atteint ; l’agent ne peut pas les autoriser à votre place."
+      },
+      {
+        "q": "Sur quelles plateformes Dalibre fonctionne-t-il ?",
+        "a": "macOS, Windows et Linux. Dalibre est un seul binaire natif écrit en Go : pas de webview, pas de Python embarqué, aucun runtime à installer."
+      },
+      {
+        "q": "Dalibre exécute-t-il les plugins de calibre ?",
+        "a": "Pas ceux de calibre tels quels. Dalibre a ses propres plugins : de petits modules JavaScript isolés que n’importe qui peut écrire. Son Marketplace, depuis le bouton Plugins de la barre d’outils, propose les plugins calibre les plus utilisés portés pour lui, comme Find Duplicates, Quality Check, EpubMerge et KePub."
+      }
+    ]
+  },
+  "cta": {
+    "title1": "Moins d’application.",
+    "title2": "Plus de lecture.",
+    "lead": "Un petit téléchargement pour macOS, Windows et Linux."
+  },
+  "footer": {
+    "tagline": "Un foyer plus léger pour votre bibliothèque calibre.",
+    "product": "Produit",
+    "contact": "Contact",
+    "moreApps": "Autres applications",
+    "devices": "Envoyer vers un appareil",
+    "calibre": "Compatibilité calibre",
+    "nowdex": "Vos quotas IA sur chaque écran",
+    "disclaimer": "calibre est un projet distinct de Kovid Goyal. Dalibre n’y est pas affilié.",
+    "language": "Langue"
+  },
+  "banner": {
+    "text": "Dalibre est aussi disponible en français.",
+    "action": "Voir en français",
+    "dismiss": "Fermer"
+  }
+}

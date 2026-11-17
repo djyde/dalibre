@@ -16,6 +16,8 @@ MCP is in Dalibre 0.2.0 and later.
 | Search and read the library | `search_books`, `get_book`, `list_facets` |
 | Change the library | `update_books`, `set_cover`, `add_books`, `remove_books`, `add_format`, `remove_format` |
 | Use Get books' sources and the metadata plugins | `find_books`, `download_book`, `find_metadata` |
+| Write plugins and try them | `list_plugins`, `create_plugin`, `add_plugin`, `reload_plugins`, `test_plugin`, `enable_plugin`, `remove_plugin` |
+| Run plugins’ actions | `list_actions`, `run_action` |
 
 ## Turn it on
 
@@ -175,6 +177,22 @@ the library are reported, not added again.
 `remove_books {"ids": [31]}`. Removed books go to the Trash (the Recycle
 Bin on Windows), so you can get them back.
 
+### Write a plugin
+
+> Write a Dalibre plugin that gets books from Standard Ebooks, and try
+> it.
+
+The agent reads the [plugin docs](/docs/plugins/), then
+`create_plugin {"path": "/Users/me/standard-ebooks", "id": "io.github.me.standardebooks"}`,
+writes `plugin.json` and `main.js` there, and
+`add_plugin {"path": "/Users/me/standard-ebooks"}`. Dalibre asks you to
+allow the hosts the plugin reaches; the agent can't allow them for you.
+Then it tries it,
+`test_plugin {"id": "io.github.me.standardebooks", "call": "search", "text": "dune"}`,
+reads the results, the script's logs and errors, fixes the code and
+calls `reload_plugins`. The plugin loads from its folder, so it is in
+Get books as soon as it works.
+
 ## Tools
 
 | Tool | What it does | Read only |
@@ -191,6 +209,15 @@ Bin on Windows), so you can get them back.
 | `find_books` | Searches Get books' sources. | |
 | `download_book` | Adds a `find_books` result to the library. | |
 | `find_metadata` | Looks a book up with the metadata plugins. | |
+| `list_plugins` | The plugins: loaded, off, waiting for you to allow them, or failed and why. | |
+| `create_plugin` | Starts a plugin in an empty folder from the template. | |
+| `add_plugin` | Adds a plugin from its folder; you are asked to allow what it reaches. | |
+| `reload_plugins` | Loads the plugins again after an edit. | |
+| `test_plugin` | Calls a plugin's `search`, `collections`, `list`, `get`, `resolve`, `identify` or `process` and returns the result, logs and error. | |
+| `enable_plugin` | Turns a plugin on or off. | |
+| `remove_plugin` | Removes a plugin added from a folder; the folder stays. | |
+| `list_actions` | Lists what the plugins can do with books and the library: their actions. | |
+| `run_action` | Runs an action and returns what it found and wants changed. Forms are answered with `answers`; nothing is written without `apply`. | |
 
 Settings › MCP lists them too.
 

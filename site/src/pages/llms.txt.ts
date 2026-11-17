@@ -6,7 +6,7 @@ export const GET: APIRoute = () =>
   new Response(
     `# Dalibre
 
-> Dalibre is a lightweight desktop e-book manager that reads and writes calibre libraries. It is extended with sandboxed JavaScript plugins (book sources and metadata sources), serves the library to the user's AI agents over MCP, and sends books to KOReader over calibre's wireless device connection.
+> Dalibre is a lightweight desktop e-book manager that reads and writes calibre libraries. It is extended with sandboxed JavaScript plugins (book sources, metadata sources, file type plugins and actions, with a Marketplace of calibre's most used plugins, ported), serves the library to the user's AI agents over MCP, and sends books to KOReader over calibre's wireless device connection.
 
 ## Docs
 

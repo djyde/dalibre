@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.modify-epub",
+  "name": "Modify ePub",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "description": "Fix and clean up EPUBs in place, after calibre's Modify ePub",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/modify-epub",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "icon": "book-open",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "modify",
+        "title": "Modify ePub…",
+        "icon": "pencil",
+        "scope": "books",
+        "books": {
+          "min": 1
+        },
+        "formats": [
+          "EPUB"
+        ],
+        "files": true,
+        "covers": true
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

@@ -58,7 +58,7 @@ func TestMetadataManifest(t *testing.T) {
 		{`{"id":"m","name":"M","version":"1.0.0","api":1,"capabilities":{"metadata":{}},"permissions":{"hosts":["a.example"]}}`, `permissions.library "read"`},
 		{`{"id":"m","name":"M","version":"1.0.0","api":1,"capabilities":{"metadata":{}},"permissions":{"hosts":[],"library":"read"}}`, "must list the hosts"},
 		{`{"id":"m","name":"M","version":"1.0.0","api":1,"capabilities":{"metadata":{"fields":["rating"]}},"permissions":{"hosts":["a.example"],"library":"read"}}`, `"rating" isn’t one of`},
-		{`{"id":"m","name":"M","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example"],"library":"write"}}`, `must be "read"`},
+		{`{"id":"m","name":"M","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example"],"library":"admin"}}`, `must be "read" or "write"`},
 	} {
 		_, err := ParseManifest([]byte(tc.manifest))
 		if err == nil || !strings.Contains(err.Error(), tc.want) {

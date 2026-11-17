@@ -1,0 +1,276 @@
+{
+  "meta": {
+    "title": "Dalibre — een calibre-alternatief voor jou en je AI-agent",
+    "description": "Lichtgewicht calibre-alternatief voor mensen en AI-agents: een snelle, native e-bookmanager die je bestaande calibre-bibliotheek opent, en waarmee je agent boeken beheert en plugins schrijft.",
+    "ogAlt": "Dalibre: een bibliotheek voor jou, en voor je AI-agent.",
+    "features": [
+      "Opent bestaande calibre-bibliotheken",
+      "Bewerk metadata en haal die op uit online bronnen",
+      "Haal boeken op uit catalogi en OPDS-servers",
+      "Stuur boeken naar e-readers via OPDS",
+      "JavaScript-plugins in een sandbox",
+      "Een Marketplace met de meestgebruikte calibre-plugins, overgezet",
+      "MCP-server voor AI-agents zoals Claude Code, Claude Desktop en Cursor",
+      "AI-agents kunnen plugins schrijven, uitproberen en installeren via MCP"
+    ]
+  },
+  "nav": {
+    "agents": "AI-agents",
+    "plugins": "Plugins",
+    "docs": "Documentatie",
+    "changelog": "Changelog",
+    "download": "Download"
+  },
+  "hero": {
+    "eyebrow": "Het calibre-alternatief voor jou en je AI-agent",
+    "title1": "Een bibliotheek voor jou,",
+    "title2": "en je AI-agent.",
+    "lead": "Dalibre is een rustige, snelle e-bookmanager die de calibre-bibliotheek opent die je al hebt. Beheer hem zelf, of vraag het gewoon aan je AI: die ruimt je planken op en bouwt de functies die je mist.",
+    "downloadFor": "Download voor {os}",
+    "otherPlatforms": "Andere platforms",
+    "allDownloads": "Alle downloads →",
+    "sponsoredBy": "Mogelijk gemaakt door",
+    "sponsorTagline": "Toon het AI-agent-quotum op je telefoon",
+    "windowTheme": "Vensterthema",
+    "light": "Licht",
+    "dark": "Donker"
+  },
+  "demo": {
+    "working": "Bezig…",
+    "scenes": [
+      {
+        "ask": "Laat me mijn sciencefiction zien.",
+        "done": "Hier zijn je 9 sciencefictionboeken."
+      },
+      {
+        "ask": "Geef alle boeken van Liu Cixin het label “Chinese SF”.",
+        "done": "Klaar. 3 boeken hebben het label “Chinese SF”."
+      },
+      {
+        "ask": "Zoek covers voor de boeken die er geen hebben.",
+        "done": "Covers gevonden voor 2 boeken."
+      },
+      {
+        "ask": "Maak een Kindle-versie van Dune.",
+        "done": "Dune heeft nu een AZW3 voor je Kindle."
+      }
+    ]
+  },
+  "chat": {
+    "manage": {
+      "ask": "Geef elk boek van Liu Cixin de tag „Hard SF”, en maak een Kindle-kopie van Dune.",
+      "steps": [
+        "3 boeken van Liu Cixin gevonden",
+        "Getagd als „Hard SF”",
+        "Dune omgezet naar AZW3, het Kindle-formaat",
+        "Toegevoegd aan Dune in je bibliotheek"
+      ],
+      "done": "Klaar: 3 boeken hebben de tag „Hard SF”, en Dune staat klaar voor je Kindle."
+    },
+    "extend": {
+      "ask": "Ik wil boeken ophalen van Standard Ebooks.",
+      "steps": [
+        "Dalibre’s plugin-gids gelezen",
+        "Een plugin geschreven voor Standard Ebooks",
+        "Je gevraagd standardebooks.org toe te staan",
+        "Gezocht naar „Dune” en één fout opgelost",
+        "Opnieuw geprobeerd: 3 boeken gevonden"
+      ],
+      "done": "Het werkt. Standard Ebooks staat nu bij Get books."
+    }
+  },
+  "light": {
+    "eyebrow": "Lichtgewicht",
+    "title1": "{ratio}× kleiner",
+    "title2": "dan calibre.",
+    "lead": "calibre is een gereedschapskist voor alles wat je met een e-book kunt doen. Dalibre doet het dagelijkse werk: je bibliotheek beheren.",
+    "wholeApp": "← dat is de hele app",
+    "note": "Grootte op schijf op macOS: calibre.app 9.18 zoals geïnstalleerd, en de release-binary van Dalibre.",
+    "rows": [
+      "Opent je calibre-bibliotheek, zonder import",
+      "Wijzigingen zijn ook in de andere app zichtbaar",
+      "Stuurt boeken naar KOReader via Wi-Fi",
+      "Zet formaten om"
+    ],
+    "notYet": "Nog niet",
+    "size": "Grootte op schijf"
+  },
+  "both": {
+    "eyebrow": "Voor beide",
+    "title1": "Eén bibliotheek.",
+    "title2": "Twee manieren om erin te komen.",
+    "lead": "Dalibre is vanaf het begin ontworpen voor mensen én voor AI. Doe dingen zelf in een rustig venster, of zeg wat je wilt en laat je AI het doen. Beide werken met dezelfde boeken.",
+    "hand": {
+      "label": "Zelf doen",
+      "title": "Doe het zelf.",
+      "lead": "Een rustig, native venster. Alles binnen een klik.",
+      "items": [
+        "Blader door covers, lijsten en planken",
+        "Zoek en filter terwijl je typt",
+        "Bewerk details, covers en de tekst van het boek",
+        "Stuur boeken via Wi-Fi naar je e-reader"
+      ]
+    },
+    "ai": {
+      "label": "Met je AI",
+      "title": "Of vraag het gewoon.",
+      "lead": "Zeg het in je eigen woorden. Werkt met Claude, Cursor en andere AI-apps op je computer.",
+      "asks": [
+        "Welke reeksen missen er boeken bij mij?",
+        "Voeg elk e-book in mijn map Downloads toe.",
+        "Vul de ontbrekende covers en uitgevers in.",
+        "Maak een Kindle-kopie van Dune.",
+        "Bouw een manier om boeken van Standard Ebooks op te halen."
+      ]
+    }
+  },
+  "manage": {
+    "eyebrow": "Beheren",
+    "title1": "Je AI-agent",
+    "title2": "kent je planken.",
+    "lead": "Vraag Claude, Cursor of elke AI-app die MCP spreekt om je bibliotheek te doorzoeken, de details te repareren, boeken toe te voegen of formaten om te zetten. Het blijft op je computer, en Dalibre laat je zien wat het doet.",
+    "popover": {
+      "status": "Actief · kan boeken wijzigen",
+      "agents": "Agents",
+      "working": "Nu bezig · 5 aanroepen",
+      "activity": "Activiteit",
+      "items": [
+        "AZW3 toegevoegd aan „Dune”",
+        "„Dune” gelezen",
+        "3 boeken bewerkt",
+        "Bibliotheek doorzocht · 3 boeken"
+      ]
+    },
+    "features": [
+      {
+        "title": "Alleen op je computer",
+        "text": "De server luistert op 127.0.0.1, en alleen programma’s met het token komen erin."
+      },
+      {
+        "title": "Elke aanroep in beeld",
+        "text": "De werkbalk toont de agent aan het werk; de popover laat zien wat elke agent heeft gedaan."
+      },
+      {
+        "title": "Alleen lezen, als je wilt",
+        "text": "Agents krijgen standaard alle tools. Met één schakelaar blijven ze bij zoeken en lezen."
+      }
+    ],
+    "connect": "Verbind je agent →",
+    "docs": "Lees de MCP-documentatie"
+  },
+  "extend": {
+    "eyebrow": "Uitbreiden",
+    "title1": "Mist er een functie?",
+    "title2": "Vraag erom.",
+    "lead": "Dalibre groeit met plugins. Installeer de meestgebruikte van calibre, overgezet, uit de Marketplace, of vraag je AI om de plugin die je mist: het bouwt de plugin, probeert hem uit en repareert wat faalt. Jij bepaalt alleen wat hij mag bereiken.",
+    "dialog": {
+      "label": "Dalibre vraagt je",
+      "title": "„Standard Ebooks” toevoegen?",
+      "lead": "Deze plugin wil één website bereiken:",
+      "note": "Hij kan niets anders bereiken, en kan je bestanden niet lezen.",
+      "deny": "Niet toestaan",
+      "allow": "Toestaan"
+    },
+    "builtIn": "Ingebouwd",
+    "kindSource": "Boekbron",
+    "kindMetadata": "Metadata",
+    "builtins": [
+      "Zoek en blader door meer dan 70.000 gratis e-books uit het publieke domein, per taal. Met de lijsten Meest populair en Recent toegevoegd.",
+      "Titel, auteurs, reeksen, tags, uitgever, datum, ISBN, cover en beschrijving uit een open catalogus die gekoppeld is aan Douban, Goodreads en meer. Geen account nodig.",
+      "Titel, auteurs, tags, uitgever, datum, ISBN, cover en beschrijving uit Google Books. Voeg je eigen API-sleutel toe voor een eigen quotum."
+    ],
+    "docs": "Lees de plugin-documentatie →",
+    "browse": "Bekijk de plugins →",
+    "safe": "Zo blijven plugins veilig →"
+  },
+  "devices": {
+    "eyebrow": "Naar apparaat sturen",
+    "title1": "Uit je bibliotheek",
+    "title2": "naar je e-reader.",
+    "lead": "Zet delen aan en Dalibre serveert je bibliotheek via OPDS op je Wi-Fi. KOReader, Moon+ Reader, Thorium en KyBook bladeren erdoorheen als in een boekwinkel en downloaden wat je kiest. Geen kabels, geen cloud, geen account.",
+    "steps": [
+      "Zet delen aan in Settings › OPDS.",
+      "Voeg het adres toe aan je leesapp.",
+      "Bladeren en downloaden, op de bank."
+    ],
+    "oneBookTitle": "Maar één boek?",
+    "oneBookText": "Klik op een Mac met de rechtermuisknop op een formaat in het detailpaneel en kies Share… om het via AirDrop, Berichten of Mail te sturen."
+  },
+  "calibre": {
+    "eyebrow": "Geen migratie",
+    "title1": "Houd je bibliotheek.",
+    "title2": "Houd calibre ook.",
+    "lead": "Dalibre leest en schrijft het eigen formaat van calibre. Open je bibliotheek in elke app, elke dag; niets om te importeren, niets om te exporteren.",
+    "items": [
+      "Gebruikt het <code>metadata.db</code>-schema van calibre, inclusief triggers",
+      "Mappen en bestanden benoemd zoals calibre die benoemt",
+      "Bewerkingen schrijven naar <code>metadata.opf</code>, zodat calibre ze oppikt",
+      "Verwijderde boeken gaan naar de systeemprullenbak, niet in het niets"
+    ]
+  },
+  "faq": {
+    "eyebrow": "Vragen",
+    "title1": "Een calibre-alternatief,",
+    "title2": "beantwoord.",
+    "lead": "Wat Dalibre doet, wat het aan calibre overlaat, en hoe de twee een bibliotheek delen.",
+    "items": [
+      {
+        "q": "Is Dalibre een calibre-alternatief?",
+        "a": "Ja, voor het beheren van je e-bibliotheek. Dalibre doet het dagelijkse werk van calibre (bladeren, zoeken, metadata bewerken, boeken ophalen en naar je e-reader sturen) in een native app die {ratio}× kleiner is. Het omzetten van formaten komt eraan; de e-bookeditor van calibre valt buiten de scope."
+      },
+      {
+        "q": "Moet ik mijn calibre-bibliotheek migreren?",
+        "a": "Nee. Dalibre leest en schrijft het eigen bibliotheekformaat van calibre (metadata.db, de mappenstructuur en metadata.opf), dus het opent de bibliotheek die je al hebt. Niets om te importeren, niets om te exporteren."
+      },
+      {
+        "q": "Kan ik Dalibre en calibre op dezelfde bibliotheek gebruiken?",
+        "a": "Ja. Beide apps werken met dezelfde bestanden, dus je kunt je bibliotheek elke dag in een van beide openen, en calibre houden voor de klussen die Dalibre niet doet."
+      },
+      {
+        "q": "Zet Dalibre e-bookformaten om?",
+        "a": "Nog niet. We werken eraan. Gebruik tot die tijd calibre op dezelfde bibliotheek om tussen EPUB, MOBI, AZW3 of PDF om te zetten, of vraag een AI-agent die via MCP is verbonden: die kan een boek met ebook-convert van calibre omzetten en het resultaat eraan toevoegen."
+      },
+      {
+        "q": "Hoe krijg ik boeken op mijn e-reader?",
+        "a": "Zet delen aan en Dalibre serveert je bibliotheek via OPDS op je Wi-Fi. Leesapps zoals KOReader, Moon+ Reader, Thorium en KyBook bladeren erdoorheen en downloaden de boeken die je kiest. Geen kabels, geen cloud, geen account."
+      },
+      {
+        "q": "Kunnen AI-agents mijn bibliotheek gebruiken?",
+        "a": "Ja. Zet MCP aan en agents zoals Claude Code, Claude Desktop en Cursor kunnen je bibliotheek doorzoeken, metadata bewerken, boeken toevoegen en formaten omzetten met de tools die ze al hebben. Alleen programma’s op je computer kunnen verbinden, met een token, en Dalibre laat elke aanroep zien die ze doen."
+      },
+      {
+        "q": "Kan een AI-agent een Dalibre-plugin voor me schrijven?",
+        "a": "Ja. Via MCP kan een agent een plugin starten vanuit de sjabloon, hem aan Dalibre toevoegen, hem aanroepen, de resultaten, logs en fouten lezen, en hem repareren tot hij werkt. Dalibre vraagt je nog steeds om de hosts toe te staan die de plugin bereikt; de agent kan die niet voor je toestaan."
+      },
+      {
+        "q": "Op welke platforms draait Dalibre?",
+        "a": "macOS, Windows en Linux. Dalibre is één native binary geschreven in Go: geen webview, geen meegeleverd Python, geen runtime om te installeren."
+      },
+      {
+        "q": "Draait Dalibre calibre-plugins?",
+        "a": "Niet die van calibre zelf. Dalibre heeft zijn eigen plugins: kleine JavaScript-modules in een sandbox die iedereen kan schrijven. De Marketplace, via de knop Plugins in de werkbalk, heeft de meestgebruikte calibre-plugins daarnaar overgezet, zoals Find Duplicates, Quality Check, EpubMerge en KePub."
+      }
+    ]
+  },
+  "cta": {
+    "title1": "Minder app.",
+    "title2": "Meer lezen.",
+    "lead": "Eén kleine download voor macOS, Windows en Linux."
+  },
+  "footer": {
+    "tagline": "Een lichter thuis voor je calibre-bibliotheek.",
+    "product": "Product",
+    "contact": "Contact",
+    "moreApps": "Meer apps",
+    "devices": "Naar apparaat sturen",
+    "calibre": "Compatibiliteit met calibre",
+    "nowdex": "Je AI-quota op elk scherm",
+    "disclaimer": "calibre is een apart project van Kovid Goyal. Dalibre is er niet aan verbonden.",
+    "language": "Taal"
+  },
+  "banner": {
+    "text": "Dalibre is er ook in het Nederlands.",
+    "action": "Bekijk in het Nederlands",
+    "dismiss": "Sluiten"
+  }
+}

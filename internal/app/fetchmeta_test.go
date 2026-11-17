@@ -272,7 +272,7 @@ func TestFetchMetadataNeedsSetup(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if !a.settingsOpen || a.section != sectionPlugins || a.pl.sel != "dalibre.googlebooks" || !tt.HasText("API key") {
-		t.Fatalf("settings open %v on %q", a.settingsOpen, a.pl.sel)
+	if !a.pluginsOpen || a.plTab != pluginsTabInstalled || a.pl.sel != "dalibre.googlebooks" || !tt.HasText("API key") {
+		t.Fatalf("plugins open %v on %q", a.pluginsOpen, a.pl.sel)
 	}
 }

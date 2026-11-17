@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Orb setup for Dalibre: the Go toolchain at go.mod's version, warm Go
+# caches, marketplace/'s Node dependencies, and the seeded sample library.
+# Idempotent — safe to rerun on a stale snapshot, and
+# nearly free when the snapshot already holds the work: each expensive
+# step records a fingerprint of its input and is skipped while it matches.
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+step() { printf '\n[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
+
+# matched <file> <value>: the work guarded by <file> already ran for <value>.
+matched() { [ -f "$1" ] && [ "$(cat "$1")" = "$2" ]; }
+record() { printf '%s\n' "$2" > "$1"; }
+
+# Go, at the version go.mod pins. Skipped when the installed one is new enough.
+need="$(awk '$1 == "go" { print $2; exit }' go.mod)" # e.g. 1.27.3
+have="$(go version 2>/dev/null | awk '{ print $3 }' | cut -c3- || true)"
+if [ -z "$have" ] || [ "$(printf '%s\n%s\n' "$need" "$have" | sort -V | head -1)" != "$need" ]; then
+	step "installing Go $need (have: ${have:-none})"
+	arch=amd64
+	[ "$(uname -m)" = aarch64 ] && arch=arm64
+	curl -fsSL -o /tmp/go.tgz "https://go.dev/dl/go${need}.linux-${arch}.tar.gz"
+	sudo rm -rf /usr/local/go
+	sudo tar -C /usr/local -xzf /tmp/go.tgz
+	rm -f /tmp/go.tgz
+	sudo ln -sf /usr/local/go/bin/go /usr/local/bin/go
+	sudo ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+fi
+step "Go $(go version | awk '{ print $3 }')"
+
+# Warm the module and build caches, and build the mygo tool dependency.
+# A snapshot restores those caches, so only a tree that has not been built
+# here yet has work to do — the whole point is that agents start warm.
+go_state=''
+if [ -d .git ] && command -v git >/dev/null 2>&1; then
+	go_state="$(git rev-parse HEAD 2>/dev/null || true):$(git status --porcelain 2>/dev/null | sha256sum | cut -d' ' -f1)"
+fi
+if [ -n "$go_state" ] && matched .git/orb-go-warm "$go_state"; then
+	step 'go caches warm for this tree'
+else
+	step 'go mod download'
+	go mod download
+	step 'go build ./...'
+	go build ./...
+	step 'go build tool (mygo)'
+	go build -o /dev/null tool
+	step 'compile the tests (runs none of them)'
+	go test -count=1 -run '^$' ./...
+	if [ -n "$go_state" ]; then record .git/orb-go-warm "$go_state"; fi
+fi
+
+# Node comes with the orb; install what marketplace/ locks. npm ci always
+# wipes node_modules and refetches it, so the lockfile hash decides.
+for p in marketplace; do
+	[ -f "$p/package-lock.json" ] || continue
+	sum="$(sha256sum "$p/package-lock.json" | cut -d' ' -f1)"
+	if matched "$p/node_modules/.lock-sha256" "$sum"; then
+		step "$p: node_modules matches the lockfile"
+		continue
+	fi
+	step "$p: npm ci"
+	(cd "$p" && npm ci --no-audit --no-fund)
+	record "$p/node_modules/.lock-sha256" "$sum"
+done
+
+# The sample library of the README's develop section.
+if [ ! -f 'testdata/Sample Library/metadata.db' ]; then
+	step 'seeding testdata/Sample Library'
+	go run ./cmd/seed './testdata/Sample Library'
+fi
+
+# Notes for agents working in this orb.
+note="$HOME/.config/amp/AGENTS.md"
+mkdir -p "$(dirname "$note")"
+if ! grep -Fq '<!-- dalibre orb -->' "$note" 2>/dev/null; then
+	cat >> "$note" <<'EOF'
+
+<!-- dalibre orb -->
+# Dalibre (this orb)
+
+- Go (the version go.mod pins) is installed at /usr/local/go, on PATH; caches are warm.
+- `go test ./...` runs unit and view tests with no window; `DALIBRE_SHOTS=<folder> go test ./internal/app` saves view screenshots.
+- `testdata/Sample Library` is a seeded library; recreate it with `go run ./cmd/seed './testdata/Sample Library'`.
+- marketplace/ has its node_modules installed. site/ does not: run `npm ci` in site/ before `npm run dev` or a site build.
+EOF
+fi
+
+step "done in ${SECONDS}s"

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,6 +15,8 @@ import (
 
 	sdk "github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"dalibre/internal/mcp"
+	"dalibre/internal/plugin"
 	"dalibre/internal/settings"
 )
 
@@ -143,5 +147,128 @@ func TestMCPPortInUse(t *testing.T) {
 	a.applyMCP()
 	if a.mcpSrv != nil {
 		t.Error("still there")
+	}
+}
+
+// An agent's plugin loads only once the user allows it in the window; it
+// can't take an installed plugin's id, nor remove what the user installed.
+func TestMCPPlugins(t *testing.T) {
+	a := newTestApp(t)
+	a.pluginDir = t.TempDir()
+	h := mcpHost{a}
+	ctx := context.Background()
+	folder := func(id, hosts string) string {
+		dir := filepath.Join(t.TempDir(), "src")
+		os.MkdirAll(dir, 0o755)
+		os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id":"`+id+`","name":"Dev","version":"0.1.0","api":1,"capabilities":["source"],"permissions":{"hosts":[`+hosts+`]}}`), 0o644)
+		os.WriteFile(filepath.Join(dir, "main.js"), []byte(`exports.search = () => ({items: []})`), 0o644)
+		return dir
+	}
+	dir := folder("com.example.dev", `"a.example"`)
+
+	// add adds dir as an agent does while the user answers the dialog.
+	// The window's thread is the test's: it waits for the agent's call to
+	// have asked before it looks.
+	asked := make(chan struct{}, 1)
+	post := a.post
+	a.post = func(fn func()) {
+		post(fn)
+		select {
+		case asked <- struct{}{}:
+		default:
+		}
+	}
+	add := func(dir string, yes bool) (mcp.PluginInfo, error) {
+		select {
+		case <-asked:
+		default:
+		}
+		type result struct {
+			info mcp.PluginInfo
+			err  error
+		}
+		done := make(chan result, 1)
+		go func() {
+			info, err := h.AddPlugin(ctx, dir)
+			done <- result{info, err}
+		}()
+		<-asked
+		if a.consent == nil {
+			t.Fatal("added without asking")
+		}
+		if yes {
+			a.grantConsent()
+		} else {
+			ask := a.consent
+			a.consent = nil
+			ask.answered(false) // as closing the dialog does
+		}
+		r := <-done
+		return r.info, r.err
+	}
+
+	// The user says no: nothing is added.
+	if _, err := add(dir, false); err == nil || !strings.Contains(err.Error(), "didn’t allow") {
+		t.Fatalf("refused: %v", err)
+	}
+	if len(a.plugins) != 0 || a.settings.Plugins["com.example.dev"] != nil {
+		t.Fatal("added without the user")
+	}
+
+	info, err := add(dir, true)
+	if err != nil || info.State != mcp.PluginLoaded || info.Folder != dir || !slices.Equal(info.Exports, []string{"search"}) {
+		t.Fatalf("added %+v: %v", info, err)
+	}
+	if h.Plugin(ctx, "com.example.dev") == nil {
+		t.Fatal("not loaded")
+	}
+	// Adding it again asks nothing.
+	if info, err = h.AddPlugin(ctx, dir); err != nil || a.consent != nil || info.State != mcp.PluginLoaded {
+		t.Fatalf("again %+v: %v", info, err)
+	}
+
+	// A broken edit shows as failed, with why.
+	os.WriteFile(filepath.Join(dir, "main.js"), []byte(`exports.search = (`), 0o644)
+	h.ReloadPlugins(ctx)
+	list := h.Plugins(ctx)
+	if len(list.Plugins) != 1 || list.Plugins[0].State != mcp.PluginFailed || len(list.Errors) != 1 {
+		t.Fatalf("broken: %+v", list)
+	}
+	os.WriteFile(filepath.Join(dir, "main.js"), []byte(`exports.search = () => ({items: []})`), 0o644)
+	// An edit asking for another host waits for the user.
+	os.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id":"com.example.dev","name":"Dev","version":"0.2.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example","b.example"]}}`), 0o644)
+	h.ReloadPlugins(ctx)
+	if list = h.Plugins(ctx); list.Plugins[0].State != mcp.PluginNeedsApproval || h.Plugin(ctx, "com.example.dev") != nil {
+		t.Fatalf("asking for more: %+v", list)
+	}
+
+	if err := h.SetPluginEnabled(ctx, "com.example.dev", false); err != nil || h.Plugins(ctx).Plugins[0].State != mcp.PluginDisabled {
+		t.Fatalf("turned off: %v", err)
+	}
+	if err := h.SetPluginEnabled(ctx, "com.example.none", true); err == nil {
+		t.Error("turned on a plugin that isn't there")
+	}
+
+	// Another folder with the same id would get its grant and settings.
+	if _, err := h.AddPlugin(ctx, folder("com.example.dev", `"a.example"`)); err == nil || !strings.Contains(err.Error(), "its own id") {
+		t.Fatalf("the same id from another folder: %v", err)
+	}
+
+	if err := h.RemovePlugin(ctx, "com.example.dev"); err != nil || len(h.Plugins(ctx).Plugins) != 0 {
+		t.Fatalf("removed: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "main.js")); err != nil {
+		t.Error("removing deleted the folder")
+	}
+
+	// What the user installed is theirs to remove.
+	pkg, err := plugin.Pack(folder("com.example.installed", `"a.example"`), t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.installPlugin(pkg)
+	a.grantConsent()
+	if err := h.RemovePlugin(ctx, "com.example.installed"); err == nil || len(a.plugins) != 1 {
+		t.Fatalf("removed an installed plugin: %v", err)
 	}
 }

@@ -121,7 +121,7 @@ func TestAgentsPopoverAndMCPSettings(t *testing.T) {
 	if a.agentsOpen || !a.settingsOpen || a.section != sectionMCP {
 		t.Fatalf("open %v, settings %v %v", a.agentsOpen, a.settingsOpen, a.section)
 	}
-	for _, s := range []string{"Let agents edit, add and remove books", "Connect an agent", "Run it in a terminal.", "Tools", "Agents can use 12 of 12", "search_books", "find_metadata", "Move books to the Trash."} {
+	for _, s := range []string{"Let agents edit, add and remove books", "Connect an agent", "Run it in a terminal.", "Tools", "Agents can use 21 of 21", "search_books", "find_metadata", "Move books to the Trash."} {
 		if !tt.HasText(s) {
 			t.Fatalf("Settings › MCP misses %q: %q", s, tt.Texts())
 		}

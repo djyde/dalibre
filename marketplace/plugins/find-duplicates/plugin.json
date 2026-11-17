@@ -1,0 +1,50 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.find-duplicates",
+  "name": "Find Duplicates",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/find-duplicates",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "description": "Finds books that look like the same book, by title and author or by ISBN",
+  "icon": "library",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "find",
+        "title": "Find duplicates…",
+        "icon": "copy",
+        "scope": "library"
+      },
+      {
+        "id": "exempt",
+        "title": "Not duplicates",
+        "icon": "x",
+        "scope": "books",
+        "books": {
+          "min": 2
+        },
+        "in": "results"
+      },
+      {
+        "id": "show-exempt",
+        "title": "Show not-duplicate books",
+        "icon": "layers",
+        "scope": "library"
+      },
+      {
+        "id": "clear-exempt",
+        "title": "Forget not-duplicate marks",
+        "icon": "refresh",
+        "scope": "library"
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [],
+    "library": "read"
+  }
+}

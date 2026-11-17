@@ -185,13 +185,13 @@ func TestGetBooksPage(t *testing.T) {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if !a.settingsOpen || a.section != sectionPlugins || a.pl.sel != "com.example.books" || !tt.HasText("API key") || !tt.HasText("api.example.com") {
+	if !a.pluginsOpen || a.pl.sel != "com.example.books" || !tt.HasText("API key") || !tt.HasText("api.example.com") {
 		t.Fatalf("plugins dialog: %q", tt.Texts())
 	}
 	shot(t, tt, "plugins")
 
 	// Back in the library, the book is there.
-	a.settingsOpen = false
+	a.pluginsOpen = false
 	tt.Frame()
 	if err := tt.Click("All books"); err != nil {
 		t.Fatal(err)
@@ -285,7 +285,8 @@ func TestLinkedPlugin(t *testing.T) {
 	if len(a.pluginsKnown) != 1 || a.pluginsKnown[0].linked != src {
 		t.Fatalf("known %+v", a.pluginsKnown)
 	}
-	if entries, _ := os.ReadDir(a.pluginDir); len(entries) != 0 {
+	// Only its data folder (.data) is there, as for every plugin.
+	if entries, _ := os.ReadDir(a.pluginDir); len(entries) != 1 || entries[0].Name() != ".data" {
 		t.Fatalf("copied into the plugins folder: %v", entries)
 	}
 

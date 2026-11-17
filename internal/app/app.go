@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/egoist/mygo/ui/markdown"
 
 	"dalibre/cmd/dalibre/locales"
 	"dalibre/internal/app/icons"
@@ -115,12 +117,27 @@ type App struct {
 	consent        *consentAsk
 	downloads      []*download
 	pluginsLoading bool
-	pl             pluginsState
+	// loadSeq counts the plugins' loads; loadWait is closed when the last
+	// one started is done (afterPluginLoad).
+	loadSeq  int
+	loadWait []chan struct{}
+	pl       pluginsState
+	// plTab is the Plugins window's tab; mk the Marketplace's.
+	plTab       int
+	pluginsOpen bool // the Plugins window
+	mk          marketState
+	// marketURL is the Marketplace's index; plugin.MarketplaceURL when "".
+	marketURL string
 	// updates are newer versions of plugins installed from GitHub, by id.
 	updates         map[string]*pluginUpdate
 	updatesChecking bool
 	github          *plugin.GitHub // nil is github.com
 	ghi             ghInstall      // the Install from GitHub sheet
+	tl              toolsState     // the plugins' tools
+	// ghMD renders the README in Install from GitHub; ghMDFor is the
+	// repository and version its links point at.
+	ghMD    markdown.Options
+	ghMDFor string
 	// au is updating Dalibre itself.
 	au appUpdateState
 	// feedbackOpen is whether the sidebar's Feedback menu shows.
@@ -133,8 +150,12 @@ type App struct {
 	shareEdit    shareEdit    // Settings › OPDS's sharing fields
 	mcpEdit      mcpEdit      // Settings › MCP's port field
 	wirelessEdit wirelessEdit // Settings › Wireless devices' fields
+	emailEdit    emailEdit    // Settings › Email's port and password
 	mcpTab       int          // the agent Connect an agent shows
 	mcpTicking   bool         // a rebuild is due to keep MCP's status current
+
+	// emailTestState is Settings › Email's last test email.
+	emailTestState emailTest
 
 	// OPDS: the catalogs' sources, what checking each found (by catalog
 	// id), the catalog page, and the server sharing the library.
@@ -147,9 +168,15 @@ type App struct {
 	mcpSrv *mcpState
 	// device is the wireless connection readers connect to.
 	device *deviceState
+	// dev is the readers plugged in, each a library of its own; nil, as
+	// in tests, watches for none.
+	dev *devicesState
 	// secrets keeps passwords: the system's credential store; nil in tests
 	// until they set one.
 	secrets secretStore
+
+	// act is the plugins' actions: the one running, what it asks and found.
+	act actionState
 
 	// page is what the main column shows: the library or Get books.
 	page page
@@ -165,18 +192,26 @@ type App struct {
 	busy      string // a long action in progress, as an import
 	busyDone  int
 	busyTotal int
-	toasts    []toastMsg
+	// busyStop stops the long action in progress, when it can be.
+	busyStop func()
+	toasts   []toastMsg
+	// ex is the Export to folder dialog.
+	ex exportState
 	// editors are the book editor windows open, by book; editorToasts
 	// the messages waiting for theirs.
 	editors      map[int64]*bookEditor
 	editorToasts map[int64][]toastMsg
 	searchFocus  ui.Handle
 	mainBox      ui.Handle // the middle column, measured to fit the toolbar
+	gridBox      ui.Handle // the Marketplace's grid, measured to fit its cards
 }
 
 type toastMsg struct {
-	text  string
-	error bool
+	text     string
+	error    bool
+	action   string // a button, as Undo, which runs onAction
+	onAction func()
+	onClose  func()
 }
 
 type shownKey struct {
@@ -202,6 +237,11 @@ func New(settingsPath string) *App {
 	a.run = func(fn func()) { go fn() }
 	a.trash = mygo.Shell.TrashItem
 	a.au.version = mygo.App.Version()
+	if !mygo.IsDev() {
+		// Plugins needing a newer Dalibre are refused; a development
+		// build runs them all.
+		plugin.DalibreVersion = a.au.version
+	}
 	a.au.relaunch = func() {}
 	a.open = calibre.Open
 	a.query.Sort = catalog.SortKey(a.settings.Sort)
@@ -236,6 +276,7 @@ func (a *App) Attach(win *mygo.Window) {
 	a.applyShare()
 	a.applyMCP()
 	a.applyDevice()
+	a.startDevices()
 	a.checkUpdates(false)
 	a.au.updater = mygoUpdater{}
 	a.au.relaunch = mygo.App.Relaunch
@@ -354,6 +395,7 @@ func (a *App) openLibrary(root string) {
 			a.curID, a.chosen = 0, ui.Selection[int64]{}
 			a.grid, a.table = ui.GridState{}, ui.ListState{}
 			a.query.Filter, a.query.Search, a.query.Shelf = catalog.Filter{}, "", catalog.AllBooks
+			a.act.results, a.act.review = nil, nil
 			a.setBooks(books)
 			a.settings.Opened(root)
 			a.saveSettings()
@@ -396,6 +438,12 @@ func (a *App) setBooks(books []*calibre.Book) {
 	a.counts = catalog.Tally(books, a.booksTime)
 	// Books edited while a reader is connected reach it.
 	a.syncDevice()
+	if a.dev != nil {
+		a.dev.lib, a.dev.on = nil, nil
+		if a.dev.view != nil {
+			a.matchDeviceBooks(a.dev.view)
+		}
+	}
 	a.version++
 }
 
@@ -429,6 +477,11 @@ func (a *App) reload(after func()) {
 // visible returns the books the query selects, recomputed only when the
 // query or the books change.
 func (a *App) visible() []*calibre.Book {
+	if r := a.act.results; r != nil {
+		// An action's results are the list, in the action's groups.
+		r.build(a.byID, a.version)
+		return r.shown
+	}
 	k := shownKey{a.query, a.version}
 	if k != a.shownKey || a.shown == nil {
 		a.shown = catalog.Apply(a.books, a.query, a.booksTime)
@@ -561,7 +614,17 @@ func (a *App) removeBooks(ids []int64) {
 				if err != nil {
 					a.toastError(err)
 				}
-				a.toast("%s", locales.AppToastMovedToTrash(len(ids)))
+				// The books gone: none when the database refused, all when
+				// only a folder couldn't be moved.
+				gone := 0
+				for _, id := range ids {
+					if a.byID[id] == nil {
+						gone++
+					}
+				}
+				if gone > 0 {
+					a.toast("%s", locales.AppToastMovedToTrash(gone))
+				}
 			})
 		})
 	})
@@ -570,19 +633,28 @@ func (a *App) removeBooks(ids []int64) {
 // addFormat asks for a file and adds it to the book.
 func (a *App) addFormat(id int64) {
 	lib := a.lib
+	hooks, after := a.importPlugins(), a.hookPlugins()
 	a.run(func() {
 		paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: a.win, Title: locales.AppAddFormatTitle(), Filters: ebookFilter()})
 		if err != nil || len(paths) == 0 || lib == nil {
 			return
 		}
-		err = lib.AddFormat(id, paths[0])
+		file, done, warned := processImport(context.Background(), hooks, paths[0])
+		err = lib.AddFormat(id, file)
+		done()
+		if err == nil {
+			afterAdd(context.Background(), lib, after, id, strings.ToUpper(strings.TrimPrefix(filepath.Ext(file), ".")), false)
+		}
 		a.post(func() {
+			for _, e := range warned {
+				a.toastError(e)
+			}
 			if err != nil {
 				a.toastError(err)
 				return
 			}
 			a.reload(func() {
-				a.toast("%s", locales.AppToastAddedFormat(strings.ToUpper(strings.TrimPrefix(filepath.Ext(paths[0]), "."))))
+				a.toast("%s", locales.AppToastAddedFormat(strings.ToUpper(strings.TrimPrefix(filepath.Ext(file), "."))))
 			})
 		})
 	})
@@ -590,8 +662,12 @@ func (a *App) addFormat(id int64) {
 
 func (a *App) removeFormat(id int64, format string) {
 	lib := a.lib
+	after := a.hookPlugins()
 	a.run(func() {
 		err := lib.RemoveFormat(id, format)
+		if err == nil {
+			runHooks(context.Background(), lib, after, plugin.HookPostDelete, id, format)
+		}
 		a.post(func() {
 			if err != nil {
 				a.toastError(err)

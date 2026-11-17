@@ -51,13 +51,13 @@ async function searchBooks(query) {
  * @param {string} url @param {boolean} missingOK
  */
 async function getJSON(url, missingOK) {
-  const res = await dalibre.fetch(url, { headers: { Accept: "application/json" } });
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
   if (res.status === 404 && missingOK) return null;
   if (res.status === 429) throw dalibre.error("rateLimited", "NeoDB asks to slow down.");
   if (res.status >= 500) throw dalibre.error("unavailable", `NeoDB answered ${res.status}.`);
   if (!res.ok) throw new Error(`NeoDB answered ${res.status} ${res.statusText}`);
   try {
-    return res.json();
+    return await res.json();
   } catch {
     throw dalibre.error("unavailable", "NeoDB sent something that isn’t JSON.");
   }

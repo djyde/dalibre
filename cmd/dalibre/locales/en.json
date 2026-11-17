@@ -118,7 +118,7 @@
   "fetchMetaUseSelected": "Use selected fields",
   "fetchMetaYourSources": "your sources",
   "fetchMetaNoPluginTitle": "No plugin fetches metadata",
-  "fetchMetaNoPluginBody": "Plugins in Settings › Plugins can add sources like NeoDB.",
+  "fetchMetaNoPluginBody": "Plugins can add sources like NeoDB: find them in Plugins › Marketplace, from the toolbar.",
   "fetchMetaOpenSettings": "Open Settings",
   "fetchMetaSearching": "Searching {source}…",
   "fetchMetaCheckConnection": "Check your connection and try again.",
@@ -500,7 +500,7 @@
   "pluginsKeychainFailed": "Couldn’t save {name}’s password in the system’s keychain: {error}",
   "settingsSectionGeneral": "General",
   "settingsSectionOPDS": "OPDS",
-  "settingsSectionPlugins": "Plugins",
+  "pluginsTitle": "Plugins",
   "settingsChangesApplyNote": "Changes apply right away.",
   "settingsAppearance": "Appearance",
   "settingsAppearanceSystem": "System",
@@ -857,11 +857,20 @@
       }
     }
   },
+  "mcpListedPlugins": "Listed the plugins",
+  "mcpCreatedPlugin": "Started a plugin in {folder}",
+  "mcpAddedPlugin": "Added the plugin in {folder}",
+  "mcpReloadedPlugins": "Reloaded the plugins",
+  "mcpTestedPlugin": "Tested {call} of {plugin}",
+  "mcpEnabledPlugin": "Turned on {plugin}",
+  "mcpDisabledPlugin": "Turned off {plugin}",
+  "mcpRemovedPlugin": "Removed the plugin {plugin}",
   "mcpFoundMetadata": "Looked up metadata for “{title}”",
   "mcpTools": "Tools",
   "mcpToolsCount": "Agents can use {used} of {total}",
   "mcpGroupRead": "Search and read",
   "mcpGroupChange": "Change the library",
+  "mcpGroupPlugins": "Plugins",
   "mcpGroupSources": "Get books",
   "mcpToolsOff": "Off until changes are allowed",
   "mcpToolSearchBooks": "Search the library by title, author, series, tag and more.",
@@ -875,6 +884,13 @@
   "mcpToolRemoveBooks": "Move books to the Trash.",
   "mcpToolFindBooks": "Search Get books’ sources.",
   "mcpToolDownloadBook": "Add a book from Get books to the library.",
+  "mcpToolListPlugins": "List the plugins and how each is doing.",
+  "mcpToolCreatePlugin": "Start a new plugin from the template.",
+  "mcpToolAddPlugin": "Add a plugin from its folder, once you allow it.",
+  "mcpToolReloadPlugins": "Load the plugins again after an edit.",
+  "mcpToolTestPlugin": "Call a plugin’s function to try it.",
+  "mcpToolEnablePlugin": "Turn a plugin on or off.",
+  "mcpToolRemovePlugin": "Remove a plugin added from a folder.",
   "mcpToolFindMetadata": "Look up a book’s metadata with metadata plugins.",
   "wirelessPortError": "couldn’t listen on port {port}: {reason}",
   "wirelessWaiting": "Waiting for a reader",
@@ -963,5 +979,261 @@
   "editorNext": "Next match",
   "editorReplace": "Replace",
   "editorReplaceAll": "Replace all",
-  "editorCloseFind": "Close"
+  "editorCloseFind": "Close",
+  "pluginsProcessFailed": "{plugin} couldn’t process {file}, so it was added as it was: {reason}",
+  "booksMenuPlugins": "Plugins",
+  "pluginsCapBookFiles": "Book files",
+  "pluginsBookFilesNote": "Book files: {name} works on the file of each book you add, and of the books you run it on from the book menu.",
+  "pluginsBookFilesManualNote": "Book files: {name} works on the files of the books you run it on from the book menu.",
+  "pluginsBookFilesAccess": "Your books’ files",
+  "pluginsBookFilesAccessDetail": "The books you add, and those you run it on. Only through Dalibre, never your other files.",
+  "pluginsFileNone": "No file chosen",
+  "pluginsFileChoose": "Choose file…",
+  "commonUndo": "Undo",
+  "runPluginChanged": "{action} · {count, plural, one {# book} other {# books}} changed",
+  "runPluginNothing": "{action} · Nothing to change",
+  "runPluginFailedOn": "{action} failed on {count, plural, one {# book} other {# books}}: {reason}",
+  "runPluginNeedsSetup": "{plugin} needs setting up: {reason}",
+  "runPluginFillIn": "fill in {settings}",
+  "pluginsFileChange": "Change…",
+  "pluginsLibraryWrite": "Change your books’ details",
+  "pluginsLibraryWriteDetail": "Title, authors, tags and other details of the books it runs for, without asking each time.",
+  "pluginsLibraryReadHooksDetail": "Title, authors, tags and other details of the books it runs for",
+  "pluginsBookFilesHooksNote": "It also runs after books are added and formats removed.",
+  "pluginsBookFilesHooksOnlyNote": "Book files: {name} runs after books are added and formats removed.",
+  "mainNavTools": "Tools",
+  "actionFailed": "{action} failed: {reason}",
+  "actionAdded": "{action} · {count, plural, one {# book} other {# books}} added",
+  "actionShow": "Show",
+  "actionGroups": "{count, plural, one {# group} other {# groups}}",
+  "actionRunAgain": "Run again",
+  "actionReviewNote": "{books, plural, one {# book} other {# books}} · {fields, plural, one {# change} other {# changes}}",
+  "actionApply": "Apply changes",
+  "actionStop": "Stop {action}",
+  "pluginsLibraryActions": "Your books’ details",
+  "pluginsLibraryActionsDetail": "Title, authors, tags and other details of the books you run it on",
+  "pluginsLibraryAllDetail": "Title, authors, tags and other details of every book in your library, when you run its tools",
+  "mcpToolListActions": "List what plugins can do with books and the library.",
+  "mcpToolRunAction": "Run a plugin’s action, as the book menu and Tools do.",
+  "mcpListedActions": "Listed the plugins’ actions",
+  "mcpRanAction": "Ran {action}",
+  "pluginsTabInstalled": "Installed",
+  "pluginsTabMarketplace": "Marketplace",
+  "marketSearch": "Search plugins",
+  "marketAll": "All",
+  "marketLoading": "Loading the Marketplace…",
+  "marketFailed": "Couldn’t load the Marketplace: {error}",
+  "marketStale": "Couldn’t refresh the Marketplace; showing the last copy.",
+  "marketTryAgain": "Try again",
+  "marketNoMatch": "No plugins match.",
+  "marketUpdateTo": "Update to {version}",
+  "marketInstallingLabel": "Installing {name}",
+  "marketInstalled": "Installed",
+  "marketInstall": "Install",
+  "marketVersionInstalled": "Version {installed} installed · {available} available",
+  "marketNoInternet": "No internet access",
+  "marketNoteAllow": "You allow this when you install it.",
+  "marketCommunity": "Community",
+  "marketCommunityNote": "Made by the community, in {repo}",
+  "marketShowInstalled": "Settings…",
+  "pluginsCapBookMenu": "Book menu",
+  "pluginsNotANumber": "{name} must be a number.",
+  "marketNeedsDalibre": "Needs Dalibre {version}",
+  "marketNeedsDalibreNote": "It needs Dalibre {version} or newer: update Dalibre to install it.",
+  "pluginsSandboxNote": "Plugins run sandboxed, with only what you allow.",
+  "marketCount": "{count, plural, one {# plugin} other {# plugins}}",
+  "pluginsWriteOne": "Write a plugin",
+  "toolsTitle": "TOOLS",
+  "toolsRun": "Run {tool} {version} on this computer",
+  "toolsNotSandboxed": "Not sandboxed: it can read and write your files.",
+  "toolsInstallsWith": "Dalibre installs it with {command}.",
+  "toolsNoBuildChoose": "There’s no {tool} for this computer to download. Choose one you have, or the plugin stays off.",
+  "toolsSourceLabel": "Where {tool} comes from: {source}",
+  "toolsSourceDownload": "Download",
+  "toolsSourceDownloadSize": "Download · {size}",
+  "toolsSourceInstalled": "Installed · {manager}",
+  "toolsChooseFile": "Choose file…",
+  "toolsChooseFileTitle": "Choose {tool}",
+  "toolsDownloadTitle": "Download with Dalibre",
+  "toolsDownloadDetail": "From {host}. Only Dalibre uses it, and it goes with the plugin.",
+  "toolsInstallWith": "Install with {manager}",
+  "toolsInstallWithDetail": "Dalibre runs {command}. You can use it in Terminal too, and it updates with the others.",
+  "toolsInstallWithWingetDetail": "Dalibre runs winget for you, accepting the package’s license. You can use it in Terminal too.",
+  "toolsUseInstalled": "Use {manager}’s {tool} {version}",
+  "toolsUseMine": "Use a {tool} I have…",
+  "toolsUseMineDetail": "Choose its file. It must be {min} or later.",
+  "toolsSandboxNote": "The plugin runs sandboxed. {tools} runs as any app you install does.",
+  "toolsSectionNote": "{tools} runs outside the sandbox. Uninstalling the plugin removes only what Dalibre downloaded.",
+  "toolsDownloading": "Downloading from {host} · {progress}",
+  "toolsRunning": "Running {command} · {elapsed}",
+  "toolsFailed": "Couldn’t get it: {error}",
+  "toolsFromDownload": "Downloaded by Dalibre · {size}",
+  "toolsFromFile": "Your file · {path}",
+  "toolsFromManager": "From {manager} · {path}",
+  "toolsMissing": "Not on this computer yet: {plugin} stays off until it is.",
+  "toolsWaiting": "Looking for it…",
+  "toolsShowOutput": "Show output",
+  "toolsTryAgain": "Try again",
+  "toolsGet": "Get it",
+  "toolsChange": "Change",
+  "toolsChangeLabel": "Change where {tool} comes from",
+  "toolsInstallingTitle": "Installing “{plugin}”",
+  "toolsInstallingBody": "The plugin is installed. It turns on when {tool} is ready.",
+  "toolsRunningLabel": "Running",
+  "toolsRunningCommand": "Running {command}…",
+  "toolsCloseKeepsGoing": "You can close this. It keeps going in the background, and Plugins shows its progress.",
+  "toolsInstallFailedTitle": "{manager} couldn’t install {tool}",
+  "toolsInstallFailedBody": "{plugin} stays off until it has the tool. Dalibre can download it itself instead.",
+  "toolsWhatItSaid": "What {manager} said",
+  "toolsCopyLog": "Copy log",
+  "toolsDownloadInstead": "Download with Dalibre · {size}",
+  "toolsStop": "Stop",
+  "toolsClose": "Close",
+  "toolsReady": "{tool} is ready: {plugin} is on",
+  "toolsFileGone": "{path} isn’t there any more",
+  "toolsNoBuild": "There’s no {tool} for this computer to download",
+  "toolsInstalledNotFound": "{manager} finished, but Dalibre can’t find {tool} {min} or later from it",
+  "toolsStatusGetting": "Getting {tool}…",
+  "toolsStatusNeeds": "Needs {tools}",
+  "githubInstallBody": "Install from a release or a branch. Read what it does before you install it.",
+  "githubNoReadme": "This repository has no README.",
+  "githubNotAPlugin": "No plugin chosen yet.",
+  "pluginsCoversAny": "Load book covers from any website",
+  "pluginsCoversAnyDetail": "Only images, without your account or the plugin’s; never from your computer or network.",
+  "deviceConnected": "{device} connected",
+  "deviceShow": "Show",
+  "deviceFree": "{size} free",
+  "deviceEject": "Eject",
+  "deviceEjectTooltip": "Eject {device} so it can be unplugged",
+  "deviceEjected": "{device} can be unplugged",
+  "deviceOpenFailed": "Couldn’t read {device}: {error}",
+  "deviceSending": "Sending to {device}",
+  "deviceAddToLibrary": "Add to library",
+  "deviceAdding": "Adding to library",
+  "deviceAdded": "Added {count, plural, one {# book} other {# books}} to the library",
+  "@deviceAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceInLibrary": "In your library",
+  "deviceNotInLibrary": "Not in your library",
+  "deviceShowInLibrary": "Show in library",
+  "deviceOnReader": "On {device}",
+  "deviceRemoveBookTitle": "Remove “{title}” from {device}?",
+  "deviceRemoveBooksTitle": "Remove {count, plural, one {# book} other {# books}} from {device}?",
+  "@deviceRemoveBooksTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceEmptyTitle": "No books on {device}",
+  "deviceDropTitle": "Drop to send to {device}",
+  "deviceFile": "File",
+  "deviceNotMounted": "Not mounted",
+  "deviceMounting": "Mounting…",
+  "deviceMountFailed": "Couldn’t mount {device}: {error}",
+  "exportMenu": "Export to folder…",
+  "exportTitle": "Export {count, plural, one {# book} other {# books}}",
+  "@exportTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportSubtitle": "Copies of their files, named from their details",
+  "exportFolder": "Folder",
+  "exportChooseFolder": "Choose…",
+  "exportNoFolder": "No folder chosen",
+  "exportFileNames": "File names",
+  "exportTemplateHint": "A / starts a folder. {example} adds the / only to books in a series. Fields: {fields}",
+  "exportFormats": "Formats",
+  "exportWhenThere": "When a file is already there",
+  "exportKeepBoth": "Keep both, numbered",
+  "exportReplace": "Replace it",
+  "exportSkip": "Skip it",
+  "exportExtras": "Save each book’s cover and metadata (.jpg, .opf) beside it",
+  "exportASCII": "ASCII names only (三体 → San Ti)",
+  "exportPreview": "Preview · {count, plural, one {# file} other {# files}}",
+  "@exportPreview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportMore": "and {count} more",
+  "@exportMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportNumbered": "Already there",
+  "exportReplaces": "Replaces",
+  "exportSkipped": "Skipped",
+  "exportMissing": "Not exported, without these formats: {titles}",
+  "exportAlreadyThere": "{count, plural, one {# file is already there} other {# files are already there}}",
+  "@exportAlreadyThere": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportSubmit": "Export {count, plural, one {# file} other {# files}}",
+  "@exportSubmit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportLoading": "Reading the books…",
+  "exportBusy": "Exporting",
+  "exportDone": "Exported {count, plural, one {# file} other {# files}} to {folder}",
+  "@exportDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSectionEmail": "Email",
+  "emailKindlesTitle": "Kindles",
+  "emailKindlesBody": "Books are emailed to these addresses as attachments. Amazon converts them and puts them on the Kindle, where they sync with Whispersync. A Kindle’s address is at amazon.com › Manage Your Content and Devices › Devices.",
+  "emailAddKindle": "Add Kindle",
+  "emailKindleAddress": "Send to Kindle address",
+  "emailSenderTitle": "Sender",
+  "emailSenderBody": "The mail account Dalibre sends from, as set up in a mail app: its SMTP server, address and password. Gmail, iCloud and Outlook want an app password, not the one you sign in with.",
+  "emailServer": "SMTP server",
+  "emailSecurity": "Security",
+  "emailSecurityNone": "None",
+  "emailFrom": "Email",
+  "emailPassword": "App password",
+  "emailTest": "Send a test email",
+  "emailTestSending": "Sending…",
+  "emailTestSent": "Sent to {address} · {time}",
+  "emailTestSubject": "Dalibre test email",
+  "emailTestBody": "Dalibre can send mail from this address. Books emailed to your Kindles come from it the same way.",
+  "emailNote": "Amazon delivers only mail from addresses on your Approved Personal Document E-mail List: add the address above there (Manage Your Content and Devices › Preferences › Personal Document Settings), or Amazon drops the book without a word. Books go as EPUB, else PDF or DOCX, at most 50 MB each.",
+  "emailTo": "Email to {device}",
+  "emailSending": "Emailing to {device}",
+  "emailSent": "Emailed {count, plural, one {# book} other {# books}} to {device}",
+  "@emailSent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emailNoFormat": "Not emailed: {titles}. Send to Kindle takes EPUB, PDF, DOCX, RTF, TXT and HTML.",
+  "emailTooBig": "Not emailed: {titles}. Send to Kindle takes files up to 50 MB.",
+  "emailFailed": "Couldn’t email {device}: {reason}"
 }

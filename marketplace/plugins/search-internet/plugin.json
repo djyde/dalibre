@@ -1,0 +1,76 @@
+{
+  "$schema": "../../../sdk/plugin.schema.json",
+  "id": "org.randynamic.dalibre.search-internet",
+  "name": "Search the Internet",
+  "version": "1.0.0",
+  "api": 1,
+  "dalibre": ">=0.4.0",
+  "author": "Randy",
+  "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/search-internet",
+  "license": "GPL-3.0-or-later",
+  "main": "main.js",
+  "description": "Opens a search for a book on Amazon, Goodreads, Wikipedia and other sites",
+  "icon": "globe",
+  "capabilities": {
+    "actions": [
+      {
+        "id": "search",
+        "title": "Search the internet…",
+        "icon": "search",
+        "scope": "books",
+        "books": {
+          "min": 1,
+          "max": 1
+        }
+      }
+    ]
+  },
+  "permissions": {
+    "hosts": [
+      "app.thestorygraph.com",
+      "catalog.loc.gov",
+      "de.wikipedia.org",
+      "en.wikipedia.org",
+      "es.wikipedia.org",
+      "fr.wikipedia.org",
+      "indigo.ca",
+      "it.wikipedia.org",
+      "manybooks.net",
+      "nytimes.com",
+      "openlibrary.org",
+      "recherche.fnac.com",
+      "search.douban.com",
+      "search.worldcat.org",
+      "www.amazon.ca",
+      "www.amazon.cn",
+      "www.amazon.co.jp",
+      "www.amazon.co.uk",
+      "www.amazon.com",
+      "www.amazon.com.au",
+      "www.amazon.de",
+      "www.amazon.fr",
+      "www.amazon.it",
+      "www.audible.com",
+      "www.barnesandnoble.com",
+      "www.ebay.co.uk",
+      "www.ebay.com",
+      "www.ebooks.com",
+      "www.fantasticfiction.com",
+      "www.goodreads.com",
+      "www.google.com",
+      "www.google.de",
+      "www.google.es",
+      "www.google.fr",
+      "www.google.it",
+      "www.isfdb.org",
+      "www.kobobooks.com",
+      "www.librarything.com",
+      "www.libri.de",
+      "www.literature-map.com",
+      "www.lovereading.co.uk",
+      "www.waterstones.com",
+      "www.whatshouldireadnext.com"
+    ],
+    "library": "read"
+  }
+}

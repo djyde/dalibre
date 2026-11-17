@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"maps"
 	"net/http"
 	"os"
 	"path"
@@ -16,22 +17,35 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"modernc.org/quickjs"
+	"github.com/MoeForge/moejs"
+	"github.com/MoeForge/moejs/eventloop"
+	"github.com/MoeForge/moejs/node"
+	"github.com/MoeForge/moejs/webapi"
 )
 
-// Limits on one call into a plugin and on its interpreter.
+// Limits on one call into a plugin and on its runtime.
 const (
 	// CallTimeout bounds one call when the caller's context has no
 	// earlier deadline.
 	CallTimeout = 60 * time.Second
-	// MaxMemory is how much memory a plugin's interpreter may use.
-	MaxMemory = 64 << 20
+	// ProcessTimeout bounds one process call, on a book's file.
+	ProcessTimeout = 10 * time.Minute
 )
 
 //go:embed prelude.js
 var prelude string
+
+// preludeName names the prelude in stack traces, which leave its frames
+// out.
+const preludeName = "<dalibre>"
+
+// preludeScript is the prelude compiled, once for every plugin.
+var preludeScript = sync.OnceValues(func() (*moejs.Script, error) {
+	return moejs.CompileScript(preludeName, prelude)
+})
 
 // Plugin is a loaded plugin. Its methods may be called from any
 // goroutine; calls into its script run one at a time.
@@ -51,14 +65,30 @@ type Plugin struct {
 	settings map[string]string
 	client   *http.Client
 	logf     func(format string, args ...any)
+	tapMu    sync.Mutex
+	taps     map[int]func(line string) // Tap's listeners
+	tapSeq   int
 
-	mu       sync.Mutex // guards the fields below and the interpreter
-	vm       *quickjs.VM
-	exported []string        // the functions the script exports
-	ctx      context.Context // of the call in progress, for fetch
-	requests int             // fetches made by the call in progress
-	settled  *string         // the outcome of the call in progress, as JSON
-	srcSize  int64           // bytes of script loaded into vm
+	dataDir  string            // the plugin's own folder, the root of its node:fs; "" for none
+	tools    map[string]string // its tools' executables, by id
+	requests atomic.Int32      // fetches made by the call in progress
+	workMu   sync.Mutex        // one Process at a time: it owns /work
+
+	mu       sync.Mutex // guards the fields below and the runtime
+	rt       *moejs.Runtime
+	loop     *eventloop.Loop          // runs rt: timers, fetches, files
+	web      *webapi.API              // fetch and the other Web APIs
+	nodeAPI  *node.API                // node:fs, node:buffer
+	load     moejs.Value              // the prelude's load(main)
+	invokeFn moejs.Value              // the prelude's call(name, args)
+	lineFn   moejs.Value              // the prelude's line(id, stream, line), for dalibre.exec's onLine
+	modules  map[string]*moejs.Module // compiled, by path in the plugin's folder
+	exported []string                 // the functions the script exports
+	ctx      context.Context          // of the call in progress
+	settled  *string                  // the outcome of the call in progress, as JSON
+	host     *ActionHost              // what the action in progress may ask the app
+	limit    *deadline                // the time the call in progress has left
+	srcSize  int64                    // bytes of script loaded into rt
 	closed   bool
 }
 
@@ -76,6 +106,14 @@ type Options struct {
 	// Authorize, when set, is called on every request the plugin makes,
 	// to add credentials: the user's account on an OPDS server.
 	Authorize func(*http.Request)
+	// DataDir is the plugin's own folder (DataDir(root, id)), which its
+	// script sees through node:fs: data/ at /data, what it keeps between
+	// runs, and work/ at /work, the files it is handed. It is made when
+	// needed. When "", the script has no node:fs and can't process files.
+	DataDir string
+	// Tools are the executables of the manifest's tools, by id, for
+	// dalibre.exec. A tool missing here can't be run.
+	Tools map[string]string
 }
 
 // Load reads the plugin in dir and runs its script, which defines the
@@ -111,6 +149,11 @@ func load(m *Manifest, fsys fs.FS, dir string, opts Options) (*Plugin, error) {
 	if p.logf == nil {
 		p.logf = log.Printf
 	}
+	base := p.logf
+	p.logf = func(format string, args ...any) {
+		base(format, args...)
+		p.tapped(fmt.Sprintf(format, args...))
+	}
 	for _, s := range m.Settings {
 		v, ok := opts.Settings[s.Key]
 		if !ok {
@@ -120,6 +163,8 @@ func load(m *Manifest, fsys fs.FS, dir string, opts Options) (*Plugin, error) {
 	}
 	p.client = p.httpClient(opts.Transport)
 	p.authorize = opts.Authorize
+	p.dataDir = opts.DataDir
+	p.tools = opts.Tools
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -155,10 +200,26 @@ func (p *Plugin) checkExports() error {
 	if m.IsMetadataSource() && !slices.Contains(p.exported, "identify") {
 		return &Error{Plugin: m.ID, Kind: KindInvalid, Msg: "a metadata source must export identify"}
 	}
+	if m.RunsOnImport() && !slices.Contains(p.exported, "process") {
+		return &Error{Plugin: m.ID, Kind: KindInvalid, Msg: "a file type plugin that runs on import must export process"}
+	}
+	if len(m.Capabilities.Actions) > 0 && !slices.Contains(p.exported, "run") {
+		return &Error{Plugin: m.ID, Kind: KindInvalid, Msg: "a plugin with actions must export run"}
+	}
+	for _, h := range m.Hooks() {
+		if !slices.Contains(p.exported, h) {
+			return &Error{Plugin: m.ID, Kind: KindInvalid, Msg: fmt.Sprintf("a file type plugin with %s must export %s", hookFlag(h), h)}
+		}
+	}
 	return nil
 }
 
-// Close frees the plugin's interpreter. Calls after Close fail.
+// hookFlag is the manifest field that asks for hook.
+func hookFlag(hook string) string {
+	return map[string]string{HookPostImport: "onPostImport", HookPostAdd: "onPostAdd", HookPostDelete: "onPostDelete"}[hook]
+}
+
+// Close drops the plugin's runtime. Calls after Close fail.
 func (p *Plugin) Close() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -166,34 +227,61 @@ func (p *Plugin) Close() {
 	p.stop()
 }
 
-// start makes the plugin's interpreter and loads its script.
+// start makes the plugin's runtime and loads its script.
 func (p *Plugin) start() error {
-	vm, err := quickjs.NewVM()
+	script, err := preludeScript()
 	if err != nil {
+		return fmt.Errorf("plugin prelude: %w", err)
+	}
+	p.srcSize, p.modules = 0, map[string]*moejs.Module{}
+	// Plugins get their own builtins, so a bundled polyfill that patches
+	// a prototype works as it does in a browser. Memory isn't limited, as
+	// calibre doesn't limit its plugins': a plugin works on whole books.
+	rt := moejs.NewRuntime(moejs.Options{
+		Importer:          node.Importer(&moejs.Importer{Resolve: p.resolveModule}),
+		MutableIntrinsics: true,
+	})
+	p.rt = rt
+	if err := p.install(); err != nil {
+		p.stop()
 		return err
 	}
-	p.vm, p.srcSize = vm, 0
-	vm.SetMemoryLimit(MaxMemory)
-	vm.SetEvalTimeout(CallTimeout + 10*time.Second) // a backstop; calls have their own deadline
-	vm.SetModuleLoader(p.loadModule, p.resolveModule)
-	host := map[string]quickjs.HostFunc{
-		"__host_info":   p.hostInfo,
-		"__host_fetch":  p.hostFetch,
-		"__host_log":    p.hostLog,
-		"__host_settle": p.hostSettle,
+	host := map[string]func([]any) (any, error){
+		"__host_info":     p.hostInfo,
+		"__host_log":      p.hostLog,
+		"__host_settle":   p.hostSettle,
+		"__host_flag":     p.hostFlag,
+		"__host_progress": p.hostProgress,
+		"__host_html":     hostHTML,
 	}
 	for name, fn := range host {
-		if err := vm.RegisterHostFunc(name, fn); err != nil {
+		if err := rt.SetGlobal(name, hostFunc(fn)); err != nil {
 			p.stop()
 			return err
 		}
 	}
-	if _, err := vm.Eval(prelude, quickjs.EvalGlobal); err != nil {
+	for name, fn := range map[string]moejs.NativeFunc{"__host_ask": p.hostAsk, "__host_exec": p.hostExec} {
+		if err := rt.SetGlobal(name, fn); err != nil {
+			p.stop()
+			return err
+		}
+	}
+	entry, err := rt.RunScript(script)
+	if err == nil {
+		p.load, err = rt.Get(entry, "load")
+	}
+	if err == nil {
+		p.invokeFn, err = rt.Get(entry, "call")
+	}
+	if err == nil {
+		p.lineFn, err = rt.Get(entry, "line")
+	}
+	if err != nil {
 		p.stop()
 		return fmt.Errorf("plugin prelude: %w", err)
 	}
 	var names []string
-	if err := p.invoke(context.Background(), "", &names, "__dalibre_load", p.Manifest.Main); err != nil {
+	if err := p.invoke(context.Background(), CallTimeout, "", &names, p.load, moejs.String(p.Manifest.Main)); err != nil {
 		p.stop()
 		return err
 	}
@@ -201,36 +289,135 @@ func (p *Plugin) start() error {
 	return nil
 }
 
-// stop frees the interpreter; the next call starts a new one, so the
-// script's own state starts over.
-func (p *Plugin) stop() {
-	if p.vm != nil {
-		p.vm.Close()
-		p.vm = nil
+// hostFunc makes a host function of the prelude's a JavaScript function:
+// its arguments arrive as strings, and a string it returns goes back as
+// one.
+func hostFunc(fn func([]any) (any, error)) moejs.NativeFunc {
+	return func(r *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
+		in := make([]any, len(args))
+		for i, a := range args {
+			s, err := r.ToString(a)
+			if err != nil {
+				return moejs.Undefined(), err
+			}
+			in[i] = s.GoString()
+		}
+		out, err := fn(in)
+		if err != nil {
+			return moejs.Undefined(), err
+		}
+		if s, ok := out.(string); ok {
+			return moejs.String(s), nil
+		}
+		return moejs.Undefined(), nil
 	}
 }
 
-// resolveModule turns an import in module base into a path relative to
-// the plugin's folder. Only the plugin's own .js files can be imported.
-func (p *Plugin) resolveModule(_ *quickjs.VM, base, name string) (string, error) {
+// install gives the runtime its event loop (timers), the Web APIs (fetch
+// through the plugin's sandboxed client) and Node's buffer, with node:fs
+// over its data folder when it has one.
+func (p *Plugin) install() error {
+	loop, err := eventloop.New(p.rt, eventloop.Options{})
+	if err != nil {
+		return err
+	}
+	p.loop = loop
+	if p.web, err = webapi.Install(loop, webapi.Options{Client: p.fetchClient(), Allow: p.allowFetch}); err != nil {
+		return err
+	}
+	opts := node.Options{Buffer: true}
+	if p.dataDir != "" {
+		for _, d := range []string{dataFolder, workFolder} {
+			if err := os.MkdirAll(filepath.Join(p.dataDir, d), 0o700); err != nil {
+				return err
+			}
+		}
+		opts.FS = &node.FSOptions{Root: p.dataDir, Mount: "/", Cwd: "/" + dataFolder, Write: true, Allow: p.allowFile}
+	}
+	p.nodeAPI, err = node.InstallLoop(loop, opts)
+	return err
+}
+
+// stop drops the runtime, ending what it has in flight; the next call
+// starts a new one, so the script's own state starts over.
+func (p *Plugin) stop() {
+	if p.web != nil {
+		p.web.Close()
+	}
+	if p.nodeAPI != nil {
+		p.nodeAPI.Close()
+	}
+	if p.loop != nil {
+		p.loop.Terminate()
+	}
+	p.loop, p.web, p.nodeAPI = nil, nil, nil
+	p.rt, p.modules = nil, nil
+	p.load, p.invokeFn, p.lineFn = moejs.Undefined(), moejs.Undefined(), moejs.Undefined()
+}
+
+// resolveModule compiles the module an import names in the code of
+// referrer. Only the plugin's own .js files can be imported, by a path
+// relative to the importing module.
+func (p *Plugin) resolveModule(referrer moejs.Referrer, name string) (*moejs.Module, error) {
 	if !strings.HasPrefix(name, "./") && !strings.HasPrefix(name, "../") {
-		return "", fmt.Errorf("can’t import %q: only the plugin’s own files can be imported, as \"./lib.js\"; bundle packages into main.js (with esbuild)", name)
+		return nil, fmt.Errorf("can’t import %q: only the plugin’s own files can be imported, as \"./lib.js\"; bundle packages into main.js (with esbuild)", name)
 	}
 	dir := "."
-	if base != "<eval>" && base != "" {
-		dir = path.Dir(base)
+	if referrer != nil && referrer.Name() != preludeName {
+		dir = path.Dir(referrer.Name())
 	}
 	resolved := path.Clean(path.Join(dir, name))
 	if resolved == ".." || strings.HasPrefix(resolved, "../") || path.IsAbs(resolved) {
-		return "", fmt.Errorf("can’t import %q: it is outside the plugin’s folder", name)
+		return nil, fmt.Errorf("can’t import %q: it is outside the plugin’s folder", name)
 	}
-	if ext := path.Ext(resolved); ext != ".js" && ext != ".mjs" {
-		return "", fmt.Errorf("can’t import %q: only .js files can be imported", name)
+	resolved, err := p.moduleFile(name, resolved)
+	if err != nil {
+		return nil, err
 	}
-	return resolved, nil
+	if m, ok := p.modules[resolved]; ok {
+		return m, nil // a module is evaluated once, however many import it
+	}
+	src, err := p.loadModule(resolved)
+	if err != nil {
+		return nil, err
+	}
+	ts := path.Ext(resolved) == ".ts" || path.Ext(resolved) == ".mts"
+	m, err := moejs.CompileWith(resolved, src, moejs.CompileOptions{Context: p.ctx, TypeScript: ts})
+	if err != nil {
+		return nil, err
+	}
+	p.modules[resolved] = m
+	return m, nil
 }
 
-func (p *Plugin) loadModule(_ *quickjs.VM, name string) (string, error) {
+// moduleFile is the file an import of name resolved to path means: a .js,
+// .mjs, .ts or .mts file, found as TypeScript finds one: "./lib.js" may be
+// lib.ts, and "./lib" lib.ts or lib.js.
+func (p *Plugin) moduleFile(name, resolved string) (string, error) {
+	exists := func(f string) bool {
+		st, err := fs.Stat(p.fsys, f)
+		return err == nil && !st.IsDir()
+	}
+	var try []string
+	switch ext := path.Ext(resolved); ext {
+	case ".js", ".mjs":
+		try = []string{resolved, strings.TrimSuffix(resolved, ext) + map[string]string{".js": ".ts", ".mjs": ".mts"}[ext]}
+	case ".ts", ".mts":
+		try = []string{resolved}
+	case "":
+		try = []string{resolved + ".ts", resolved + ".js"}
+	default:
+		return "", fmt.Errorf("can’t import %q: only .js and .ts files can be imported", name)
+	}
+	for _, f := range try {
+		if exists(f) {
+			return f, nil
+		}
+	}
+	return try[0], nil // loadModule says it's missing
+}
+
+func (p *Plugin) loadModule(name string) (string, error) {
 	st, err := fs.Stat(p.fsys, name)
 	if err != nil || st.IsDir() {
 		return "", fmt.Errorf("%s: no such file", name)
@@ -309,6 +496,34 @@ func DefaultDir() string {
 	return filepath.Join(dir, "Dalibre", "plugins")
 }
 
+// Tap also gives the plugin's log lines (what its script logs, and the
+// host's warnings about what it returned) to fn, until stop is called:
+// for showing a plugin's author what a call logged.
+func (p *Plugin) Tap(fn func(line string)) (stop func()) {
+	p.tapMu.Lock()
+	defer p.tapMu.Unlock()
+	if p.taps == nil {
+		p.taps = map[int]func(string){}
+	}
+	p.tapSeq++
+	id := p.tapSeq
+	p.taps[id] = fn
+	return func() {
+		p.tapMu.Lock()
+		delete(p.taps, id)
+		p.tapMu.Unlock()
+	}
+}
+
+func (p *Plugin) tapped(line string) {
+	p.tapMu.Lock()
+	fns := slices.Collect(maps.Values(p.taps))
+	p.tapMu.Unlock()
+	for _, fn := range fns {
+		fn(line)
+	}
+}
+
 // Defines reports whether the plugin exports a function called name.
 func (p *Plugin) Defines(name string) bool {
 	if p.native != nil {
@@ -334,6 +549,16 @@ func (p *Plugin) MissingSettings() []string {
 // as JSON. Arguments and results cross as JSON so neither side sees the
 // other's types. An async function's promise is awaited.
 func (p *Plugin) call(ctx context.Context, name string, args ...any) (json.RawMessage, error) {
+	return p.callWithin(ctx, CallTimeout, name, args...)
+}
+
+// callWithin is call with timeout in place of CallTimeout.
+func (p *Plugin) callWithin(ctx context.Context, timeout time.Duration, name string, args ...any) (json.RawMessage, error) {
+	return p.callHosted(ctx, timeout, nil, name, args...)
+}
+
+// callHosted is callWithin for a call that may ask host: an action's run.
+func (p *Plugin) callHosted(ctx context.Context, timeout time.Duration, host *ActionHost, name string, args ...any) (json.RawMessage, error) {
 	if missing := p.MissingSettings(); len(missing) > 0 {
 		return nil, &Error{Plugin: p.Manifest.ID, Call: name, Kind: KindSettings,
 			Msg: "needs " + strings.Join(missing, ", ") + " in its settings"}
@@ -350,9 +575,9 @@ func (p *Plugin) call(ctx context.Context, name string, args ...any) (json.RawMe
 	if p.closed {
 		return nil, &Error{Plugin: p.Manifest.ID, Call: name, Kind: KindUnavailable, Msg: "the plugin was closed"}
 	}
-	if p.vm == nil {
-		// The last call broke the interpreter (out of memory, out of
-		// time); start afresh.
+	if p.rt == nil {
+		// The last call broke the runtime (out of memory, out of time);
+		// start afresh.
 		if err := p.start(); err != nil {
 			return nil, err
 		}
@@ -360,8 +585,10 @@ func (p *Plugin) call(ctx context.Context, name string, args ...any) (json.RawMe
 	if !slices.Contains(p.exported, name) {
 		return nil, &Error{Plugin: p.Manifest.ID, Call: name, Kind: KindInvalid, Msg: "isn’t exported"}
 	}
+	p.host = host
+	defer func() { p.host = nil }()
 	var out json.RawMessage
-	if err := p.invoke(ctx, name, &out, "__dalibre_call", name, string(data)); err != nil {
+	if err := p.invoke(ctx, timeout, name, &out, p.invokeFn, moejs.String(name), moejs.String(string(data))); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -377,46 +604,69 @@ type outcome struct {
 }
 
 // invoke calls fn, a function of the prelude, under ctx's deadline or
-// CallTimeout, runs the promise jobs it queues, and decodes the value it
-// settles with into out. An interpreter that ran out of time or memory is
-// stopped, to start afresh on the next call.
-func (p *Plugin) invoke(ctx context.Context, call string, out any, fn string, args ...any) (err error) {
-	ctx, cancel := context.WithTimeout(ctx, CallTimeout)
-	defer cancel()
-	vm := p.vm
-	p.ctx, p.requests, p.settled = ctx, 0, nil
-	stopTimer := context.AfterFunc(ctx, vm.Interrupt)
+// timeout, and decodes the value it settles with into out. A runtime that
+// ran out of time, or failed inside, is stopped, to start afresh on the
+// next call.
+func (p *Plugin) invoke(ctx context.Context, timeout time.Duration, call string, out any, fn moejs.Value, args ...moejs.Value) (err error) {
+	// The call's time is a timer rather than the context's deadline, so
+	// that it stops while the user answers a form.
+	ctx, cancel := context.WithCancelCause(ctx)
+	defer cancel(nil)
+	p.limit = newDeadline(timeout, func() { cancel(context.DeadlineExceeded) })
+	defer p.limit.stop()
+	rt, loop := p.rt, p.loop
+	rt.ClearInterrupt()
+	p.ctx, p.settled = ctx, nil
+	p.requests.Store(0)
+	p.web.SetContext(ctx) // the call's fetches end with it
+	interrupted := make(chan struct{})
+	stopTimer := context.AfterFunc(ctx, func() {
+		loop.Interrupt(context.Cause(ctx)) // also wakes a loop waiting on a timer
+		close(interrupted)
+	})
 	defer func() {
-		stopTimer()
+		if !stopTimer() {
+			<-interrupted // done interrupting before the runtime is used again
+		}
 		p.ctx = context.Background()
 		if r := recover(); r != nil {
-			// The engine gave up on this interpreter; only closing is left.
 			p.stop()
 			err = &Error{Plugin: p.Manifest.ID, Call: call, Kind: KindScript, Msg: fmt.Sprint("the interpreter failed: ", r)}
 		}
+		if p.rt == rt {
+			rt.ReleaseCallData() // the call's arguments can go
+		}
 	}()
 
-	_, jsErr := vm.Call(fn, args...)
-	if jsErr == nil {
-		_, jsErr = vm.ExecutePendingJobs()
-	}
+	// The loop runs until the call settles (hostSettle stops it) or
+	// nothing is left that could settle it: no timer, fetch or file
+	// operation. Timers the script left keep for its next call.
+	jsErr := loop.Run(func(rt *moejs.Runtime) error {
+		_, err := rt.CallFunction(fn, moejs.Undefined(), args...)
+		return err
+	})
 	fail := func(kind ErrorKind, msg string) error {
 		p.stop()
-		return &Error{Plugin: p.Manifest.ID, Call: call, Kind: kind, Msg: msg, Err: ctx.Err()}
+		cause := context.Cause(ctx)
+		if cause != nil && !errors.Is(cause, context.DeadlineExceeded) {
+			cause = context.Canceled
+		}
+		return &Error{Plugin: p.Manifest.ID, Call: call, Kind: kind, Msg: msg, Err: cause}
 	}
+	var internal *moejs.InternalError
 	switch {
 	case ctx.Err() != nil:
-		if errors.Is(ctx.Err(), context.Canceled) {
-			return fail(KindTimeout, "canceled")
+		if errors.Is(context.Cause(ctx), context.DeadlineExceeded) {
+			return fail(KindTimeout, "took too long")
 		}
-		return fail(KindTimeout, "took too long")
-	case outOfMemory(jsErr) || p.settled != nil && strings.Contains(*p.settled, `"message":"out of memory"`):
-		return fail(KindScript, fmt.Sprintf("used more than %d MB of memory", MaxMemory>>20))
+		return fail(KindTimeout, "canceled")
+	case errors.As(jsErr, &internal):
+		return fail(KindScript, fmt.Sprint("the interpreter failed: ", internal.Value))
 	case p.settled == nil && jsErr != nil:
 		return fail(KindScript, jsErr.Error())
 	case p.settled == nil:
 		return &Error{Plugin: p.Manifest.ID, Call: call, Kind: KindInvalid,
-			Msg: "returned a promise that never settled; await only dalibre.fetch and your own async functions"}
+			Msg: "returned a promise that never settled: nothing it awaits (a timer, a fetch, a file) is left to settle it"}
 	}
 
 	var o outcome
@@ -434,19 +684,14 @@ func (p *Plugin) invoke(ctx context.Context, call string, out any, fn string, ar
 	return nil
 }
 
-func outOfMemory(err error) bool {
-	var qe *quickjs.Error
-	return errors.As(err, &qe) && qe.Message == "out of memory"
-}
-
 // thrown makes an Error of what the script threw: an error made by
 // dalibre.error, a host error passed through (a refused fetch), or any
 // other value.
 func (p *Plugin) thrown(call string, o outcome) *Error {
-	// Frames in the prelude (file "<eval>") mean nothing to the author.
+	// Frames in the prelude mean nothing to the author.
 	var stack []string
 	for line := range strings.Lines(o.Error.Stack) {
-		if !strings.Contains(line, "<eval>") {
+		if !strings.Contains(line, preludeName) {
 			stack = append(stack, line)
 		}
 	}
@@ -455,7 +700,7 @@ func (p *Plugin) thrown(call string, o outcome) *Error {
 		e.Msg = "threw an error with no message"
 	}
 	if k := ErrorKind(o.Error.Kind); k != "" {
-		if slices.Contains(thrownKinds, k) || k == KindPermission || k == KindTimeout {
+		if slices.Contains(thrownKinds, k) || k == KindPermission || k == KindTimeout || k == KindCancelled {
 			e.Kind = k
 		} else {
 			e.Msg = fmt.Sprintf("%s (unknown error kind %q)", e.Msg, k)
