@@ -704,3 +704,18 @@ func TestCapabilitiesForms(t *testing.T) {
 		}
 	}
 }
+
+func TestPackCreatesOutDir(t *testing.T) {
+	dir := write(t, testManifest, `exports.search = () => ({ items: [] });`)
+	out := filepath.Join(t.TempDir(), "nested", "dist")
+	pk, err := Pack(dir, out)
+	if err != nil {
+		t.Fatalf("Pack into missing dir: %v", err)
+	}
+	if filepath.Dir(pk) != out {
+		t.Fatalf("packed path %q, want dir %q", pk, out)
+	}
+	if _, err := os.Stat(pk); err != nil {
+		t.Fatalf("packed file missing: %v", err)
+	}
+}

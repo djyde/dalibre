@@ -244,6 +244,9 @@ func Pack(dir, out string) (string, error) {
 	}
 	defer p.Close()
 	m := p.Manifest
+	if err := os.MkdirAll(out, 0o755); err != nil {
+		return "", err
+	}
 	dst := filepath.Join(out, m.ID+"-"+m.Version+PackageExt)
 	f, err := os.Create(dst)
 	if err != nil {

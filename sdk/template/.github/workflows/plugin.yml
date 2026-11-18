@@ -33,5 +33,6 @@ jobs:
             echo "::error::the tag is $GITHUB_REF_NAME but plugin.json's version is $version"
             exit 1
           fi
+          mkdir -p dist
           npx --yes dalibre-plugin@latest pack . -o dist
           gh release create "$GITHUB_REF_NAME" dist/*.dalibre-plugin --title "$GITHUB_REF_NAME" --generate-notes
