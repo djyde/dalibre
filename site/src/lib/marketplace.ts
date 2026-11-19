@@ -37,7 +37,7 @@ export interface Plugin {
     fileType?: { title?: string };
     actions?: Action[];
   };
-  permissions: { hosts?: string[]; localNetwork?: boolean; library?: "read" | "write" };
+  permissions: { hosts?: string[]; localNetwork?: boolean; library?: "read" | "write"; covers?: "any"; open?: "any" };
 }
 
 export async function loadMarketplace(): Promise<{ categories: Category[]; plugins: Plugin[] }> {
@@ -56,6 +56,8 @@ export function reach(p: Plugin): string {
   if (hosts.length === 1) out.push(hosts[0]);
   else if (hosts.length > 1) out.push(`${hosts.length} sites`);
   if (p.permissions.localNetwork) out.push("Local network");
-  if (!hosts.length && !p.permissions.localNetwork) out.push("Offline");
+  if (p.permissions.covers === "any" && !hosts.length) out.push("Loads covers");
+  if (p.permissions.open === "any") out.push("Opens websites");
+  if (!hosts.length && !p.permissions.localNetwork && p.permissions.open !== "any" && p.permissions.covers !== "any") out.push("Offline");
   return out.join(" · ");
 }
