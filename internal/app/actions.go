@@ -429,10 +429,14 @@ func metadataDiff(old, now calibre.Metadata) []changeLine {
 		return list(parts)
 	}
 	rating := func(m calibre.Metadata) string {
-		if m.Rating == 0 {
+		if m.Rating <= 0 {
 			return ""
 		}
-		return strings.Repeat("★", (m.Rating+1)/2)
+		s := strings.Repeat("★", m.Rating/2)
+		if m.Rating%2 == 1 {
+			s += "½"
+		}
+		return s
 	}
 	text := func(m calibre.Metadata) string {
 		t := strings.Join(strings.Fields(htmlToText(m.Comments)), " ")

@@ -10,6 +10,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 
+	"dalibre/internal/calibre"
 	"dalibre/internal/mcp"
 	"dalibre/internal/plugin"
 )
@@ -387,5 +388,30 @@ func TestActionsForAgents(t *testing.T) {
 		if _, err := h.RunAction(ctx, bad); err == nil || errKind(err) != "" {
 			t.Errorf("%+v: %v", bad, err)
 		}
+	}
+}
+
+func TestHalfStarRatings(t *testing.T) {
+	cases := []struct {
+		old, now         int
+		wantOld, wantNow string
+	}{
+		{8, 7, "★★★★", "★★★½"},
+		{10, 9, "★★★★★", "★★★★½"},
+	}
+	for _, tc := range cases {
+		diff := metadataDiff(calibre.Metadata{Rating: tc.old}, calibre.Metadata{Rating: tc.now})
+		if len(diff) != 1 || diff[0].name != "rating" || diff[0].old != tc.wantOld || diff[0].now != tc.wantNow {
+			t.Fatalf("metadataDiff(%d -> %d) = %+v, want rating %q -> %q", tc.old, tc.now, diff, tc.wantOld, tc.wantNow)
+		}
+	}
+
+	untouched := editState{origRating: 9, rating: 5}
+	if got := untouched.metadata().Rating; got != 9 {
+		t.Fatalf("untouched half-star Rating = %d, want 9", got)
+	}
+	changed := editState{origRating: 9, rating: 4}
+	if got := changed.metadata().Rating; got != 8 {
+		t.Fatalf("changed half-star Rating = %d, want 8", got)
 	}
 }
