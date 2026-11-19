@@ -255,17 +255,25 @@ const googleDune = `{"id":"B1hSG45JCX4C","volumeInfo":{"title":"Dune","authors":
 	"pageCount":896,"categories":["Fiction / Science Fiction / General"],"averageRating":4.5,"ratingsCount":120,
 	"imageLinks":{"thumbnail":"http://books.google.com/books/content?id=B1hSG45JCX4C&zoom=1"},"language":"en"}}`
 
+const googleDunePT = `{"id":"DunePT0001","volumeInfo":{"title":"Dune (Edição em Português)","authors":["Frank Herbert"],"publisher":"Aleph","publishedDate":"2017","language":"pt"}}`
+
 const googleMessiah = `{"id":"Messiah0001","volumeInfo":{"title":"Dune Messiah","authors":["Frank Herbert"],"publishedDate":"1969","language":"en"}}`
 
 func TestGoogleBooks(t *testing.T) {
-	var queries, keys []string
+	var queries, keys, langRestricts []string
 	mux := http.NewServeMux()
 	mux.HandleFunc("www.googleapis.com/books/v1/volumes", func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query().Get("q")
+		lr := r.URL.Query().Get("langRestrict")
 		queries = append(queries, q)
+		langRestricts = append(langRestricts, lr)
 		keys = append(keys, r.Header.Get("X-Goog-Api-Key"))
 		switch q {
 		case "intitle:Dune inauthor:Frank inauthor:Herbert":
+			if lr == "pt" {
+				w.Write([]byte(`{"totalItems":1,"items":[` + googleDunePT + `]}`))
+				return
+			}
 			w.Write([]byte(`{"totalItems":2,"items":[` + googleMessiah + `,` + googleDune + `]}`))
 		case "isbn:9780441172719":
 			w.Write([]byte(`{"totalItems":1,"items":[` + googleDune + `]}`))
@@ -347,5 +355,18 @@ func TestGoogleBooks(t *testing.T) {
 	keys = nil
 	if _, err := load("").Identify(ctx, plugin.Book{Title: "quota"}); !errors.As(err, &pe) || pe.Kind != plugin.KindAuth || keys[0] != "" {
 		t.Errorf("quota without key: %v %q", err, keys)
+	}
+
+	// Non-English library language searches with langRestrict first and deduplicates fallback results.
+	queries, langRestricts = nil, nil
+	got, err = p.Identify(ctx, plugin.Book{Title: "Dune", Authors: []string{"Frank Herbert"}, Language: "por"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(queries) != 2 || langRestricts[0] != "pt" || langRestricts[1] != "" {
+		t.Fatalf("localized search: queries=%q langRestricts=%q", queries, langRestricts)
+	}
+	if len(got) != 3 || got[0].ID != "B1hSG45JCX4C" || got[1].ID != "DunePT0001" {
+		t.Fatalf("localized candidates: %+v", got)
 	}
 }

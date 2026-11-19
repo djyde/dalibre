@@ -49,6 +49,11 @@
       "description": "An SPDX identifier, as \"MIT\".",
       "type": "string"
     },
+    "dalibre": {
+      "description": "Minimum Dalibre version required, as \">=0.2.0\".",
+      "type": "string",
+      "pattern": "^>=\\s*(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
     "main": {
       "description": "The main module, a .js, .mjs, .ts or .mts file relative to plugin.json. Default main.js.",
       "type": "string",

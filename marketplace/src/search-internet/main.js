@@ -5,9 +5,11 @@
 // token encoding (action.py). FictionDB is left out: it searches by POST,
 // and Dalibre only opens links. Open Library, WorldCat, Google Books,
 // Douban and The StoryGraph are added, and so are the Portuguese
-// bookstores Wook and Almedina (#14); Almedina searches from its homepage
-// instant-search state (?books[query]=…), not Magento's
-// /catalogsearch/result/.
+// bookstores Wook and Almedina (#14), Skoob, Wikipedia.pt,
+// Amazon.com.br (utf-8, since it rejects latin-1), and the Brazilian
+// bookstores Estante Virtual and Livraria da Travessa; Almedina
+// searches from its homepage instant-search state (?books[query]=…),
+// not Magento's /catalogsearch/result/.
 //
 // What calibre's configuration dialog does, the customize action does:
 // sites can be switched off (its Active column), kept as favorites that
@@ -30,6 +32,7 @@ const SITES = /** @type {[string, string, string, string, "utf-8" | "latin-1"][]
   ["Amazon.co.uk", "Book", "Amazon", "https://www.amazon.co.uk/s/ref=nb_sb_noss?url=search-alias%3Dstripbooks&field-keywords={author}+{title}", "latin-1"],
   ["Amazon.com", "Book", "Amazon", "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Dstripbooks&field-keywords={author}+{title}", "latin-1"],
   ["Amazon.com.au", "Book", "Amazon", "https://www.amazon.com.au/s/ref=nb_sb_noss?url=search-alias%3Dstripbooks&field-keywords={author}+{title}", "latin-1"],
+  ["Amazon.com.br", "Book", "Amazon", "https://www.amazon.com.br/s/ref=nb_sb_noss?url=search-alias%3Dstripbooks&field-keywords={author}+{title}", "utf-8"],
   ["Amazon.de", "Book", "Amazon", "https://www.amazon.de/s/ref=nb_sb_noss?url=search-alias%3Dstripbooks&field-keywords={author}+{title}", "latin-1"],
   ["Amazon.fr", "Book", "Amazon", "https://www.amazon.fr/s/ref=nb_sb_noss?url=search-alias%3Dstripbooks&field-keywords={author}+{title}", "latin-1"],
   ["Amazon.it", "Book", "Amazon", "https://www.amazon.it/s/ref=nb_sb_noss?url=search-alias%3Dstripbooks&field-keywords={author}+{title}", "latin-1"],
@@ -49,6 +52,10 @@ const SITES = /** @type {[string, string, string, string, "utf-8" | "latin-1"][]
   ["eBay US", "Book", "eBay", "https://www.ebay.com/sch/i.html?_nkw={author}+{title}&_sacat=267", "utf-8"],
   ["EBooks.com", "Author", "EBooks.com", "https://www.ebooks.com/SearchApp/SearchResults.net?term={author}&RestrictBy=author", "utf-8"],
   ["EBooks.com", "Book", "EBooks.com", "https://www.ebooks.com/SearchApp/SearchResults.net?term={author}+{title}", "utf-8"],
+  ["Estante Virtual", "Author", "Brazilian stores", "https://www.estantevirtual.com.br/busca?q={author}", "utf-8"],
+  ["Estante Virtual", "Book", "Brazilian stores", "https://www.estantevirtual.com.br/busca?q={author}+{title}", "utf-8"],
+  ["Estante Virtual", "ISBN", "Brazilian stores", "https://www.estantevirtual.com.br/busca?q={isbn}", "utf-8"],
+  ["Estante Virtual", "Title", "Brazilian stores", "https://www.estantevirtual.com.br/busca?q={title}", "utf-8"],
   ["FantasticFiction", "Author", "FantasticFiction", "https://www.fantasticfiction.com/search/?searchfor=author&keywords={author}", "utf-8"],
   ["FantasticFiction", "Title", "FantasticFiction", "https://www.fantasticfiction.com/search/?searchfor=book&keywords={title}", "utf-8"],
   ["Fnac", "Author", "Fnac", "https://recherche.fnac.com/Search/SearchResult.aspx?SCat=2&Search={author}", "utf-8"],
@@ -85,6 +92,10 @@ const SITES = /** @type {[string, string, string, string, "utf-8" | "latin-1"][]
   ["LibraryThing", "ISBN", "LibraryThing", "https://www.librarything.com/search.php?search={isbn}", "utf-8"],
   ["LibraryThing", "Title", "LibraryThing", "https://www.librarything.com/search.php?search={title}", "utf-8"],
   ["Literature-Map", "Author", "Literature-Map", "https://www.literature-map.com/{author}", "utf-8"],
+  ["Livraria da Travessa", "Author", "Brazilian stores", "https://www.travessa.com.br/Busca.aspx?d=1&bt={author}&cta=00&codtipoartigoexplosao=1", "utf-8"],
+  ["Livraria da Travessa", "Book", "Brazilian stores", "https://www.travessa.com.br/Busca.aspx?d=1&bt={author}+{title}&cta=00&codtipoartigoexplosao=1", "utf-8"],
+  ["Livraria da Travessa", "ISBN", "Brazilian stores", "https://www.travessa.com.br/Busca.aspx?d=1&bt={isbn}&cta=00&codtipoartigoexplosao=1", "utf-8"],
+  ["Livraria da Travessa", "Title", "Brazilian stores", "https://www.travessa.com.br/Busca.aspx?d=1&bt={title}&cta=00&codtipoartigoexplosao=1", "utf-8"],
   ["Lovereading", "Author", "Lovereading", "https://www.lovereading.co.uk/search?s={author}", "utf-8"],
   ["Lovereading", "Book", "Lovereading", "https://www.lovereading.co.uk/search?s={author}+{title}&view=book-results", "utf-8"],
   ["Lovereading", "Title", "Lovereading", "https://www.lovereading.co.uk/search?s={title}&view=book-results", "utf-8"],
@@ -95,6 +106,10 @@ const SITES = /** @type {[string, string, string, string, "utf-8" | "latin-1"][]
   ["NYTimes", "Title", "NYTimes", "https://nytimes.com/search?query={title}", "utf-8"],
   ["Open Library", "Book", "Open Library", "https://openlibrary.org/search?q={author}+{title}", "utf-8"],
   ["Open Library", "ISBN", "Open Library", "https://openlibrary.org/isbn/{isbn}", "utf-8"],
+  ["Skoob", "Author", "Skoob", "https://www.skoob.com.br/pt/search?searchTerm={author}&tab=author", "utf-8"],
+  ["Skoob", "Book", "Skoob", "https://www.skoob.com.br/pt/search?searchTerm={author}+{title}&tab=book", "utf-8"],
+  ["Skoob", "ISBN", "Skoob", "https://www.skoob.com.br/pt/search?searchTerm={isbn}&tab=book", "utf-8"],
+  ["Skoob", "Title", "Skoob", "https://www.skoob.com.br/pt/search?searchTerm={title}&tab=book", "utf-8"],
   ["The StoryGraph", "Book", "The StoryGraph", "https://app.thestorygraph.com/browse?search_term={author}+{title}", "utf-8"],
   ["Waterstones", "Author", "Waterstones", "https://www.waterstones.com/books/search/term/{author}", "utf-8"],
   ["Waterstones", "Book", "Waterstones", "https://www.waterstones.com/books/search/term/{title}+{author}", "utf-8"],
@@ -116,6 +131,9 @@ const SITES = /** @type {[string, string, string, string, "utf-8" | "latin-1"][]
   ["Wikipedia.it", "Author", "Wikipedia", "https://it.wikipedia.org/w/index.php?title=Special%3ASearch&search={author}", "utf-8"],
   ["Wikipedia.it", "Book", "Wikipedia", "https://it.wikipedia.org/w/index.php?title=Special%3ASearch&search={author}+{title}", "utf-8"],
   ["Wikipedia.it", "Title", "Wikipedia", "https://it.wikipedia.org/w/index.php?title=Special%3ASearch&search={title}", "utf-8"],
+  ["Wikipedia.pt", "Author", "Wikipedia", "https://pt.wikipedia.org/w/index.php?title=Special%3ASearch&search={author}", "utf-8"],
+  ["Wikipedia.pt", "Book", "Wikipedia", "https://pt.wikipedia.org/w/index.php?title=Special%3ASearch&search={author}+{title}", "utf-8"],
+  ["Wikipedia.pt", "Title", "Wikipedia", "https://pt.wikipedia.org/w/index.php?title=Special%3ASearch&search={title}", "utf-8"],
   ["Wook", "Author", "Portuguese stores", "https://www.wook.pt/pesquisa?keyword={author}", "utf-8"],
   ["Wook", "Book", "Portuguese stores", "https://www.wook.pt/pesquisa?keyword={author}+{title}", "utf-8"],
   ["Wook", "Title", "Portuguese stores", "https://www.wook.pt/pesquisa?keyword={title}", "utf-8"],

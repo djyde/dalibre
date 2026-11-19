@@ -897,7 +897,7 @@ func cmdInstall(_ context.Context, args []string) error {
 	st := s.Plugin(m.ID)
 	have := plugin.Permissions{}
 	if st.Granted != nil {
-		have = plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, Device: st.Granted.Device, CoverHosts: st.Granted.Covers}
+		have = plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, Device: st.Granted.Device, CoverHosts: st.Granted.Covers, OpenHosts: st.Granted.Open}
 	}
 	if !have.Covers(m.Permissions) {
 		fmt.Printf("%s %s", m.Name, m.Version)
@@ -915,7 +915,7 @@ func cmdInstall(_ context.Context, args []string) error {
 				return errors.New("not installed")
 			}
 		}
-		st.Granted = &settings.Grant{Hosts: m.Permissions.Hosts, LocalNetwork: m.Permissions.LocalNetwork, Library: m.Permissions.Library, Device: m.Permissions.Device, Covers: m.Permissions.CoverHosts}
+		st.Granted = &settings.Grant{Hosts: m.Permissions.Hosts, LocalNetwork: m.Permissions.LocalNetwork, Library: m.Permissions.Library, Device: m.Permissions.Device, Covers: m.Permissions.CoverHosts, Open: m.Permissions.OpenHosts}
 	}
 	if _, err := plugin.Install(archive, plugin.DefaultDir()); err != nil {
 		return err
@@ -968,7 +968,7 @@ func cmdList(_ context.Context, args []string) error {
 		case st != nil && st.Disabled:
 			state = "off"
 		case st == nil || st.Granted == nil ||
-			!(plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, Device: st.Granted.Device, CoverHosts: st.Granted.Covers}).Covers(m.Permissions):
+			!(plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, Device: st.Granted.Device, CoverHosts: st.Granted.Covers, OpenHosts: st.Granted.Open}).Covers(m.Permissions):
 			state = "waiting for permission"
 		}
 		fmt.Printf("%-24s %-10s %s (%s)\n", m.ID, m.Version, m.Name, state)

@@ -694,7 +694,7 @@ func (a *App) consentDialog(c *ui.Context) {
 	// For an update, only what is new is asked.
 	var had *plugin.Permissions
 	if st := a.settings.Plugins[m.ID]; st != nil && st.Granted != nil {
-		had = &plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, Device: st.Granted.Device, CoverHosts: st.Granted.Covers}
+		had = &plugin.Permissions{Hosts: st.Granted.Hosts, LocalNetwork: st.Granted.LocalNetwork, Library: st.Granted.Library, Device: st.Granted.Device, CoverHosts: st.Granted.Covers, OpenHosts: st.Granted.Open}
 	}
 	title := locales.PluginsConsentInstallTitle(m.Name)
 	if had != nil {

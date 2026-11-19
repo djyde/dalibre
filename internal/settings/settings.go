@@ -258,6 +258,8 @@ type Grant struct {
 	Device       bool     `json:"device,omitempty"`
 	// Covers is "any" when it may load covers from any website.
 	Covers string `json:"covers,omitempty"`
+	// Open is "any" when it may open any website in the browser.
+	Open string `json:"open,omitempty"`
 	// Tools are the tools the user let it run, as plugin.Tool.Identity
 	// names them, by id: a version and a build.
 	Tools map[string]string `json:"tools,omitempty"`

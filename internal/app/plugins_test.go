@@ -435,3 +435,30 @@ func TestSourcePickerWithNoSources(t *testing.T) {
 	}
 	shot(t, tt, "source-picker-empty")
 }
+
+func TestPluginGrantOpenAndCovers(t *testing.T) {
+	m := &plugin.Manifest{
+		ID:      "com.example.open",
+		Version: "1.0.0",
+		Permissions: plugin.Permissions{
+			CoverHosts: plugin.CoversAny,
+			OpenHosts:  plugin.OpenAny,
+		},
+	}
+	g := grantFor(m)
+	if g.Covers != plugin.CoversAny {
+		t.Fatalf("grantFor Covers = %q, want %q", g.Covers, plugin.CoversAny)
+	}
+	if g.Open != plugin.OpenAny {
+		t.Fatalf("grantFor Open = %q, want %q", g.Open, plugin.OpenAny)
+	}
+	if !granted(&settings.PluginState{Granted: g}, m) {
+		t.Fatal("granted returned false for matching Open and Covers grants")
+	}
+	if granted(&settings.PluginState{Granted: &settings.Grant{Covers: plugin.CoversAny}}, m) {
+		t.Fatal("granted returned true when Open grant is missing")
+	}
+	if granted(&settings.PluginState{Granted: &settings.Grant{Open: plugin.OpenAny}}, m) {
+		t.Fatal("granted returned true when Covers grant is missing")
+	}
+}

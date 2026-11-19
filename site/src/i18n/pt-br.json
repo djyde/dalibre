@@ -15,7 +15,7 @@
     ]
   },
   "nav": {
-    "agentes": "Agentes de IA",
+    "agents": "Agentes de IA",
     "plugins": "Plugins",
     "docs": "Docs",
     "changelog": "Changelog",

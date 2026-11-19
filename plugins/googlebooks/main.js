@@ -28,8 +28,8 @@ export async function identify(book) {
   const author = book.authors[0] || "";
   // Fielded first; Google's free-text search when that finds nothing, as
   // titles in the library are often longer or shorter than Google's.
-  let found = await search(fielded(title, author));
-  if (found.length === 0) found = await search(author ? `${title} ${author}` : title);
+  let found = await search(fielded(title, author), book.language);
+  if (found.length === 0) found = await search(author ? `${title} ${author}` : title, book.language);
   return found
     .map((v, i) => ({ v, score: score(v.volumeInfo, title, book.authors, book.language) - i * 0.01 }))
     .sort((x, y) => y.score - x.score)
@@ -43,9 +43,35 @@ function fielded(title, author) {
   return [...words(title).map((w) => `intitle:${w}`), ...words(author).map((w) => `inauthor:${w}`)].join(" ");
 }
 
-/** The volumes matching q. @param {string} q @returns {Promise<any[]>} */
-async function search(q) {
-  const url = `${API}/volumes?q=${encodeURIComponent(q)}&printType=books&maxResults=20`;
+/** @type {Record<string, string>} */
+const ISO2 = {
+  por: "pt", spa: "es", fra: "fr", fre: "fr", deu: "de", ger: "de", ita: "it",
+  rus: "ru", jpn: "ja", zho: "zh", chi: "zh", kor: "ko", nld: "nl", dut: "nl",
+  pol: "pl", tur: "tr", ara: "ar", swe: "sv", eng: "en",
+};
+
+/** Normalize a 2- or 3-letter language tag to an ISO 639-1 code. @param {string | undefined} raw */
+function langCode(raw) {
+  const s = String(raw ?? "").trim().toLowerCase().split(/[-_]/)[0];
+  if (!s) return "";
+  return ISO2[s] || (s.length === 2 ? s : "");
+}
+
+/** The volumes matching q, querying langRestrict first for non-English books. @param {string} q @param {string | undefined} [language] @returns {Promise<any[]>} */
+async function search(q, language) {
+  const code = langCode(language);
+  const localized = code && code !== "en" ? await query(q, code) : [];
+  if (localized.length >= MAX) return localized;
+  const fallback = await query(q, "");
+  if (localized.length === 0) return fallback;
+  const seen = new Set(localized.map((/** @type {any} */ v) => v.id));
+  return [...localized, ...fallback.filter((/** @type {any} */ v) => !seen.has(v.id))];
+}
+
+/** @param {string} q @param {string} langRestrict @returns {Promise<any[]>} */
+async function query(q, langRestrict) {
+  const suffix = langRestrict ? `&langRestrict=${encodeURIComponent(langRestrict)}` : "";
+  const url = `${API}/volumes?q=${encodeURIComponent(q)}&printType=books&maxResults=20${suffix}`;
   const data = await getJSON(url, false);
   return (data?.items ?? []).filter((/** @type {any} */ v) => v && v.id && v.volumeInfo?.title);
 }
@@ -109,7 +135,9 @@ function score(v, title, authors, language) {
   else if (t.includes(want) || want.includes(t)) s += 0.5;
   const theirs = (v.authors ?? []).map(norm);
   if (authors.some((a) => theirs.some((/** @type {string} */ x) => x.includes(norm(a)) || norm(a).includes(x) || sameName(x, norm(a))))) s += 1.5;
-  if (language && v.language && v.language.slice(0, 2).toLowerCase() === language.slice(0, 2).toLowerCase()) s += 0.5;
+  const wantLang = langCode(language);
+  const itemLang = langCode(v.language);
+  if (wantLang && itemLang && wantLang === itemLang) s += 0.5;
   if (v.imageLinks) s += 0.2;
   if (v.description) s += 0.1;
   return s;

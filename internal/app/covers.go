@@ -8,6 +8,7 @@ import (
 	_ "image/png"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 
@@ -23,17 +24,69 @@ type coverKey struct {
 	height int
 }
 
-// coverCache holds decoded covers, made from small thumbnails on disk.
+// coverKeep is how long a cover stays decoded once no build draws it:
+// scrolling back within it shows the cover at once; later, it loads again
+// from its thumbnail in the background.
+const coverKeep = 3 * time.Second
+
+// coverUse is when a cover was last asked for: the build and the time.
+type coverUse struct {
+	gen  int
+	seen time.Time
+}
+
+// cachedCover is a decoded cover and when it was last drawn.
+type cachedCover struct {
+	bmp *ui.Bitmap
+	coverUse
+}
+
+// coverCache holds decoded covers, made from small thumbnails on disk. It
+// keeps only those the window drew lately, so a library of thousands of
+// books holds about as many decoded covers as fit on the screen.
 type coverCache struct {
 	thumbs  *thumbs.Cache
-	bitmaps map[coverKey]*ui.Bitmap
+	bitmaps map[coverKey]*cachedCover
 	failed  map[coverKey]bool
-	loading map[coverKey]bool
+	loading map[coverKey]*coverUse
+	// gen counts the window's builds; sweeping says a later build is
+	// asked for, to sweep again.
+	gen      int
+	sweeping bool
 }
 
 func newCoverCache() *coverCache {
 	tc, _ := thumbs.New()
-	return &coverCache{thumbs: tc, bitmaps: map[coverKey]*ui.Bitmap{}, failed: map[coverKey]bool{}, loading: map[coverKey]bool{}}
+	return &coverCache{thumbs: tc, bitmaps: map[coverKey]*cachedCover{}, failed: map[coverKey]bool{}, loading: map[coverKey]*coverUse{}}
+}
+
+// sweep starts a build of the window: it drops the covers no build drew
+// for coverKeep, and reports whether others it didn't draw remain.
+func (cc *coverCache) sweep(now time.Time) (undrawn bool) {
+	for k, e := range cc.bitmaps {
+		switch {
+		case e.gen == cc.gen:
+			e.seen = now
+		case now.Sub(e.seen) >= coverKeep:
+			delete(cc.bitmaps, k)
+		default:
+			undrawn = true
+		}
+	}
+	cc.gen++
+	return undrawn
+}
+
+// sweepCovers sweeps the cover cache as a build starts and, while covers
+// it didn't draw remain, has the window build again once they are due, so
+// they go even when nothing else changes.
+func (a *App) sweepCovers() {
+	cc := a.covers
+	if !cc.sweep(time.Now()) || cc.sweeping {
+		return
+	}
+	cc.sweeping = true
+	time.AfterFunc(coverKeep, func() { a.post(func() { cc.sweeping = false }) })
 }
 
 func (cc *coverCache) forget(id int64) {
@@ -57,13 +110,19 @@ func (a *App) cover(b *calibre.Book, height int) *ui.Bitmap {
 	}
 	cc := a.covers
 	k := coverKey{b.ID, b.LastModified.UnixNano(), height}
-	if bmp := cc.bitmaps[k]; bmp != nil {
-		return bmp
+	if e := cc.bitmaps[k]; e != nil {
+		e.gen = cc.gen
+		return e.bmp
 	}
-	if cc.failed[k] || cc.loading[k] {
+	if u := cc.loading[k]; u != nil {
+		*u = coverUse{cc.gen, time.Now()}
 		return nil
 	}
-	cc.loading[k] = true
+	if cc.failed[k] {
+		return nil
+	}
+	use := &coverUse{cc.gen, time.Now()}
+	cc.loading[k] = use
 	src := a.lib.CoverPath(b)
 	a.run(func() {
 		var bmp *ui.Bitmap
@@ -84,7 +143,9 @@ func (a *App) cover(b *calibre.Book, height int) *ui.Bitmap {
 				cc.failed[k] = true
 				return
 			}
-			cc.bitmaps[k] = bmp
+			// Kept as last asked for: one a fling scrolled past while it
+			// loaded goes with the next sweep.
+			cc.bitmaps[k] = &cachedCover{bmp, *use}
 		})
 	})
 	return nil

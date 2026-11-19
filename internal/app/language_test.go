@@ -14,7 +14,7 @@ import (
 // app shows the language it is set to.
 func TestLanguages(t *testing.T) {
 	langs := languages()
-	for _, want := range []string{"en", "zh-Hans", "zh-Hant", "ja", "ko", "de", "fr", "es"} {
+	for _, want := range []string{"en", "zh-Hans", "zh-Hant", "ja", "ko", "de", "fr", "es", "pt-BR"} {
 		if !slices.Contains(langs, want) {
 			t.Errorf("no %s catalog: %v", want, langs)
 		}
@@ -22,11 +22,18 @@ func TestLanguages(t *testing.T) {
 	if got := bestLanguage("zh-TW"); got != "zh-Hant" {
 		t.Errorf("bestLanguage(zh-TW) = %s", got)
 	}
-	if got := bestLanguage("pt-BR"); got != "en" {
+	if got := bestLanguage("pt-BR"); got != "pt-BR" {
 		t.Errorf("bestLanguage(pt-BR) = %s", got)
 	}
+	if got := bestLanguage("pt"); got != "pt-BR" {
+		t.Errorf("bestLanguage(pt) = %s", got)
+	}
+	if got := bestLanguage("ru"); got != "en" {
+		t.Errorf("bestLanguage(ru) = %s", got)
+	}
 
-	i18n.SetLocaleFunc(func() string { return "zh-Hans" })
+	loc := "zh-Hans"
+	i18n.SetLocaleFunc(func() string { return loc })
 	t.Cleanup(func() { i18n.SetLocaleFunc(nil) })
 	a := newTestApp(t)
 	tt := ui.NewTester(a.View, 1440, 900)
@@ -35,6 +42,16 @@ func TestLanguages(t *testing.T) {
 	tt.Frame()
 	zh := locales.In("zh-Hans")
 	for _, s := range []string{zh.CommonSettings(), zh.LanguageSystem("简体中文")} {
+		if s == locales.In("en").CommonSettings() || !tt.HasText(s) {
+			t.Errorf("no %q in %q", s, tt.Texts())
+		}
+	}
+
+	loc = "pt-BR"
+	tt.SetLocale("pt-BR")
+	tt.Frame()
+	pt := locales.In("pt-BR")
+	for _, s := range []string{pt.CommonSettings(), pt.LanguageSystem(autonym("pt-BR"))} {
 		if s == locales.In("en").CommonSettings() || !tt.HasText(s) {
 			t.Errorf("no %q in %q", s, tt.Texts())
 		}

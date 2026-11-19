@@ -1,4 +1,8 @@
 {
   "$schema": "./community.schema.json",
-  "plugins": []
+  "plugins": [
+    { "repo": "bellussi1/dalibre-hardcover", "category": "metadata" },
+    { "repo": "bellussi1/dalibre-isbn-brasil", "category": "metadata" },
+    { "repo": "bellussi1/dalibre-openlibrary", "category": "metadata" }
+  ]
 }
