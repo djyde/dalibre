@@ -153,7 +153,7 @@ func (a *App) deviceToolbar(c *ui.Context, v *deviceView) {
 // deviceShelf is a reader's books, for the grid and the list.
 func (a *App) deviceShelf(v *deviceView) shelf {
 	return shelf{
-		grid: &v.grid, table: &v.table, tableSort: &v.tableSort, chosen: &v.chosen, cur: &v.cur, query: &v.query,
+		grid: &v.grid, table: &v.table, tableSort: &v.tableSort, layout: &v.tableLayout, chosen: &v.chosen, cur: &v.cur, query: &v.query,
 		menu:  func(b *calibre.Book) func(*ui.Menu) { return a.deviceBookMenu(v, b) },
 		cover: func(b *calibre.Book, h int) *ui.Bitmap { return a.deviceCover(v, b, h) },
 		open:  func(b *calibre.Book) { a.openReaderBook(v, b) },

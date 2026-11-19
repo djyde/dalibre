@@ -263,6 +263,7 @@
   "booksColFormats": "Formats",
   "booksColSize": "Taille",
   "booksColAdded": "Ajouté",
+  "booksMenuResetColumns": "Réinitialiser les colonnes",
   "booksSeriesIndex": "{series} #{index}",
   "booksMenuEditMetadata": "Modifier les métadonnées…",
   "booksMenuRemoveMany": "Retirer {count, plural, one {# livre} many {# livres} other {# livres}}",

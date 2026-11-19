@@ -263,6 +263,7 @@
   "booksColFormats": "フォーマット",
   "booksColSize": "サイズ",
   "booksColAdded": "追加日",
+  "booksMenuResetColumns": "列をリセット",
   "booksSeriesIndex": "{series} #{index}",
   "booksMenuEditMetadata": "メタデータを編集…",
   "booksMenuRemoveMany": "{count, plural, other {# 冊}}を削除",

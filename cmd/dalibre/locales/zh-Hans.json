@@ -263,6 +263,7 @@
   "booksColFormats": "格式",
   "booksColSize": "大小",
   "booksColAdded": "添加日期",
+  "booksMenuResetColumns": "重置列",
   "booksSeriesIndex": "{series} #{index}",
   "booksMenuEditMetadata": "编辑元数据…",
   "booksMenuRemoveMany": "移除 {count, plural, other {# 本书}}",

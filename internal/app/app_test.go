@@ -583,3 +583,72 @@ func TestOpenOrder(t *testing.T) {
 		t.Errorf("order %q", got)
 	}
 }
+
+func TestListColumns(t *testing.T) {
+	a := newTestApp(t)
+	a.settings.ListView = true
+	tt := ui.NewTester(a.View, 1440, 900)
+	tt.Frame()
+	toggle := func(column string) {
+		t.Helper()
+		if err := tt.RightClick("Rating"); err != nil {
+			t.Fatal(err)
+		}
+		if err := tt.ChooseMenuItem(column); err != nil {
+			t.Fatalf("%v; menu %q", err, tt.Menu())
+		}
+		tt.Frame()
+	}
+	at := func(s string) float32 {
+		t.Helper()
+		r, ok := tt.Find(s)
+		if !ok {
+			t.Fatalf("no %q in %q", s, tt.Texts())
+		}
+		return r.X
+	}
+	drag := func(column string, dx float32) {
+		t.Helper()
+		r, _ := tt.Find(column)
+		x, y := r.X+5, r.Y+r.H/2
+		tt.Press(x, y)
+		for d := float32(0); d*dx/abs(dx) < abs(dx); d += dx / 10 {
+			tt.Move(x+d, y)
+		}
+		tt.Release(x+dx, y)
+		tt.Frame()
+	}
+	// Tags, off by default, shows a book's first tag and how many more.
+	if tt.HasText("Tags") {
+		t.Fatalf("Tags shown by default")
+	}
+	toggle("Tags")
+	if !tt.HasText("Tags") || !tt.HasText("+1") {
+		t.Errorf("Tags column: %q", tt.Texts())
+	}
+	// Rating dragged before Series; Series hidden; Rating dragged past
+	// Formats: Series, shown again, comes back after Rating.
+	drag("Rating", -100)
+	if at("Rating") > at("Series") {
+		t.Fatalf("Rating not moved before Series: %q", a.settings.ListColumns.Order)
+	}
+	toggle("Series")
+	if tt.HasText("Series") {
+		t.Fatalf("Series still shown")
+	}
+	drag("Rating", 150)
+	if at("Formats") > at("Rating") {
+		t.Fatalf("Rating not moved past Formats: %q", a.settings.ListColumns.Order)
+	}
+	toggle("Series")
+	if !(at("Formats") < at("Rating") && at("Rating") < at("Series") && at("Series") < at("Size")) {
+		t.Errorf("order after showing Series: %q", a.settings.ListColumns.Order)
+	}
+	shot(t, tt, "list-columns")
+	toggle("Reset columns")
+	if tt.HasText("Tags") || at("Series") > at("Rating") {
+		t.Errorf("reset: %+v", a.settings.ListColumns)
+	}
+}
+
+func abs(f float32) float32 { return max(f, -f) }

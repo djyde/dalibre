@@ -263,6 +263,7 @@
   "booksColFormats": "포맷",
   "booksColSize": "크기",
   "booksColAdded": "추가일",
+  "booksMenuResetColumns": "열 재설정",
   "booksSeriesIndex": "{series} #{index}",
   "booksMenuEditMetadata": "메타데이터 편집…",
   "booksMenuRemoveMany": "{count, plural, other {책 #권 제거}}",

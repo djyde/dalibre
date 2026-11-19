@@ -2,6 +2,8 @@ package app
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"strings"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 	"dalibre/internal/app/widgets"
 	"dalibre/internal/calibre"
 	"dalibre/internal/catalog"
+	"dalibre/internal/settings"
 )
 
 // The grid is a wall of floating shelves (Figma "01b · Library — Shelf"):
@@ -47,12 +50,14 @@ type shelf struct {
 	// reader is the reader the book is on, for its obi; nil on a reader's own
 	// page.
 	reader func(b *calibre.Book) string
+	// layout is the column layout the table was last given.
+	layout *ui.TableLayout
 }
 
 // libraryShelf is the library's books.
 func (a *App) libraryShelf() shelf {
 	return shelf{
-		grid: &a.grid, table: &a.table, tableSort: &a.tableSort, chosen: &a.chosen, cur: &a.cur, query: &a.query,
+		grid: &a.grid, table: &a.table, tableSort: &a.tableSort, layout: &a.tableLayout, chosen: &a.chosen, cur: &a.cur, query: &a.query,
 		sorted: a.saveSettings, menu: a.bookMenu, cover: a.cover,
 		reader: func(b *calibre.Book) string { return a.readerName(b.ID) },
 		open:   func(*calibre.Book) { a.openBook(a.current(), "") },
@@ -201,7 +206,8 @@ func shelfCoverH(bmp *ui.Bitmap) float32 {
 	return min(max(theme.CoverW*float32(h)/float32(w), coverMinH), coverMaxH)
 }
 
-// tableColumns are the list view's columns, titled in the current language.
+// tableColumns are the columns the list view shows by default, titled in
+// the current language; the action dialogs show these.
 func tableColumns() []ui.TableColumn {
 	return []ui.TableColumn{
 		{ID: "cover", Width: 44, Fixed: true},
@@ -215,9 +221,95 @@ func tableColumns() []ui.TableColumn {
 	}
 }
 
+// moreColumns are the list view's columns it hides until the user shows
+// them from its header's menu.
+func moreColumns() []ui.TableColumn {
+	return []ui.TableColumn{
+		{ID: "publisher", Title: locales.CommonPublisher(), Width: 140},
+		{ID: "tags", Title: locales.CommonTags(), Width: 160},
+		{ID: "language", Title: locales.CommonLanguage(), Width: 90},
+		{ID: "published", Title: locales.CommonPublished(), Width: 96, Align: ui.End, Sortable: true},
+		{ID: "modified", Title: locales.MainSortModified(), Width: 96, Align: ui.End, Sortable: true},
+	}
+}
+
 var columnSort = map[string]catalog.SortKey{
 	"title": catalog.SortTitle, "author": catalog.SortAuthor, "series": catalog.SortSeries, "rating": catalog.SortRating,
-	"size": catalog.SortSize, "added": catalog.SortDateAdded,
+	"size": catalog.SortSize, "added": catalog.SortDateAdded, "published": catalog.SortPublished, "modified": catalog.SortModified,
+}
+
+// columnShown reports whether the list shows the column: as the user
+// chose, else as it does by default. Title always shows.
+func (a *App) columnShown(col ui.TableColumn) bool {
+	if col.Fixed || col.RowHeader {
+		return true
+	}
+	if on, ok := a.settings.ListColumns.Show[col.ID]; ok {
+		return on
+	}
+	return slices.ContainsFunc(tableColumns(), func(d ui.TableColumn) bool { return d.ID == col.ID })
+}
+
+// listColumns are the columns the list shows.
+func (a *App) listColumns() []ui.TableColumn {
+	var cols []ui.TableColumn
+	for _, col := range append(tableColumns(), moreColumns()...) {
+		if a.columnShown(col) {
+			cols = append(cols, col)
+		}
+	}
+	return cols
+}
+
+// columnsMenu is the list header's menu: a column to show or hide each,
+// and Reset columns.
+func (a *App) columnsMenu(m *ui.Menu, _ int) {
+	defaults := len(tableColumns())
+	for i, col := range append(tableColumns(), moreColumns()...) {
+		if col.Fixed {
+			continue
+		}
+		if i == defaults {
+			m.Separator()
+		}
+		on := a.columnShown(col)
+		it := m.Item(col.Title).Checked(on)
+		if col.RowHeader {
+			it.Disabled(true)
+			continue
+		}
+		if it.Chosen() {
+			lc := &a.settings.ListColumns
+			if lc.Show == nil {
+				lc.Show = map[string]bool{}
+			}
+			lc.Show[col.ID] = !on
+			a.saveSettings()
+		}
+	}
+	m.Separator()
+	if m.Item(locales.BooksMenuResetColumns()).Icon(icons.Menu(icons.Refresh)).Chosen() {
+		a.settings.ListColumns = settings.ListColumns{}
+		a.saveSettings()
+	}
+}
+
+// keepHidden is the order the table gave the columns it shows, with each
+// column hidden in old after the one it followed there, so a column shown
+// again comes back to its place.
+func keepHidden(old, shown []string) []string {
+	out := slices.Clone(shown)
+	for i, id := range old {
+		if slices.Contains(shown, id) {
+			continue
+		}
+		at := 0
+		if i > 0 {
+			at = slices.Index(out, old[i-1]) + 1
+		}
+		out = slices.Insert(out, at, id)
+	}
+	return out
 }
 
 func (a *App) listView(c *ui.Context, s shelf, shown []*calibre.Book) {
@@ -229,6 +321,8 @@ func (a *App) listView(c *ui.Context, s shelf, shown []*calibre.Book) {
 		}
 	}
 	before := *s.tableSort
+	a.columnsLayout(s)
+	cols := a.listColumns()
 	s.table.Key = func(i int) any { return shown[i].ID }
 	s.table.Selection = s.chosen
 	s.table.Selected = s.cur
@@ -236,57 +330,15 @@ func (a *App) listView(c *ui.Context, s shelf, shown []*calibre.Book) {
 	s.table.RoundRows = true
 	s.table.Label = func(i int) string { return shown[i].Title }
 	s.table.CellMenu = func(m *ui.Menu, row, col int) { s.menu(shown[row])(m) }
+	s.table.HeaderMenu = a.columnsMenu
 	// Chosen rows in the design's tint (bg/selected) with the usual text,
 	// rather than the accent with white text, so every column stays legible.
 	tt := *c.Theme()
 	tt.Accent, tt.InactiveAccent, tt.AccentText = pal().Selected, pal().Selected, pal().Text
 	var t ui.Element
 	ui.Themed(c, &tt).Grow(1).MinHeight(0).Background(ui.Transparent).Margin(0, theme.Space24, theme.Space24, theme.Space24).AlignItems(ui.Stretch).Children(func() {
-		t = ui.Table(c, s.table, tableColumns(), len(shown), func(row, col int) {
-			b := shown[row]
-			switch col {
-			case 0:
-				ui.Box(c).Padding(theme.Space6, 0).Children(func() { coverOf(c, b, s.cover(b, 80), 28, 40, true) })
-			case 1:
-				ui.Column(c).Gap(theme.Space2).MinWidth(0).Children(func() {
-					ui.Text(c, b.Title).FontWeight(500).SingleLine()
-					sub := b.Sort
-					if !b.Pubdate.IsZero() {
-						sub = fmt.Sprint(b.Pubdate.Year())
-					} else {
-						sub = ""
-					}
-					if b.Publisher != "" {
-						sub = strings.TrimPrefix(sub+" · "+b.Publisher, " · ")
-					}
-					if sub != "" {
-						ui.Text(c, sub).FontSize(12).TextColor(pal().TextTertiary).SingleLine()
-					}
-				})
-			case 2:
-				ui.Text(c, strings.Join(b.Authors, ", ")).SingleLine()
-			case 3:
-				if b.Series != "" {
-					ui.Text(c, locales.BooksSeriesIndex(b.Series, seriesIndex(b.SeriesIndex))).TextColor(pal().TextSecondary).SingleLine()
-				} else {
-					ui.Text(c, "—").TextColor(pal().TextTertiary)
-				}
-			case 4:
-				widgets.Stars(c, b.Rating, 12)
-			case 5:
-				ui.Row(c).Gap(theme.Space4).Children(func() {
-					for _, f := range b.Formats {
-						widgets.FormatBadge(c.Key(f), f, false)
-					}
-					if r := s.readerOf(b); r != "" {
-						widgets.ReaderTag(c.Key("reader"), r)
-					}
-				})
-			case 6:
-				ui.Text(c, humanSize(b.Size)).Font(theme.FontMono).FontSize(12).TextColor(pal().TextSecondary).NoWrap()
-			case 7:
-				ui.Text(c, isoDate(b.Timestamp)).Font(theme.FontMono).FontSize(12).TextColor(pal().TextSecondary).NoWrap()
-			}
+		t = ui.Table(c, s.table, cols, len(shown), func(row, col int) {
+			s.bookCell(c, shown[row], cols[col].ID)
 		}).Grow(1).Label(locales.BooksLabel())
 	})
 	if t.Submitted() {
@@ -302,6 +354,115 @@ func (a *App) listView(c *ui.Context, s shelf, shown []*calibre.Book) {
 			}
 		}
 	}
+	a.columnsLayout(s)
+}
+
+// columnsLayout gives the list the layout of its columns the settings
+// keep, which the library and the readers share, after keeping in them
+// what the user changed in the table since it was last given one.
+func (a *App) columnsLayout(s shelf) {
+	lc := &a.settings.ListColumns
+	if l := s.table.Columns; !slices.Equal(l.Order, s.layout.Order) || !maps.Equal(l.Widths, s.layout.Widths) {
+		if !slices.Equal(l.Order, s.layout.Order) {
+			lc.Order = keepHidden(lc.Order, l.Order)
+		}
+		if !maps.Equal(l.Widths, s.layout.Widths) {
+			lc.Widths = l.Widths
+		}
+		a.saveSettingsSoon()
+	}
+	s.table.Columns = ui.TableLayout{Order: lc.Order, Widths: lc.Widths}
+	*s.layout = s.table.Columns
+}
+
+// bookCell is the cell of the list's column id for b.
+func (s shelf) bookCell(c *ui.Context, b *calibre.Book, id string) {
+	switch id {
+	case "cover":
+		ui.Box(c).Padding(theme.Space6, 0).Children(func() { coverOf(c, b, s.cover(b, 80), 28, 40, true) })
+	case "title":
+		ui.Column(c).Gap(theme.Space2).MinWidth(0).Children(func() {
+			ui.Text(c, b.Title).FontWeight(500).SingleLine()
+			sub := ""
+			if !b.Pubdate.IsZero() {
+				sub = fmt.Sprint(b.Pubdate.Year())
+			}
+			if b.Publisher != "" {
+				sub = strings.TrimPrefix(sub+" · "+b.Publisher, " · ")
+			}
+			if sub != "" {
+				ui.Text(c, sub).FontSize(12).TextColor(pal().TextTertiary).SingleLine()
+			}
+		})
+	case "author":
+		ui.Text(c, strings.Join(b.Authors, ", ")).SingleLine()
+	case "series":
+		if b.Series != "" {
+			ui.Text(c, locales.BooksSeriesIndex(b.Series, seriesIndex(b.SeriesIndex))).TextColor(pal().TextSecondary).SingleLine()
+		} else {
+			dash(c)
+		}
+	case "rating":
+		widgets.Stars(c, b.Rating, 12)
+	case "formats":
+		ui.Row(c).Gap(theme.Space4).Children(func() {
+			for _, f := range b.Formats {
+				widgets.FormatBadge(c.Key(f), f, false)
+			}
+			if r := s.readerOf(b); r != "" {
+				widgets.ReaderTag(c.Key("reader"), r)
+			}
+		})
+	case "size":
+		monoCell(c, humanSize(b.Size))
+	case "added":
+		monoCell(c, isoDate(b.Timestamp))
+	case "publisher":
+		secondaryCell(c, b.Publisher)
+	case "tags":
+		if len(b.Tags) == 0 {
+			dash(c)
+			return
+		}
+		// The first tag, as the Tag component shows it, then how many more.
+		ui.Row(c).Gap(theme.Space4).MinWidth(0).AlignItems(ui.Center).Children(func() {
+			ui.Row(c).Height(24).Shrink(1).MinWidth(0).Radius(theme.RadiusFull).AlignItems(ui.Center).Padding(0, theme.Space8).Background(pal().Subtle).Children(func() {
+				ui.Text(c, b.Tags[0]).FontSize(12).FontWeight(500).TextColor(pal().TextSecondary).SingleLine().Shrink(1).MinWidth(0)
+			})
+			if n := len(b.Tags) - 1; n > 0 {
+				ui.Text(c, fmt.Sprintf("+%d", n)).FontSize(12).TextColor(pal().TextTertiary).NoWrap()
+			}
+		})
+	case "language":
+		langs := make([]string, len(b.Languages))
+		for i, l := range b.Languages {
+			langs[i] = languageName(l)
+		}
+		secondaryCell(c, strings.Join(langs, ", "))
+	case "published":
+		// A publication date is a day, not an instant: shown as stored.
+		if b.Pubdate.IsZero() {
+			monoCell(c, "—")
+		} else {
+			monoCell(c, b.Pubdate.Format("2006-01-02"))
+		}
+	case "modified":
+		monoCell(c, isoDate(b.LastModified))
+	}
+}
+
+func dash(c *ui.Context) { ui.Text(c, "—").TextColor(pal().TextTertiary) }
+
+func secondaryCell(c *ui.Context, s string) {
+	if s == "" {
+		dash(c)
+		return
+	}
+	ui.Text(c, s).TextColor(pal().TextSecondary).SingleLine()
+}
+
+func monoCell(c *ui.Context, s string) {
+	ui.Text(c, s).Font(theme.FontMono).FontSize(12).TextColor(pal().TextSecondary).NoWrap()
 }
 
 // bookMenu is the context menu of a book, in the grid and the list.

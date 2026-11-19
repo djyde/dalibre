@@ -2731,6 +2731,16 @@ func (msgs Messages) BooksColAdded() string {
 	return Catalog.Format(msgs.locale, "booksColAdded", nil)
 }
 
+// BooksMenuResetColumns says "Reset columns"
+// in the language the app shows.
+func BooksMenuResetColumns() string { return In(i18n.Locale()).BooksMenuResetColumns() }
+
+// BooksMenuResetColumns says "Reset columns"
+// in the language of msgs.
+func (msgs Messages) BooksMenuResetColumns() string {
+	return Catalog.Format(msgs.locale, "booksMenuResetColumns", nil)
+}
+
 // BooksSeriesIndex says "{series} #{index}"
 // in the language the app shows.
 func BooksSeriesIndex(series string, index string) string {

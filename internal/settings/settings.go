@@ -18,6 +18,8 @@ type Settings struct {
 	HideDetail bool     `json:"hideDetail"`
 	Sort       int      `json:"sort"`
 	Descending bool     `json:"descending"`
+	// ListColumns is how the user laid out the list view's columns.
+	ListColumns ListColumns `json:"listColumns,omitzero"`
 	// EditorSidebar is the width of the book editor's sidebar the user
 	// dragged it to; 0 is the default.
 	EditorSidebar float32 `json:"editorSidebar,omitempty"`
@@ -66,6 +68,18 @@ type Email struct {
 	// Security is email.Security; "" picks by the port.
 	Security string `json:"security,omitempty"`
 	From     string `json:"from,omitempty"`
+}
+
+// ListColumns is the list view's columns as the user laid them out, by
+// column id. The zero value is the default layout.
+type ListColumns struct {
+	// Show is the columns the user showed or hid, against whether the
+	// list shows them by default.
+	Show map[string]bool `json:"show,omitempty"`
+	// Order and Widths are the order the user dragged the columns into
+	// and the widths they gave them, hidden columns' included.
+	Order  []string           `json:"order,omitempty"`
+	Widths map[string]float32 `json:"widths,omitempty"`
 }
 
 // Kindle is a Kindle's Send to Kindle address.

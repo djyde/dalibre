@@ -72,7 +72,11 @@ type App struct {
 	gridBounds ui.Rect // where the grid stood in the last frame
 	table      ui.ListState
 	tableSort  ui.SortOrder
-	sectionsOn map[string]bool
+	// tableLayout is the column layout table was last given.
+	tableLayout ui.TableLayout
+	sectionsOn  map[string]bool
+	// savingSettings is set while saveSettingsSoon waits to save.
+	savingSettings bool
 
 	details    map[int64]*calibre.Details
 	detailsReq map[int64]bool
@@ -291,6 +295,25 @@ func (a *App) saveSettings() {
 	_ = a.settings.Save()
 }
 
+// saveSettingsSoon saves the settings once a drag, as of the list's
+// columns, rests, rather than on every move.
+func (a *App) saveSettingsSoon() {
+	if a.win == nil {
+		a.saveSettings()
+		return
+	}
+	if a.savingSettings {
+		return
+	}
+	a.savingSettings = true
+	time.AfterFunc(400*time.Millisecond, func() {
+		a.win.Update(func() {
+			a.savingSettings = false
+			a.saveSettings()
+		})
+	})
+}
+
 func (a *App) toast(format string, args ...any) {
 	a.toasts = append(a.toasts, toastMsg{text: fmt.Sprintf(format, args...)})
 }
@@ -393,7 +416,7 @@ func (a *App) openLibrary(root string) {
 			a.idIndex = ids
 			a.details, a.detailsReq = map[int64]*calibre.Details{}, map[int64]bool{}
 			a.curID, a.chosen = 0, ui.Selection[int64]{}
-			a.grid, a.table = ui.GridState{}, ui.ListState{}
+			a.grid, a.table, a.tableLayout = ui.GridState{}, ui.ListState{}, ui.TableLayout{}
 			a.query.Filter, a.query.Search, a.query.Shelf = catalog.Filter{}, "", catalog.AllBooks
 			a.act.results, a.act.review = nil, nil
 			a.setBooks(books)

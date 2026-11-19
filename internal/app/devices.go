@@ -136,9 +136,11 @@ type deviceView struct {
 	grid      ui.GridState
 	table     ui.ListState
 	tableSort ui.SortOrder
-	chosen    ui.Selection[int64]
-	cur       int
-	curID     int64
+	// tableLayout is the column layout table was last given.
+	tableLayout ui.TableLayout
+	chosen      ui.Selection[int64]
+	cur         int
+	curID       int64
 
 	covers  map[coverKey]*ui.Bitmap
 	loading map[coverKey]bool
