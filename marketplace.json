@@ -490,18 +490,18 @@
     {
       "id": "org.randynamic.dalibre.search-internet",
       "name": "Search the Internet",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "description": "Opens a search for a book on Amazon, Goodreads, Wikipedia, Wook, Almedina and other sites, with favorites that open together and custom sites of your own",
       "author": "Randy",
       "license": "GPL-3.0-or-later",
       "icon": "globe",
       "homepage": "https://github.com/djyde/dalibre/tree/main/marketplace/plugins/search-internet",
-      "dalibre": ">=0.4.0",
+      "dalibre": ">=0.6.4",
       "category": "library",
       "calibre": "Search The Internet",
       "downloads": 3543,
       "repo": "djyde/dalibre",
-      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.search-internet-1.2.0.dalibre-plugin",
+      "package": "https://raw.githubusercontent.com/djyde/dalibre/refs/heads/marketplace/packages/org.randynamic.dalibre.search-internet-1.2.1.dalibre-plugin",
       "capabilities": {
         "actions": [
           {
