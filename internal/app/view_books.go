@@ -205,11 +205,11 @@ func shelfCoverH(bmp *ui.Bitmap) float32 {
 func tableColumns() []ui.TableColumn {
 	return []ui.TableColumn{
 		{ID: "cover", Width: 44, Fixed: true},
-		{ID: "title", Title: locales.CommonTitle(), Sortable: true, MinWidth: 160, RowHeader: true},
+		{ID: "title", Title: locales.CommonTitle(), Sortable: true, MinWidth: 160},
 		{ID: "author", Title: locales.CommonAuthor(), Width: 130, Sortable: true},
 		{ID: "series", Title: locales.CommonSeries(), Width: 110, Sortable: true},
 		{ID: "rating", Title: locales.CommonRating(), Width: 84, Sortable: true},
-		{ID: "formats", Title: locales.BooksColFormats(), Width: 140},
+		{ID: "formats", Title: locales.BooksColFormats(), Width: 140, Sortable: true},
 		{ID: "size", Title: locales.BooksColSize(), Width: 76, Align: ui.End, Sortable: true},
 		{ID: "added", Title: locales.BooksColAdded(), Width: 96, Align: ui.End, Sortable: true},
 	}
@@ -217,7 +217,7 @@ func tableColumns() []ui.TableColumn {
 
 var columnSort = map[string]catalog.SortKey{
 	"title": catalog.SortTitle, "author": catalog.SortAuthor, "series": catalog.SortSeries, "rating": catalog.SortRating,
-	"size": catalog.SortSize, "added": catalog.SortDateAdded,
+	"formats": catalog.SortFormats, "size": catalog.SortSize, "added": catalog.SortDateAdded,
 }
 
 func (a *App) listView(c *ui.Context, s shelf, shown []*calibre.Book) {

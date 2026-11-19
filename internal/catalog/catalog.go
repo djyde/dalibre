@@ -50,6 +50,7 @@ const (
 	SortPublished
 	SortSize
 	SortModified
+	SortFormats
 )
 
 // SortKeys lists the orders with their labels, for menus.
@@ -58,7 +59,7 @@ var SortKeys = []struct {
 	Label string
 }{
 	{SortDateAdded, "Date added"}, {SortTitle, "Title"}, {SortAuthor, "Author"}, {SortSeries, "Series"},
-	{SortRating, "Rating"}, {SortPublished, "Published"}, {SortSize, "Size"}, {SortModified, "Modified"},
+	{SortRating, "Rating"}, {SortFormats, "Formats"}, {SortPublished, "Published"}, {SortSize, "Size"}, {SortModified, "Modified"},
 }
 
 // Label returns the sort key's label.
@@ -161,6 +162,8 @@ func compare(a, b *calibre.Book, k SortKey) int {
 		return cmp.Compare(a.SeriesIndex, b.SeriesIndex)
 	case SortRating:
 		return cmp.Compare(a.Rating, b.Rating)
+	case SortFormats:
+		return cmp.Compare(strings.ToLower(strings.Join(a.Formats, ", ")), strings.ToLower(strings.Join(b.Formats, ", ")))
 	case SortPublished:
 		return a.Pubdate.Compare(b.Pubdate)
 	case SortSize:

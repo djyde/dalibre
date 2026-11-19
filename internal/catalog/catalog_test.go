@@ -37,6 +37,8 @@ func TestApply(t *testing.T) {
 		{Query{Descending: true}, []int64{1, 2, 3}},
 		{Query{Sort: SortTitle}, []int64{2, 3, 1}},
 		{Query{Sort: SortSeries}, []int64{3, 1, 2}},
+		{Query{Sort: SortFormats}, []int64{2, 1, 3}},
+		{Query{Sort: SortFormats, Descending: true}, []int64{3, 1, 2}},
 		{Query{Shelf: RecentlyAdded}, []int64{1}},
 		{Query{Filter: Filter{ByFormat, "epub"}, Sort: SortTitle}, []int64{2, 1}},
 		{Query{Filter: Filter{ByAuthor, "Frank Herbert"}}, []int64{3}},

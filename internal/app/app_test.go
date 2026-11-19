@@ -184,6 +184,70 @@ func TestListView(t *testing.T) {
 	shot(t, tt, "list")
 }
 
+func TestListViewSortColumns(t *testing.T) {
+	a := newTestApp(t)
+	pdfFile := filepath.Join(t.TempDir(), "extra.pdf")
+	if err := os.WriteFile(pdfFile, []byte("%PDF-1.4"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.lib.AddBook(calibre.NewBook{File: pdfFile, Metadata: calibre.Metadata{
+		Title: "Solaris", Authors: []string{"Stanislaw Lem"}, Languages: []string{"eng"},
+	}}); err != nil {
+		t.Fatal(err)
+	}
+	var err error
+	if a.books, err = a.lib.Books(); err != nil {
+		t.Fatal(err)
+	}
+	a.settings.ListView = true
+	tt := ui.NewTester(a.View, 1440, 900)
+	tt.Frame()
+
+	// Clicking Title sorts ascending, and a second click flips to descending.
+	if err := tt.Click("Title"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if a.query.Sort != catalog.SortTitle || a.query.Descending {
+		t.Fatalf("after first Title click: sort=%v desc=%v", a.query.Sort, a.query.Descending)
+	}
+	if got := a.visible()[0].Title; got != "The Dark Forest" {
+		t.Errorf("first book ascending by Title = %q, want The Dark Forest", got)
+	}
+	if err := tt.Click("Title"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if a.query.Sort != catalog.SortTitle || !a.query.Descending {
+		t.Fatalf("after second Title click: sort=%v desc=%v", a.query.Sort, a.query.Descending)
+	}
+
+	// Click the Formats column header (between Rating and Size; the sidebar also has a "Formats" toggle).
+	ratingBox, okR := tt.Find("Rating")
+	sizeBox, okS := tt.Find("Size")
+	if !okR || !okS {
+		t.Fatalf("missing header columns: rating=%v size=%v", okR, okS)
+	}
+	formatsX := (ratingBox.X + ratingBox.W + sizeBox.X) / 2
+	formatsY := ratingBox.Y + ratingBox.H/2
+	tt.ClickAt(formatsX, formatsY)
+	tt.Frame()
+	if a.query.Sort != catalog.SortFormats || a.query.Descending {
+		t.Fatalf("after first Formats click: sort=%v desc=%v", a.query.Sort, a.query.Descending)
+	}
+	if got := a.visible()[len(a.visible())-1].Title; got != "Solaris" {
+		t.Errorf("last book ascending by Formats = %q, want Solaris", got)
+	}
+	tt.ClickAt(formatsX, formatsY)
+	tt.Frame()
+	if a.query.Sort != catalog.SortFormats || !a.query.Descending {
+		t.Fatalf("after second Formats click: sort=%v desc=%v", a.query.Sort, a.query.Descending)
+	}
+	if got := a.visible()[0].Title; got != "Solaris" {
+		t.Errorf("first book descending by Formats = %q, want Solaris", got)
+	}
+}
+
 func TestEditMetadata(t *testing.T) {
 	a := newTestApp(t)
 	tt := ui.NewTester(a.View, 1440, 900)

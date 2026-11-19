@@ -190,7 +190,7 @@ type searchIn struct {
 	Language  string `json:"language,omitempty" jsonschema:"a language code, as eng or en"`
 	Format    string `json:"format,omitempty" jsonschema:"a format, as EPUB"`
 	Recent    bool   `json:"recent,omitempty" jsonschema:"only books added in the last 30 days"`
-	Sort      string `json:"sort,omitempty" jsonschema:"added (the default), title, author, series, rating, published, size or modified"`
+	Sort      string `json:"sort,omitempty" jsonschema:"added (the default), title, author, series, rating, formats, published, size or modified"`
 	Desc      *bool  `json:"desc,omitempty" jsonschema:"descending order; the default when sorting by added"`
 	Limit     int    `json:"limit,omitempty" jsonschema:"at most this many books; 50 when not given"`
 	Offset    int    `json:"offset,omitempty" jsonschema:"books to skip, for the next page"`
@@ -203,7 +203,7 @@ type searchOut struct {
 
 var sortKeys = map[string]catalog.SortKey{
 	"": catalog.SortDateAdded, "added": catalog.SortDateAdded, "title": catalog.SortTitle, "author": catalog.SortAuthor,
-	"series": catalog.SortSeries, "rating": catalog.SortRating, "published": catalog.SortPublished,
+	"series": catalog.SortSeries, "rating": catalog.SortRating, "formats": catalog.SortFormats, "published": catalog.SortPublished,
 	"size": catalog.SortSize, "modified": catalog.SortModified,
 }
 

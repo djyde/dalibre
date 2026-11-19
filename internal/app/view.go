@@ -616,6 +616,8 @@ func sortLabel(k catalog.SortKey) string {
 		return locales.CommonSeries()
 	case catalog.SortRating:
 		return locales.CommonRating()
+	case catalog.SortFormats:
+		return locales.BooksColFormats()
 	case catalog.SortPublished:
 		return locales.CommonPublished()
 	case catalog.SortSize:
