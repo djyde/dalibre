@@ -82,7 +82,14 @@ node index.mjs --check                 # check community.json's plugins
 To change a plugin, edit `src/<name>/` and bump `version` in its
 `plugin.json`: a published version is never packed again, and Dalibre
 offers the new one as an update. A plugin using what the next Dalibre
-adds raises its `"dalibre"` to that version.
+adds raises its `"dalibre"` to that version: `main` publishes it right
+away, while Dalibre's release comes later, and the Marketplace offers it
+to every Dalibre its `"dalibre"` allows. The workflow checks each plugin
+with the `dalibre-plugin` of the latest release too, and fails when
+that release can't load one its `"dalibre"` offers it to. It can't see
+what `main.js` uses (a new kind of form field, say), so a pull request
+that adds to the plugin API and uses it in a plugin raises that
+plugin's `"dalibre"` itself.
 
 ## License
 

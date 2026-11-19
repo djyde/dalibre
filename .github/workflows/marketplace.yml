@@ -45,6 +45,27 @@ jobs:
         run: |
           node build.mjs
           for d in plugins/*/; do dalibre-plugin check "$d" | tee /tmp/check.txt; ! grep -q '^warning: uses what' /tmp/check.txt; done
+      # Users of the latest release are offered each plugin its dalibre
+      # field allows, so that release's dalibre-plugin must take it: one
+      # using what Dalibre added since raises its dalibre to the next one.
+      - name: Check the plugins in the released Dalibre
+        run: |
+          tag=$(git ls-remote --tags --refs --sort=-v:refname origin 'v*' | head -1 | sed 's,.*refs/tags/,,')
+          released=${tag#v}
+          git fetch --depth 1 origin tag "$tag"
+          git worktree add --detach /tmp/released "$tag"
+          (cd /tmp/released && go build -ldflags "-X main.version=$released" -o /tmp/dalibre-plugin-released ./cmd/dalibre-plugin)
+          for d in plugins/*/; do
+            min=$(jq -r '.dalibre // "" | gsub("[>= ]"; "")' "$d/plugin.json")
+            if [ -n "$min" ] && [ "$(printf '%s\n%s\n' "$min" "$released" | sort -V | tail -1)" != "$released" ]; then
+              echo "$d: needs Dalibre $min, newer than $released"
+              continue
+            fi
+            /tmp/dalibre-plugin-released check "$d" > /dev/null || {
+              echo "::error file=marketplace/${d}plugin.json::Dalibre $released can't load ${d%/}, yet its dalibre offers it there: raise \"dalibre\" to the next version"
+              exit 1
+            }
+          done
       - name: Check the community's plugins
         if: github.event_name == 'pull_request'
         env:
