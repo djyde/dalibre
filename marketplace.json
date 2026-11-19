@@ -615,6 +615,143 @@
         ],
         "library": "read"
       }
+    },
+    {
+      "id": "io.github.bellussi1.hardcover",
+      "name": "Hardcover",
+      "version": "1.0.1",
+      "description": "Fetch metadata and sync reading status & ratings with Hardcover (KOReader-friendly)",
+      "author": "Enzo Bellussi",
+      "license": "MIT",
+      "icon": "bookmark",
+      "homepage": "https://github.com/bellussi1/dalibre-hardcover",
+      "dalibre": ">=0.4.0",
+      "category": "metadata",
+      "repo": "bellussi1/dalibre-hardcover",
+      "community": true,
+      "package": "https://github.com/bellussi1/dalibre-hardcover/releases/download/v1.0.1/io.github.bellussi1.hardcover-1.0.1.dalibre-plugin",
+      "capabilities": {
+        "metadata": {
+          "fields": [
+            "title",
+            "authors",
+            "series",
+            "tags",
+            "publisher",
+            "pubdate",
+            "language",
+            "identifiers",
+            "cover",
+            "description"
+          ]
+        },
+        "actions": [
+          {
+            "id": "sync-from-hardcover",
+            "title": "Sync from Hardcover…",
+            "icon": "refresh",
+            "scope": "library"
+          },
+          {
+            "id": "set-hardcover-status",
+            "title": "Set Hardcover status…",
+            "icon": "bookmark",
+            "scope": "books",
+            "books": {
+              "min": 1
+            }
+          }
+        ]
+      },
+      "permissions": {
+        "hosts": [
+          "api.hardcover.app",
+          "assets.hardcover.app"
+        ],
+        "library": "read"
+      }
+    },
+    {
+      "id": "io.github.bellussi1.isbn-brasil",
+      "name": "ISBN Brasil",
+      "version": "1.0.1",
+      "description": "Brazilian ISBN metadata (CBL / Mercado Editorial) via BrasilAPI, with fallback covers",
+      "author": "Enzo Bellussi",
+      "license": "MIT",
+      "icon": "bookmark",
+      "homepage": "https://github.com/bellussi1/dalibre-isbn-brasil",
+      "dalibre": ">=0.6.0",
+      "category": "metadata",
+      "repo": "bellussi1/dalibre-isbn-brasil",
+      "community": true,
+      "package": "https://github.com/bellussi1/dalibre-isbn-brasil/releases/download/v1.0.1/io.github.bellussi1.isbn-brasil-1.0.1.dalibre-plugin",
+      "capabilities": {
+        "metadata": {
+          "fields": [
+            "title",
+            "authors",
+            "tags",
+            "publisher",
+            "pubdate",
+            "language",
+            "identifiers",
+            "cover",
+            "description"
+          ]
+        }
+      },
+      "permissions": {
+        "hosts": [
+          "archive.org",
+          "*.archive.org",
+          "brasilapi.com.br",
+          "covers.openlibrary.org",
+          "openlibrary.org",
+          "www.googleapis.com"
+        ],
+        "covers": "any",
+        "library": "read"
+      }
+    },
+    {
+      "id": "io.github.bellussi1.openlibrary",
+      "name": "Open Library",
+      "version": "1.0.1",
+      "description": "Book details, covers, series and descriptions from Open Library",
+      "author": "Enzo Bellussi",
+      "license": "MIT",
+      "icon": "library",
+      "homepage": "https://github.com/bellussi1/dalibre-openlibrary",
+      "dalibre": ">=0.4.0",
+      "category": "metadata",
+      "repo": "bellussi1/dalibre-openlibrary",
+      "community": true,
+      "package": "https://github.com/bellussi1/dalibre-openlibrary/releases/download/v1.0.1/io.github.bellussi1.openlibrary-1.0.1.dalibre-plugin",
+      "capabilities": {
+        "metadata": {
+          "fields": [
+            "title",
+            "authors",
+            "series",
+            "tags",
+            "publisher",
+            "pubdate",
+            "language",
+            "identifiers",
+            "cover",
+            "description"
+          ]
+        }
+      },
+      "permissions": {
+        "hosts": [
+          "archive.org",
+          "*.archive.org",
+          "covers.openlibrary.org",
+          "openlibrary.org"
+        ],
+        "library": "read"
+      }
     }
   ]
 }
