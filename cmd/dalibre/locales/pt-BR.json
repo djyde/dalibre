@@ -957,6 +957,8 @@
   "pluginsBookFilesManualNote": "Arquivos de livro: {name} atua nos arquivos dos livros em que você o executar pelo menu do livro.",
   "pluginsBookFilesAccess": "Arquivos dos seus livros",
   "pluginsBookFilesAccessDetail": "Os livros que você adicionar e aqueles em que você o executar. Apenas pelo Dalibre, nunca seus outros arquivos.",
+  "pluginsDeviceAccess": "Arquivos ao lado dos livros no seu Kindle",
+  "pluginsDeviceAccessDetail": "Tudo na pasta .sdr de um livro, incluindo seus destaques, notas e posição de leitura, e os dicionários Word Wise em system/kll.",
   "pluginsFileNone": "Nenhum arquivo escolhido",
   "pluginsFileChoose": "Escolher arquivo…",
   "commonUndo": "Desfazer",

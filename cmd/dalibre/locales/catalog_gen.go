@@ -7065,30 +7065,30 @@ func (msgs Messages) PluginsBookFilesAccess() string {
 // in the language the app shows.
 func PluginsBookFilesAccessDetail() string { return In(i18n.Locale()).PluginsBookFilesAccessDetail() }
 
-// PluginsDeviceAccess says "Word Wise files on your Kindle"
+// PluginsBookFilesAccessDetail says "The books you add, and those you run it on. Only through Dalibre, never your other files."
+// in the language of msgs.
+func (msgs Messages) PluginsBookFilesAccessDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsBookFilesAccessDetail", nil)
+}
+
+// PluginsDeviceAccess says "Files beside the books on your Kindle"
 // in the language the app shows.
 func PluginsDeviceAccess() string { return In(i18n.Locale()).PluginsDeviceAccess() }
 
-// PluginsDeviceAccess says "Word Wise files on your Kindle"
+// PluginsDeviceAccess says "Files beside the books on your Kindle"
 // in the language of msgs.
 func (msgs Messages) PluginsDeviceAccess() string {
 	return Catalog.Format(msgs.locale, "pluginsDeviceAccess", nil)
 }
 
-// PluginsDeviceAccessDetail says "Only the .sdr folder beside a book on it, and the system/kll dictionaries. Dalibre checks every path."
+// PluginsDeviceAccessDetail says "Everything in a book’s .sdr folder, including your highlights, notes and reading position, and the Word Wise dictio…"
 // in the language the app shows.
 func PluginsDeviceAccessDetail() string { return In(i18n.Locale()).PluginsDeviceAccessDetail() }
 
-// PluginsDeviceAccessDetail says "Only the .sdr folder beside a book on it, and the system/kll dictionaries. Dalibre checks every path."
+// PluginsDeviceAccessDetail says "Everything in a book’s .sdr folder, including your highlights, notes and reading position, and the Word Wise dictio…"
 // in the language of msgs.
 func (msgs Messages) PluginsDeviceAccessDetail() string {
 	return Catalog.Format(msgs.locale, "pluginsDeviceAccessDetail", nil)
-}
-
-// PluginsBookFilesAccessDetail says "The books you add, and those you run it on. Only through Dalibre, never your other files."
-// in the language of msgs.
-func (msgs Messages) PluginsBookFilesAccessDetail() string {
-	return Catalog.Format(msgs.locale, "pluginsBookFilesAccessDetail", nil)
 }
 
 // PluginsFileNone says "No file chosen"

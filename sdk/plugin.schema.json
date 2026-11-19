@@ -331,7 +331,7 @@
           "type": "boolean"
         },
         "device": {
-          "description": "In an action, read and write a Kindle's Word Wise files: the .sdr folder beside a book on it, and the system/kll dictionaries. Users are warned.",
+          "description": "In an action, read and write any file in the .sdr folder beside a book on a Kindle, the reader's highlights, notes and reading position among them, and the Word Wise dictionaries in system/kll. Users are warned.",
           "type": "boolean"
         },
         "library": {

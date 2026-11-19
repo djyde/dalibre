@@ -417,7 +417,7 @@ declare const dalibre: {
     /** In an action's run: every book in the library; with { comments: true }, with their comments. */
     books(options?: { comments?: boolean }): AsyncGenerator<Dalibre.BookInfo, void, void>;
   };
-  /** In an action's run, the Word Wise files of the Kindles plugged in. Needs permissions.device. */
+  /** In an action's run, the files beside the books on the Kindles plugged in (their .sdr folders, highlights and notes included) and their Word Wise dictionaries. Needs permissions.device. */
   readonly device: {
     list(): Promise<Dalibre.DeviceInfo[]>;
     /** Reads a file into /work and returns its path. kind is "sidecar" or "kll". */

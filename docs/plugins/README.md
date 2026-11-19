@@ -134,7 +134,7 @@ runs it as it is. See [TypeScript and npm packages](#typescript-and-npm-packages
 | `permissions.covers` | `"any"`: the `cover` URLs you return may be on any https host, not only your `hosts`, for covers on mirrors and CDNs you can't list. Dalibre fetches them itself, without your headers or cookies, and takes only images. Users see it when they install. Dalibre 0.6.4 added it: say `"dalibre": ">=0.6.4"`. |
 | `permissions.open` | `"any"`: the pages your action returns with `open` may be on any http or https host, not only your `hosts` — for a plugin that opens searches on sites the user names. Only the browser opens them: the plugin itself reaches nothing new. Users see it when they install. |
 | `permissions.localNetwork` | Reach this computer and the local network: a home OPDS or Calibre server. Users are warned. Default `false`. |
-| `permissions.device` | In an action, read and write a Kindle's Word Wise files: a file in the `.sdr` folder beside a book on it, or a `.klld` in `system/kll`. The plugin names the kind, book and file; Dalibre builds and checks the path, so it reaches no other file. Users are warned. |
+| `permissions.device` | In an action, read and write any file in the `.sdr` folder beside a book on a Kindle, the reader's highlights, notes and reading position among them, or a `.klld` Word Wise dictionary in `system/kll`. The plugin names the kind, book and file; Dalibre builds and checks the path, so it reaches no other file. Users are warned. |
 | `tools` | Programs your plugin runs outside its sandbox, such as pandoc or a site's CLI: see [Tools](#tools). |
 | `settings` | Values the user enters: up to 32. `type` is `text` (default), `secret` (masked, hidden in logs, and kept in the system's keychain rather than Dalibre's settings file), `file` (a file the user chooses, such as a key, copied into `/data`; its value is the path you read it at: `await readFile(dalibre.settings.keyFile)`), `toggle` (a switch: `"true"` or `"false"`), `select` (one of its `options`, `[{ value, title? }]`, 1 to 64) or `number`. Values are strings, the `default` where unset. `required` settings must be filled before your plugin is called. |
 
@@ -502,7 +502,10 @@ answers to your forms come from `--answer` (as from an AI agent), and
 ### Kindle Word Wise files
 
 An action with `permissions.device` and `"dalibre": ">=0.7.0"` may reach
-the Word Wise files of the Kindles plugged in as USB drives. It never
+the files of the Kindles plugged in as USB drives that Word Wise and
+X-Ray use: any file in the `.sdr` folder beside a book, the reader's
+highlights, notes and reading position among them, and the Word Wise
+dictionaries in `system/kll`. The permission's warning says so. It never
 gives a device path: `list()` names each reader and the books on it, and
 `read` and `write` say the kind of
 file, the book it belongs to and the file's name.

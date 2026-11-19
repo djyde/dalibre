@@ -158,9 +158,10 @@ type Permissions struct {
 	// that opens searches on sites the user names, which can't be listed.
 	// Only the browser opens them: the plugin itself reaches nothing new.
 	OpenHosts string `json:"open,omitempty"`
-	// Device lets an action read and write the Word Wise files of a
-	// Kindle the user connects: the sidecar folder beside a book on it,
-	// and the dictionaries in system/kll. Dalibre checks every path.
+	// Device lets an action read and write the files of a Kindle the
+	// user connects that Word Wise and X-Ray use: anything in the sidecar
+	// folder beside a book on it, the reader's highlights, notes and
+	// reading position among them, and the dictionaries in system/kll. Dalibre checks every path.
 	Device bool `json:"device,omitempty"`
 }
 
@@ -832,7 +833,7 @@ func (p Permissions) Describe() []string {
 		out = append(out, "Open pages of any website in your browser")
 	}
 	if p.Device {
-		out = append(out, "Read and write the Word Wise files of a Kindle you connect")
+		out = append(out, "Read and write the files beside the books on a Kindle you connect, including your highlights, notes and reading position, and its Word Wise dictionaries")
 	}
 	switch p.Library {
 	case LibraryRead:

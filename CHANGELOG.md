@@ -9,7 +9,8 @@ shows, so write them for readers of the app. `mygo build` needs a
 - Plugin actions can write Word Wise files to a Kindle plugged in as a
   USB drive: the plugin says what it wants to read or write, and Dalibre
   reaches only the `.sdr` folder beside a book on it and its Word Wise
-  dictionaries.
+  dictionaries. That folder also holds your highlights, notes and
+  reading position, so the permission's warning names them.
 
 ## 0.6.3
 
