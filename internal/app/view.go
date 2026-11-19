@@ -21,6 +21,7 @@ func (a *App) view(c *ui.Context) {
 	sys := c.Theme()
 	c.SetTheme(theme.Use(sys.Dark).Theme(sys))
 	c.SetMenuPresentation(ui.PopoverMenus) // menus drawn in the window, in the design's look
+	a.sweepCovers()
 
 	for _, t := range a.toasts {
 		typ := "success"
