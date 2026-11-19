@@ -987,6 +987,8 @@
   "pluginsBookFilesManualNote": "Book files: {name} works on the files of the books you run it on from the book menu.",
   "pluginsBookFilesAccess": "Your books’ files",
   "pluginsBookFilesAccessDetail": "The books you add, and those you run it on. Only through Dalibre, never your other files.",
+  "pluginsDeviceAccess": "Word Wise files on your Kindle",
+  "pluginsDeviceAccessDetail": "Only the .sdr folder beside a book on it, and the system/kll dictionaries. Dalibre checks every path.",
   "pluginsFileNone": "No file chosen",
   "pluginsFileChoose": "Choose file…",
   "commonUndo": "Undo",

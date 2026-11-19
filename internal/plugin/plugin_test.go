@@ -429,6 +429,9 @@ func TestPermissions(t *testing.T) {
 	if granted.Covers(Permissions{OpenHosts: OpenAny}) || !granted.Covers(Permissions{OpenHosts: ""}) {
 		t.Error("open any needs its own grant")
 	}
+	if granted.Covers(Permissions{Device: true}) || !granted.Covers(Permissions{}) {
+		t.Error("the reader needs its own grant")
+	}
 	if !(Permissions{Hosts: []string{"a.com"}, OpenHosts: OpenAny}).Covers(Permissions{Hosts: []string{"a.com"}, OpenHosts: OpenAny}) {
 		t.Error("the grant covers itself")
 	}

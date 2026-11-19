@@ -4,6 +4,13 @@ Each version's section is the release notes that Dalibre's update window
 shows, so write them for readers of the app. `mygo build` needs a
 `## <version>` section for the version in `cmd/dalibre/mygo.json`.
 
+## 0.7.0
+
+- Plugin actions can write Word Wise files to a Kindle plugged in as a
+  USB drive: the plugin says what it wants to read or write, and Dalibre
+  reaches only the `.sdr` folder beside a book on it and its Word Wise
+  dictionaries.
+
 ## 0.6.3
 
 - On macOS, a library on a network drive mounted in Finder (SMB or AFP)

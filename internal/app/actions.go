@@ -186,6 +186,7 @@ func (a *App) runAction(p *plugin.Plugin, act *plugin.Action, ids []int64) {
 		Covers: actionCovers(lib, act, books),
 		Form:   a.formAsker(p, act, books),
 		Books:  libraryPager(lib, a.books, a.idIndex),
+		Device: a.deviceHost(),
 		Progress: func(done, total int) {
 			a.post(func() {
 				if a.act.cancel != nil {
@@ -558,11 +559,11 @@ type formAsk struct {
 	p       *plugin.Plugin
 	act     *plugin.Action
 	form    plugin.Form
-	book    *formBook  // the one book the action runs on, shown above
-	texts   []string   // a text field's text, a select's chosen title, a list's chosen value
-	queries []string   // a list field's filter
-	bools   []bool     // a toggle
-	sets    [][]bool   // a multiselect's options
+	book    *formBook // the one book the action runs on, shown above
+	texts   []string  // a text field's text, a select's chosen title, a list's chosen value
+	queries []string  // a list field's filter
+	bools   []bool    // a toggle
+	sets    [][]bool  // a multiselect's options
 	reply   chan formReply
 }
 

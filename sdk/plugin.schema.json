@@ -325,6 +325,10 @@
           "description": "Reach this computer and the local network, as a home OPDS server. Users are warned.",
           "type": "boolean"
         },
+        "device": {
+          "description": "In an action, read and write a Kindle's Word Wise files: the .sdr folder beside a book on it, and the system/kll dictionaries. Users are warned.",
+          "type": "boolean"
+        },
         "library": {
           "description": "\"read\": see the details of the books the plugin is asked about; metadata sources, file type hooks and actions need it. \"write\": also lets hooks and actions change those details without asking.",
           "enum": [

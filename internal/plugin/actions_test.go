@@ -3,8 +3,10 @@ package plugin
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -17,9 +19,10 @@ const actionsManifest = `{"id":"test.actions","name":"Actions","version":"1.0.0"
 		{"id":"merge","title":"Merge","scope":"books","formats":["TXT"],"files":true},
 		{"id":"covers","title":"Covers","scope":"books","covers":true},
 		{"id":"search","title":"Search","scope":"books"},
+		{"id":"device","title":"Device","scope":"books"},
 		{"id":"bad","title":"Bad","scope":"books"}
 	]},
-	"permissions":{"hosts":["example.com"],"library":"read"}}`
+	"permissions":{"hosts":["example.com"],"library":"read","device":true}}`
 
 const actionsScript = `
 	import { readFile, writeFile } from "node:fs/promises";
@@ -65,6 +68,14 @@ const actionsScript = `
 			const sizes = [];
 			for (const b of input.books) sizes.push(input.covers[b.id] ? (await readFile(input.covers[b.id])).length : 0);
 			return { message: sizes.join(",") };
+		}
+		if (action === "device") {
+			const readers = await dalibre.device.list();
+			const read = await dalibre.device.read(readers[0].id, "kll", "", "kll.en.zh.klld");
+			const content = await readFile(read, "utf8");
+			await writeFile("/work/out.klld", content.toUpperCase());
+			await dalibre.device.write(readers[0].id, "kll", "", "kll.en.zh.klld", "/work/out.klld");
+			return { message: content };
 		}
 		if (input.books.length === 1) return { open: "https://elsewhere.org/" };
 		return { nope: 1 };
@@ -200,7 +211,9 @@ func TestListAction(t *testing.T) {
 		t.Errorf("empty: %+v %v", res, err)
 	}
 	// One URL still works, and a value outside the options doesn't.
-	host.Form = func(ctx context.Context, f Form) (map[string]any, error) { return map[string]any{"site": "goodreads"}, nil }
+	host.Form = func(ctx context.Context, f Form) (map[string]any, error) {
+		return map[string]any{"site": "goodreads"}, nil
+	}
 	if res, err = p.RunAction(ctx, "search", books, nil, host); err != nil || len(res.Open) != 1 || res.Open[0] != "https://example.com/g" {
 		t.Errorf("one url: %+v %v", res, err)
 	}
@@ -314,6 +327,131 @@ func TestActionManifests(t *testing.T) {
 	dir := write(t, `{"id":"t.norun","name":"A","version":"1.0.0","api":1,"capabilities":{"actions":[{"id":"a","title":"A","scope":"books"}]},"permissions":{"hosts":[],"library":"read"}}`, `export function other() {}`)
 	if _, err := Load(dir, Options{}); kind(err) != KindInvalid {
 		t.Errorf("no run: %v", err)
+	}
+}
+
+func TestDeviceAction(t *testing.T) {
+	p := actionsPlugin(t)
+	books := []BookInfo{{ID: 1, Title: "Dune"}}
+	var written []byte
+	host := &ActionHost{
+		Device: DeviceHost{
+			List: func(ctx context.Context) ([]DeviceInfo, error) {
+				return []DeviceInfo{{ID: "kindle", Kind: "kindle", Name: "Kindle",
+					Books: []DeviceBook{{Path: "documents/Dune.azw3"}}}}, nil
+			},
+			Read: func(ctx context.Context, id, kind, book, name string, dst io.Writer) error {
+				if id != "kindle" || kind != "kll" || book != "" || name != "kll.en.zh.klld" {
+					t.Errorf("read: %q %q %q %q", id, kind, book, name)
+				}
+				_, err := io.WriteString(dst, "dictionary")
+				return err
+			},
+			Write: func(ctx context.Context, id, kind, book, name, src string) (err error) {
+				written, err = os.ReadFile(src)
+				return err
+			},
+		},
+	}
+	res, err := p.RunAction(context.Background(), "device", books, nil, host)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Message != "dictionary" {
+		t.Errorf("message %q", res.Message)
+	}
+	if len(written) == 0 {
+		t.Fatal("nothing written")
+	}
+	if string(written) != "DICTIONARY" {
+		t.Errorf("written = %q", written)
+	}
+	entries, err := os.ReadDir(filepath.Join(p.dataDir, workFolder))
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("finished action left work files: %v %v", entries, err)
+	}
+}
+
+func TestDeviceWithoutHost(t *testing.T) {
+	for _, op := range []string{"list", "read", "write"} {
+		t.Run(op, func(t *testing.T) {
+			script := `import { writeFile } from "node:fs/promises";
+				export async function run() {
+					await writeFile("/work/out.klld", "dictionary");
+					if (` + strconv.Quote(op) + ` === "list") {
+						return { message: String((await dalibre.device.list()).length) };
+					}
+					await dalibre.device.` + op + `("kindle", "kll", "", "kll.en.zh.klld", "/work/out.klld");
+					return null;
+				}`
+			p, err := Load(write(t, actionsManifest, script), Options{DataDir: t.TempDir()})
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(p.Close)
+			res, err := p.RunAction(context.Background(), "device", nil, nil, nil)
+			if op == "list" {
+				if err != nil || res.Message != "0" {
+					t.Fatalf("list without host: %+v %v", res, err)
+				}
+				res.Done()
+			} else if kind(err) != KindUnavailable {
+				t.Fatalf("%s without host: %v", op, err)
+			}
+		})
+	}
+}
+
+func TestCancelledDeviceRequests(t *testing.T) {
+	p := actionsPlugin(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	host := &ActionHost{Device: DeviceHost{
+		List: func(context.Context) ([]DeviceInfo, error) { t.Error("listed after cancel"); return nil, nil },
+		Read: func(context.Context, string, string, string, string, io.Writer) error {
+			t.Error("read after cancel")
+			return nil
+		},
+		Write: func(context.Context, string, string, string, string, string) error {
+			t.Error("wrote after cancel")
+			return nil
+		},
+	}}
+	for _, op := range []string{"device.list", "device.read", "device.write"} {
+		if _, err := p.ask(ctx, host, nil, op, `{}`); !errors.Is(err, context.Canceled) {
+			t.Errorf("%s: %v", op, err)
+		}
+	}
+}
+
+func TestDeviceNeedsPermission(t *testing.T) {
+	p := actionsPlugin(t)
+	p.Manifest.Permissions.Device = false
+	for _, op := range []string{"device.list", "device.read", "device.write"} {
+		if _, err := p.ask(context.Background(), &ActionHost{}, nil, op, `{}`); kind(err) != KindPermission {
+			t.Errorf("%s without permission: %v", op, err)
+		}
+	}
+}
+
+func TestDeviceReadFailureCleansWork(t *testing.T) {
+	p := actionsPlugin(t)
+	want := errors.New("reader disconnected")
+	host := &ActionHost{Device: DeviceHost{
+		Read: func(ctx context.Context, id, kind, book, name string, dst io.Writer) error {
+			if _, err := io.WriteString(dst, "partial"); err != nil {
+				t.Fatal(err)
+			}
+			return want
+		},
+	}}
+	_, err := p.ask(context.Background(), host, nil, "device.read", `{"name":"kll.en.zh.klld"}`)
+	if !errors.Is(err, want) {
+		t.Fatal(err)
+	}
+	entries, err := os.ReadDir(filepath.Join(p.dataDir, workFolder))
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("failed read left work files: %v %v", entries, err)
 	}
 }
 

@@ -957,6 +957,8 @@
   "pluginsBookFilesManualNote": "책 파일: {name}은(는) 책 메뉴에서 실행한 책의 파일을 처리합니다.",
   "pluginsBookFilesAccess": "내 책 파일",
   "pluginsBookFilesAccessDetail": "추가하는 책과 실행한 책. Dalibre를 통해서만 전달되며 다른 파일에는 접근하지 않습니다.",
+  "pluginsDeviceAccess": "Kindle의 Word Wise 파일",
+  "pluginsDeviceAccessDetail": "책 옆의 .sdr 폴더와 system/kll 사전만 접근할 수 있습니다. Dalibre가 모든 경로를 확인합니다.",
   "pluginsFileNone": "선택한 파일 없음",
   "pluginsFileChoose": "파일 선택…",
   "commonUndo": "실행 취소",

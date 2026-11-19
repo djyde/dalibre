@@ -520,6 +520,18 @@ func (h mcpHost) Actions(ctx context.Context) []mcp.ActionInfo {
 	return out
 }
 
+// mcpDeviceHost allows device writes only when the agent asks to apply
+// the action. Without apply, even direct device calls must change nothing.
+func (a *App) mcpDeviceHost(apply bool) plugin.DeviceHost {
+	host := a.deviceHost()
+	if !apply {
+		host.Write = func(context.Context, string, string, string, string, string) error {
+			return &plugin.Error{Kind: plugin.KindPermission, Msg: "dalibre.device.write over MCP needs apply: true"}
+		}
+	}
+	return host
+}
+
 // RunAction runs an action for an agent: its forms are answered from
 // run.Answers, and what it returns is written into the library only with
 // run.Apply, the agent standing where the user reviews a plugin's
@@ -533,6 +545,7 @@ func (h mcpHost) RunAction(ctx context.Context, run mcp.ActionRun) (*mcp.ActionO
 		books, all   []*calibre.Book
 		index        map[string]int64
 		hooks, after []*plugin.Plugin
+		device       plugin.DeviceHost
 		err          error
 	)
 	if !h.onMain(ctx, func() {
@@ -554,6 +567,7 @@ func (h mcpHost) RunAction(ctx context.Context, run mcp.ActionRun) (*mcp.ActionO
 		}
 		lib, all, index = a.lib, a.books, a.idIndex
 		hooks, after = a.importPlugins(), a.hookPlugins()
+		device = a.mcpDeviceHost(run.Apply)
 		if act.Scope != plugin.ScopeBooks {
 			return
 		}
@@ -578,7 +592,10 @@ func (h mcpHost) RunAction(ctx context.Context, run mcp.ActionRun) (*mcp.ActionO
 	if err != nil {
 		return nil, err
 	}
-	res, err := p.RunAction(ctx, act.ID, infos, files, &plugin.ActionHost{Answers: run.Answers, Books: libraryPager(lib, all, index), Covers: actionCovers(lib, act, books)})
+	res, err := p.RunAction(ctx, act.ID, infos, files, &plugin.ActionHost{
+		Answers: run.Answers, Books: libraryPager(lib, all, index),
+		Covers: actionCovers(lib, act, books), Device: device,
+	})
 	if err != nil {
 		return nil, err
 	}

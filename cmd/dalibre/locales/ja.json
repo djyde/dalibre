@@ -767,6 +767,8 @@
   "pluginsBookFilesManualNote": "本のファイル：{name} は、本のメニューから実行した本のファイルを処理します。",
   "pluginsBookFilesAccess": "あなたの本のファイル",
   "pluginsBookFilesAccessDetail": "追加する本と、実行した本。Dalibre が渡すものだけで、ほかのファイルには触れません。",
+  "pluginsDeviceAccess": "Kindle 上の Word Wise ファイル",
+  "pluginsDeviceAccessDetail": "本の横にある .sdr フォルダーと、system/kll の辞書のみ。Dalibre がすべてのパスを確認します。",
   "pluginsFileNone": "ファイルが選択されていません",
   "pluginsFileChoose": "ファイルを選択…",
   "commonUndo": "取り消す",

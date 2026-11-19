@@ -65,6 +65,9 @@ func NeedsDalibre(min string) string {
 // every Dalibre has. A plugin using them should say so in its dalibre
 // field.
 func (m *Manifest) FeaturesSince() string {
+	if m.Permissions.Device {
+		return "0.7.0"
+	}
 	if len(m.Capabilities.Actions) > 0 {
 		return "0.4.0"
 	}
@@ -150,6 +153,10 @@ type Permissions struct {
 	// that opens searches on sites the user names, which can't be listed.
 	// Only the browser opens them: the plugin itself reaches nothing new.
 	OpenHosts string `json:"open,omitempty"`
+	// Device lets an action read and write the Word Wise files of a
+	// Kindle the user connects: the sidecar folder beside a book on it,
+	// and the dictionaries in system/kll. Dalibre checks every path.
+	Device bool `json:"device,omitempty"`
 }
 
 // CoversAny is permissions.covers for covers from any https host.
@@ -779,6 +786,9 @@ func (p Permissions) Covers(want Permissions) bool {
 	if want.OpenHosts == OpenAny && p.OpenHosts != OpenAny {
 		return false
 	}
+	if want.Device && !p.Device {
+		return false
+	}
 	switch want.Library {
 	case LibraryRead:
 		if !p.CanRead() {
@@ -815,6 +825,9 @@ func (p Permissions) Describe() []string {
 	}
 	if p.OpenHosts == OpenAny {
 		out = append(out, "Open pages of any website in your browser")
+	}
+	if p.Device {
+		out = append(out, "Read and write the Word Wise files of a Kindle you connect")
 	}
 	switch p.Library {
 	case LibraryRead:

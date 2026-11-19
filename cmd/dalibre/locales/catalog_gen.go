@@ -7065,6 +7065,26 @@ func (msgs Messages) PluginsBookFilesAccess() string {
 // in the language the app shows.
 func PluginsBookFilesAccessDetail() string { return In(i18n.Locale()).PluginsBookFilesAccessDetail() }
 
+// PluginsDeviceAccess says "Word Wise files on your Kindle"
+// in the language the app shows.
+func PluginsDeviceAccess() string { return In(i18n.Locale()).PluginsDeviceAccess() }
+
+// PluginsDeviceAccess says "Word Wise files on your Kindle"
+// in the language of msgs.
+func (msgs Messages) PluginsDeviceAccess() string {
+	return Catalog.Format(msgs.locale, "pluginsDeviceAccess", nil)
+}
+
+// PluginsDeviceAccessDetail says "Only the .sdr folder beside a book on it, and the system/kll dictionaries. Dalibre checks every path."
+// in the language the app shows.
+func PluginsDeviceAccessDetail() string { return In(i18n.Locale()).PluginsDeviceAccessDetail() }
+
+// PluginsDeviceAccessDetail says "Only the .sdr folder beside a book on it, and the system/kll dictionaries. Dalibre checks every path."
+// in the language of msgs.
+func (msgs Messages) PluginsDeviceAccessDetail() string {
+	return Catalog.Format(msgs.locale, "pluginsDeviceAccessDetail", nil)
+}
+
 // PluginsBookFilesAccessDetail says "The books you add, and those you run it on. Only through Dalibre, never your other files."
 // in the language of msgs.
 func (msgs Messages) PluginsBookFilesAccessDetail() string {

@@ -110,6 +110,15 @@
         }
       },
     }),
+    device: freeze({
+      async list() { return ask("device.list", null); },
+      async read(id, kind, book, name) {
+        return ask("device.read", { id: String(id), kind: String(kind), book: String(book ?? ""), name: String(name) });
+      },
+      async write(id, kind, book, name, path) {
+        return ask("device.write", { id: String(id), kind: String(kind), book: String(book ?? ""), name: String(name), path: String(path) });
+      },
+    }),
   });
   const fixed = (name, value) => defineProperty(globalThis, name, { value, writable: false, configurable: false });
   fixed("dalibre", dalibre);

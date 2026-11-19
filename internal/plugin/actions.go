@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"path"
@@ -42,6 +43,34 @@ type ActionHost struct {
 	// Covers are the books' covers, by book id, for an action that takes
 	// them.
 	Covers map[int64]string
+	// Device reads and writes the Kindle files an action may reach. Its
+	// zero value gives the script no readers.
+	Device DeviceHost
+}
+
+// DeviceHost is how an action reaches the Word Wise files of the readers
+// plugged in.
+type DeviceHost struct {
+	List func(ctx context.Context) ([]DeviceInfo, error)
+	// Read copies the named file into dst, which the runtime owns.
+	Read  func(ctx context.Context, id, kind, book, name string, dst io.Writer) error
+	Write func(ctx context.Context, id, kind, book, name, src string) error
+}
+
+// DeviceInfo is a reader an action may reach, with the books on it.
+type DeviceInfo struct {
+	ID    string       `json:"id"`
+	Kind  string       `json:"kind"`
+	Name  string       `json:"name"`
+	Books []DeviceBook `json:"books"`
+}
+
+// DeviceBook is a book on a reader, by the path of its file there.
+type DeviceBook struct {
+	Path        string            `json:"path"`
+	Title       string            `json:"title,omitempty"`
+	Authors     []string          `json:"authors,omitempty"`
+	Identifiers map[string]string `json:"identifiers,omitempty"`
 }
 
 // ErrCancelled is what ActionHost.Form returns when the user cancelled.
@@ -50,7 +79,7 @@ var ErrCancelled = errors.New("cancelled")
 // Form is what dalibre.form asks the user.
 type Form struct {
 	// Submit names the form's button; the action's title when empty.
-	Submit string `json:"submit,omitempty"`
+	Submit string      `json:"submit,omitempty"`
 	Fields []FormField `json:"fields"`
 	// Note is a line under the form's fields, of what answering does.
 	Note string `json:"note,omitempty"`
@@ -651,7 +680,7 @@ func (p *Plugin) hostAsk(r *moejs.Realm, _ moejs.Value, args []moejs.Value) (moe
 			kind := KindInvalid
 			var pe *Error
 			switch {
-			case errors.Is(err, ErrCancelled):
+			case errors.Is(err, ErrCancelled), errors.Is(err, context.Canceled):
 				kind = KindCancelled
 			case errors.As(err, &pe):
 				kind = pe.Kind
@@ -667,7 +696,10 @@ func (p *Plugin) hostAsk(r *moejs.Realm, _ moejs.Value, args []moejs.Value) (moe
 // ask answers one __host_ask. Any goroutine.
 func (p *Plugin) ask(ctx context.Context, host *ActionHost, limit *deadline, op, arg string) (any, error) {
 	if host == nil {
-		return nil, fmt.Errorf("dalibre.%s is for an action’s run", map[string]string{"form": "form", "books": "library.books"}[op])
+		return nil, fmt.Errorf("dalibre.%s is for an action’s run", map[string]string{
+			"form": "form", "books": "library.books", "device.list": "device.list",
+			"device.read": "device.read", "device.write": "device.write",
+		}[op])
 	}
 	switch op {
 	case "form":
@@ -729,6 +761,48 @@ func (p *Plugin) ask(ctx context.Context, host *ActionHost, limit *deadline, op,
 			}
 		}
 		return map[string]any{"books": page, "more": len(page) >= booksPage}, nil
+	case "device.list", "device.read", "device.write":
+		if !p.Manifest.Permissions.Device {
+			return nil, &Error{Plugin: p.Manifest.ID, Kind: KindPermission,
+				Msg: "dalibre.device needs permissions.device"}
+		}
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if op == "device.list" {
+			if host.Device.List == nil {
+				return []DeviceInfo{}, nil
+			}
+			return host.Device.List(ctx)
+		}
+
+		var q struct {
+			ID   string `json:"id"`
+			Kind string `json:"kind"`
+			Book string `json:"book"`
+			Name string `json:"name"`
+			Path string `json:"path"`
+		}
+		if err := json.Unmarshal([]byte(arg), &q); err != nil {
+			return nil, err
+		}
+		if op == "device.write" {
+			if host.Device.Write == nil {
+				return nil, &Error{Plugin: p.Manifest.ID, Kind: KindUnavailable, Msg: "dalibre.device.write isn’t available"}
+			}
+			absolute, err := p.hostPath(q.Path)
+			if err != nil {
+				return nil, fmt.Errorf("dalibre.device.write: %w", err)
+			}
+			q.Path = absolute
+			return nil, host.Device.Write(ctx, q.ID, q.Kind, q.Book, q.Name, q.Path)
+		}
+		if host.Device.Read == nil {
+			return nil, &Error{Plugin: p.Manifest.ID, Kind: KindUnavailable, Msg: "dalibre.device.read isn’t available"}
+		}
+		return p.workPath(q.Name, func(dst io.Writer) error {
+			return host.Device.Read(ctx, q.ID, q.Kind, q.Book, q.Name, dst)
+		})
 	}
 	return nil, fmt.Errorf("unknown request %q", op)
 }

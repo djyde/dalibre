@@ -767,6 +767,8 @@
   "pluginsBookFilesManualNote": "書籍檔案：{name} 會處理你在書籍選單中對其執行的書的檔案。",
   "pluginsBookFilesAccess": "你的書籍檔案",
   "pluginsBookFilesAccessDetail": "你加入的書，以及你對其執行的書。只經由 Dalibre 交給它，不會接觸你的其他檔案。",
+  "pluginsDeviceAccess": "Kindle 上的 Word Wise 檔案",
+  "pluginsDeviceAccessDetail": "僅限書籍旁的 .sdr 資料夾，以及 system/kll 字典。Dalibre 會檢查每個路徑。",
   "pluginsFileNone": "未選擇檔案",
   "pluginsFileChoose": "選擇檔案…",
   "commonUndo": "復原",

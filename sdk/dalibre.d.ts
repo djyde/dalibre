@@ -299,6 +299,22 @@ declare namespace Dalibre {
     run(action: string, input: ActionInput): ActionResult | null | void | Promise<ActionResult | null | void>;
   }
 
+  /** A reader an action with permissions.device may reach. */
+  interface DeviceInfo {
+    id: string;
+    kind: string;
+    name: string;
+    books: DeviceBook[];
+  }
+
+  /** A book on a reader, by the path of its file there. */
+  interface DeviceBook {
+    path: string;
+    title?: string;
+    authors?: string[];
+    identifiers?: Record<string, string>;
+  }
+
   /** A field of a form: what it starts with is its value. */
   type FormField =
     | { key: string; title: string; type: "text"; value?: string }
@@ -400,6 +416,14 @@ declare const dalibre: {
   readonly library: {
     /** In an action's run: every book in the library; with { comments: true }, with their comments. */
     books(options?: { comments?: boolean }): AsyncGenerator<Dalibre.BookInfo, void, void>;
+  };
+  /** In an action's run, the Word Wise files of the Kindles plugged in. Needs permissions.device. */
+  readonly device: {
+    list(): Promise<Dalibre.DeviceInfo[]>;
+    /** Reads a file into /work and returns its path. kind is "sidecar" or "kll". */
+    read(id: string, kind: "sidecar" | "kll", book: string, name: string): Promise<string>;
+    /** Writes a file from /work or /data to the device. kind is "sidecar" or "kll". */
+    write(id: string, kind: "sidecar" | "kll", book: string, name: string, path: string): Promise<void>;
   };
 };
 

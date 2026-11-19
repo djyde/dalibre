@@ -236,6 +236,9 @@ func (a *App) listingPane(c *ui.Context, l *plugin.Listing) {
 		if m.Permissions.LocalNetwork {
 			permissionItem(c, icons.Network, locales.PluginsLocalNetwork(), locales.PluginsLocalNetworkDetail(), true)
 		}
+		if m.Permissions.Device {
+			permissionItem(c, icons.BookOpen, locales.PluginsDeviceAccess(), locales.PluginsDeviceAccessDetail(), true)
+		}
 		if m.IsFileType() {
 			permissionItem(c, icons.File, locales.PluginsBookFilesAccess(), locales.PluginsBookFilesAccessDetail(), false)
 		}

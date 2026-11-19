@@ -407,6 +407,9 @@ func (a *App) pluginPane(c *ui.Context, k knownPlugin) {
 		if m.Permissions.LocalNetwork {
 			permissionItem(c, icons.Network, locales.PluginsLocalNetwork(), locales.PluginsLocalNetworkDetail(), true)
 		}
+		if m.Permissions.Device {
+			permissionItem(c, icons.BookOpen, locales.PluginsDeviceAccess(), locales.PluginsDeviceAccessDetail(), true)
+		}
 		if m.IsFileType() {
 			permissionItem(c, icons.File, locales.PluginsBookFilesAccess(), locales.PluginsBookFilesAccessDetail(), false)
 		}
@@ -738,6 +741,9 @@ func (a *App) consentDialog(c *ui.Context) {
 			if m.Permissions.LocalNetwork && (had == nil || !had.LocalNetwork) {
 				permissionItem(c, icons.Network, locales.PluginsConsentLocal(),
 					locales.PluginsConsentLocalDetail(), true)
+			}
+			if m.Permissions.Device && (had == nil || !had.Device) {
+				permissionItem(c, icons.BookOpen, locales.PluginsDeviceAccess(), locales.PluginsDeviceAccessDetail(), true)
 			}
 			if m.IsFileType() && had == nil {
 				permissionItem(c, icons.File, locales.PluginsBookFilesAccess(), locales.PluginsBookFilesAccessDetail(), false)

@@ -957,6 +957,8 @@
   "pluginsBookFilesManualNote": "Archivos de libros: {name} procesa los archivos de los libros en los que lo ejecutas desde el menú del libro.",
   "pluginsBookFilesAccess": "Los archivos de tus libros",
   "pluginsBookFilesAccessDetail": "Los libros que añades y en los que lo ejecutas. Solo a través de Dalibre, nunca tus otros archivos.",
+  "pluginsDeviceAccess": "Archivos Word Wise de tu Kindle",
+  "pluginsDeviceAccessDetail": "Solo la carpeta .sdr junto a un libro y los diccionarios de system/kll. Dalibre comprueba cada ruta.",
   "pluginsFileNone": "Ningún archivo elegido",
   "pluginsFileChoose": "Elegir archivo…",
   "commonUndo": "Deshacer",

@@ -255,6 +255,7 @@ type Grant struct {
 	Hosts        []string `json:"hosts"`
 	LocalNetwork bool     `json:"localNetwork,omitempty"`
 	Library      string   `json:"library,omitempty"`
+	Device       bool     `json:"device,omitempty"`
 	// Covers is "any" when it may load covers from any website.
 	Covers string `json:"covers,omitempty"`
 	// Tools are the tools the user let it run, as plugin.Tool.Identity

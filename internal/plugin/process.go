@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -160,6 +161,36 @@ func (pl *Plugin) hostPath(p string) (string, error) {
 		return "", fmt.Errorf("returned %q, which isn’t a file", p)
 	}
 	return host, nil
+}
+
+// workPath writes a host-provided file into /work and returns its path
+// as node:fs sees it. A failed read leaves no partial file.
+func (pl *Plugin) workPath(name string, write func(io.Writer) error) (string, error) {
+	if pl.dataDir == "" {
+		return "", fmt.Errorf("the plugin has no folder to work in")
+	}
+	if !fs.ValidPath(name) || name == "." || strings.ContainsAny(name, "/\\:") || strings.HasPrefix(name, ".") {
+		return "", fmt.Errorf("%q isn’t a file name", name)
+	}
+	work := strconv.FormatInt(workSeq.Add(1), 10)
+	dir := filepath.Join(pl.dataDir, workFolder, work)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return "", err
+	}
+	file, err := os.OpenFile(filepath.Join(dir, name), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	if err != nil {
+		os.RemoveAll(dir)
+		return "", err
+	}
+	err = write(file)
+	if cerr := file.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		os.RemoveAll(dir)
+		return "", err
+	}
+	return path.Join("/", workFolder, work, name), nil
 }
 
 // emptyFolder removes what dir holds, leaving dir.

@@ -317,11 +317,14 @@ func (a *App) ghFound(c *ui.Context) {
 		if m.Permissions.LocalNetwork {
 			permissionItem(c, icons.Network, locales.SettingsConnectLocal(), locales.SettingsConnectLocalNote(), true)
 		}
+		if m.Permissions.Device {
+			permissionItem(c, icons.BookOpen, locales.PluginsDeviceAccess(), locales.PluginsDeviceAccessDetail(), true)
+		}
 		if m.IsFileType() {
 			permissionItem(c, icons.File, locales.PluginsBookFilesAccess(), locales.PluginsBookFilesAccessDetail(), false)
 		}
 		libraryPermission(c, m, true, nil)
-		if len(m.Permissions.Hosts) == 0 && !m.Permissions.LocalNetwork && len(m.Tools) == 0 && m.Permissions.Library == "" && !m.IsFileType() {
+		if len(m.Permissions.Hosts) == 0 && !m.Permissions.LocalNetwork && !m.Permissions.Device && len(m.Tools) == 0 && m.Permissions.Library == "" && !m.IsFileType() {
 			ui.Text(c, locales.SettingsNothing()).FontSize(12).TextColor(pal().TextTertiary)
 		}
 	})

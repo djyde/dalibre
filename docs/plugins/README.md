@@ -134,6 +134,7 @@ runs it as it is. See [TypeScript and npm packages](#typescript-and-npm-packages
 | `permissions.covers` | `"any"`: the `cover` URLs you return may be on any https host, not only your `hosts`, for covers on mirrors and CDNs you can't list. Dalibre fetches them itself, without your headers or cookies, and takes only images. Users see it when they install. |
 | `permissions.open` | `"any"`: the pages your action returns with `open` may be on any http or https host, not only your `hosts` — for a plugin that opens searches on sites the user names. Only the browser opens them: the plugin itself reaches nothing new. Users see it when they install. |
 | `permissions.localNetwork` | Reach this computer and the local network: a home OPDS or Calibre server. Users are warned. Default `false`. |
+| `permissions.device` | In an action, read and write a Kindle's Word Wise files: a file in the `.sdr` folder beside a book on it, or a `.klld` in `system/kll`. The plugin names the kind, book and file; Dalibre builds and checks the path, so it reaches no other file. Users are warned. |
 | `tools` | Programs your plugin runs outside its sandbox, such as pandoc or a site's CLI: see [Tools](#tools). |
 | `settings` | Values the user enters: up to 32. `type` is `text` (default), `secret` (masked, hidden in logs, and kept in the system's keychain rather than Dalibre's settings file), `file` (a file the user chooses, such as a key, copied into `/data`; its value is the path you read it at: `await readFile(dalibre.settings.keyFile)`), `toggle` (a switch: `"true"` or `"false"`), `select` (one of its `options`, `[{ value, title? }]`, 1 to 64) or `number`. Values are strings, the `default` where unset. `required` settings must be filled before your plugin is called. |
 
@@ -497,6 +498,42 @@ or `dalibre-plugin run . merge a.epub b.epub`, or on books of a library
 with `--library DIR --book 12 --book 40`: without a window, the
 answers to your forms come from `--answer` (as from an AI agent), and
 `dalibre.interactive` is false. Your code is the same either way.
+
+### Kindle Word Wise files
+
+An action with `permissions.device` and `"dalibre": ">=0.7.0"` may reach
+the Word Wise files of the Kindles plugged in as USB drives. It never
+gives a device path: `list()` names each reader and the books on it, and
+`read` and `write` say the kind of
+file, the book it belongs to and the file's name.
+This is available in Dalibre's window and over MCP; `dalibre-plugin run`
+has no reader plugged into it, so its device list is empty.
+Over MCP, `run_action` must have `apply: true` to write device files;
+otherwise `write` returns a permission error and the device is unchanged.
+
+```js
+const [kindle] = await dalibre.device.list();
+if (!kindle) return { message: "Connect a Kindle as a USB drive first" };
+const book = kindle.books.find((b) => b.identifiers?.asin === asin);
+if (!book) return { message: "This book is not on the Kindle" };
+const old = await dalibre.device.read(kindle.id, "sidecar", book.path,
+                                     `LanguageLayer.en.${asin}.kll`);
+await dalibre.device.write(kindle.id, "sidecar", book.path,
+                          `LanguageLayer.en.${asin}.kll`, "/work/LanguageLayer.kll");
+await dalibre.device.write(kindle.id, "kll", "", "kll.en.zh.klld",
+                          "/work/kll.en.zh.klld");
+```
+
+`kind` is `"sidecar"` for a file in the book's `.sdr` folder, or `"kll"`
+for a `.klld` in `system/kll`. Reads are copied into `/work`; writes take
+a file from `/work` or `/data`, and are renamed onto the device only once
+whole. The book must be in `list()` and still on the device: for
+`documents/Author/Title.azw3`, its sidecar folder is
+`documents/Author/Title.sdr`. Reads stay inside the device's storage and
+leave no temporary files outside `/work`. Concurrent writes have their
+own temporary files; a write that fails or is cancelled before the
+replacement leaves the previous file intact. Without a connected reader,
+`read` and `write` return an error.
 
 ## Runtime
 

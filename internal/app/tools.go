@@ -159,7 +159,7 @@ func grantedTools(g *settings.Grant, m *plugin.Manifest) bool {
 // grantFor is what the user grants plugin m by installing it.
 func grantFor(m *plugin.Manifest) *settings.Grant {
 	return &settings.Grant{Hosts: slices.Clone(m.Permissions.Hosts), LocalNetwork: m.Permissions.LocalNetwork,
-		Library: m.Permissions.Library, Covers: m.Permissions.CoverHosts, Tools: m.ToolIdentities()}
+		Library: m.Permissions.Library, Device: m.Permissions.Device, Covers: m.Permissions.CoverHosts, Tools: m.ToolIdentities()}
 }
 
 // pickTools starts the choices of where m's tools come from, for the
