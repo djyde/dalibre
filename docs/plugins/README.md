@@ -123,7 +123,7 @@ runs it as it is. See [TypeScript and npm packages](#typescript-and-npm-packages
 | `name` | **Required.** Shown to users; up to 64 characters. |
 | `version` | **Required.** [Semantic version](https://semver.org) of your plugin. |
 | `api` | **Required.** The plugin API you wrote for: `1`. |
-| `dalibre` | The oldest Dalibre your plugin works in, as `">=0.4.0"`, when it uses what plugin API 1 gained since it began (actions, `covers`, `remember`, toggle, select and number settings): an older Dalibre refuses it, and its Marketplace shows it as needing an update. `dalibre-plugin check` warns when you need it. |
+| `dalibre` | The oldest Dalibre your plugin works in, as `">=0.4.0"`, when it uses what plugin API 1 gained since it began (`fileType`, actions, tools, `covers`, `open`, `device`, `remember`, toggle, select and number settings): an older Dalibre refuses it, and its Marketplace shows it as needing an update. `dalibre-plugin check` warns when you need it, and `check --strict` fails on the warning, as CI does. |
 | `description` | One line, shown under your name in the Get books source picker and when the user installs: what the catalogue holds ("Over 70,000 free public-domain ebooks"). |
 | `author`, `homepage`, `license` | Shown when the user installs. `license` is an SPDX id. The page's Open site button opens `homepage`. |
 | `icon` | One of Dalibre's icons: `globe` (default), `library`, `book-open`, `database`, `network`, `building`, `bookmark`, `layers`. Never an image, so a plugin can't dress up as another app. |
@@ -828,6 +828,7 @@ interpreter, checks, permissions and limits.
 
 ```sh
 dalibre-plugin check .                        # manifest, script loads, exports, what it asks for
+dalibre-plugin check --strict .               # exit non-zero on a warning, as CI does
 dalibre-plugin search . "dune"                # results, warnings, and how to get the next page
 dalibre-plugin search . "dune" --page 2 --filter language=fr
 dalibre-plugin search . "dune" --json         # exactly what Dalibre gets

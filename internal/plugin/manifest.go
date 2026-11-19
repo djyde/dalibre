@@ -62,26 +62,40 @@ func NeedsDalibre(min string) string {
 
 // FeaturesSince is the oldest Dalibre with what the manifest uses of plugin
 // API 1: "0.7.0" for permissions.device, "0.6.4" for permissions.open,
-// "0.4.0" for actions and the newer kinds of settings, "" for what every
-// Dalibre has. A plugin using them
-// should say so in its dalibre field: an older Dalibre can't load its
-// manifest.
+// "0.6.0" for tools and permissions.covers, "0.4.0" for actions and the
+// newer kinds of settings, "0.3.0" for capabilities.fileType, "" for what
+// every Dalibre has. When the manifest uses several, the newest of them
+// wins. A plugin using them should say so in its dalibre field: an older
+// Dalibre can't load its manifest.
 func (m *Manifest) FeaturesSince() string {
+	since := ""
+	raise := func(v string) {
+		if NewerVersion(v, since) {
+			since = v
+		}
+	}
 	if m.Permissions.Device {
-		return "0.7.0"
+		raise("0.7.0")
 	}
 	if m.Permissions.OpenHosts != "" {
-		return "0.6.4"
+		raise("0.6.4")
+	}
+	if len(m.Tools) > 0 || m.Permissions.CoverHosts != "" {
+		raise("0.6.0")
 	}
 	if len(m.Capabilities.Actions) > 0 {
-		return "0.4.0"
+		raise("0.4.0")
 	}
 	for _, st := range m.Settings {
 		if st.Type == SettingToggle || st.Type == SettingSelect || st.Type == SettingNumber {
-			return "0.4.0"
+			raise("0.4.0")
+			break
 		}
 	}
-	return ""
+	if m.Capabilities.FileType != nil {
+		raise("0.3.0")
+	}
+	return since
 }
 
 // APIVersion is the plugin API this Dalibre implements. Within a version

@@ -229,12 +229,18 @@ func cmdInit(_ context.Context, args []string) error {
 
 func cmdCheck(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("check", flag.ExitOnError)
+	strict := fs.Bool("strict", false, "exit non-zero when the check prints warnings")
 	dir := parse(fs, args, "dir")[0]
 	p, err := plugin.Load(dir, plugin.Options{DataDir: filepath.Join(dir, ".data"), Logf: func(string, ...any) {}})
 	if err != nil {
 		return err
 	}
 	m := p.Manifest
+	warnings := 0
+	warn := func(format string, a ...any) {
+		fmt.Printf(format+"\n", a...)
+		warnings++
+	}
 	fmt.Printf("%s %s (%s), plugin API %d\n", m.Name, m.Version, m.ID, m.API)
 	fmt.Printf("capabilities: %s\n", strings.Join(m.Capabilities.Names(), ", "))
 	for _, f := range m.Filters() {
@@ -248,7 +254,7 @@ func cmdCheck(ctx context.Context, args []string) error {
 		fmt.Println("note: a reserved id; only a plugin shipped inside Dalibre may use it")
 	}
 	if placeholderID(m.ID) {
-		fmt.Printf("warning: %q is the template's id; give the plugin its own, such as com.<you>.<plugin>\n", m.ID)
+		warn("warning: %q is the template's id; give the plugin its own, such as com.<you>.<plugin>", m.ID)
 	}
 	for _, fn := range []string{"search", "collections", "list", "get", "resolve", "identify"} {
 		if p.Defines(fn) {
@@ -266,13 +272,20 @@ func cmdCheck(ctx context.Context, args []string) error {
 		return err
 	}
 	if m.Description == "" {
-		fmt.Println("warning: no description; users see it before installing")
+		warn("warning: no description; users see it before installing")
 	}
 	if m.Homepage == "" {
-		fmt.Println("warning: no homepage")
+		warn("warning: no homepage")
 	}
 	if since := m.FeaturesSince(); since != "" && plugin.NewerVersion(since, m.MinDalibre()) {
-		fmt.Printf("warning: uses what Dalibre %s added; say \"dalibre\": \">=%s\" in plugin.json so older ones don’t offer it\n", since, since)
+		warn("warning: uses what Dalibre %s added; say \"dalibre\": \">=%s\" in plugin.json so older ones don’t offer it", since, since)
+	}
+	if *strict && warnings > 0 {
+		plural := "s"
+		if warnings == 1 {
+			plural = ""
+		}
+		return fmt.Errorf("check: %d warning%s (printed above)", warnings, plural)
 	}
 	fmt.Println("ok")
 	return nil

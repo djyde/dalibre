@@ -44,7 +44,7 @@ jobs:
       - name: Bundle and check the plugins
         run: |
           node build.mjs
-          for d in plugins/*/; do dalibre-plugin check "$d" | tee /tmp/check.txt; ! grep -q '^warning: uses what' /tmp/check.txt; done
+          for d in plugins/*/; do dalibre-plugin check --strict "$d"; done
       # Users of the latest release are offered each plugin its dalibre
       # field allows, so that release's dalibre-plugin must take it: one
       # using what Dalibre added since raises its dalibre to the next one.

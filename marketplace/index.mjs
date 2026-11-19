@@ -119,9 +119,9 @@ async function resolveCommunity(entry) {
         await mkdir(dirname(dst), { recursive: true });
         await writeFile(dst, data);
       }
-      execFileSync(process.env.DALIBRE_PLUGIN, ["check", dir], { stdio: "pipe" });
+      execFileSync(process.env.DALIBRE_PLUGIN, ["check", "--strict", dir], { stdio: "pipe" });
     } catch (err) {
-      throw new Error(`dalibre-plugin check failed: ${err.stderr?.toString().trim() || err.message}`);
+      throw new Error(`dalibre-plugin check failed: ${(err.stdout?.toString() || err.stderr?.toString() || err.message).trim()}`);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
