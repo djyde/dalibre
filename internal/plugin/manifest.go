@@ -67,6 +67,11 @@ func NeedsDalibre(min string) string {
 // should say so in its dalibre field: an older Dalibre can't load its
 // manifest.
 func (m *Manifest) FeaturesSince() string {
+	for _, tool := range m.Tools {
+		if len(tool.Platforms) == 0 {
+			return "0.7.1"
+		}
+	}
 	if m.Permissions.Device {
 		return "0.7.0"
 	}

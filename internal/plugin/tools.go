@@ -31,7 +31,7 @@ type Tool struct {
 	// it, fully qualified.
 	Packages Packages `json:"packages,omitempty"`
 	// Platforms are its builds, by Platform key.
-	Platforms map[string]Build `json:"platforms"`
+	Platforms map[string]Build `json:"platforms,omitempty"`
 }
 
 // Packages name a tool in package managers.
@@ -230,8 +230,6 @@ func (m *Manifest) checkTools() error {
 			return fmt.Errorf("%s.packages.winget %q must be a package id, as \"Publisher.Name\"", at, t.Packages.Winget)
 		case t.Packages.Scoop != "" && !scoopPattern.MatchString(t.Packages.Scoop):
 			return fmt.Errorf("%s.packages.scoop %q must be bucket/name, as \"main/pandoc\"", at, t.Packages.Scoop)
-		case len(t.Platforms) == 0:
-			return fmt.Errorf("%s.platforms: at least one build", at)
 		}
 		for _, key := range slices.Sorted(maps.Keys(t.Platforms)) {
 			b := t.Platforms[key]
