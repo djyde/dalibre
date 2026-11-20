@@ -1013,7 +1013,7 @@ fine; the call has 10 minutes.
 
 ### Hooks
 
-As calibre's file type plugins, yours can ask to be called after the
+Like calibre's file type plugins, yours can ask to be called after the
 library changed. Ask for each in `plugin.json`, export it, and ask for
 `permissions.library`:
 
