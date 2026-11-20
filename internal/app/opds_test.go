@@ -365,3 +365,17 @@ func TestInstallFromGitHubAndUpdate(t *testing.T) {
 	}
 	a.ghi.open = false
 }
+
+func TestLanAddress(t *testing.T) {
+	got := lanAddress()
+	if got == "" {
+		t.Fatal("lanAddress() returned empty string")
+	}
+	t.Logf("lanAddress() = %q", got)
+	if got != "localhost" {
+		ip := net.ParseIP(got)
+		if ip == nil || ip.To4() == nil || !ip.IsPrivate() {
+			t.Fatalf("lanAddress() = %q, want \"localhost\" or a private IPv4 address", got)
+		}
+	}
+}
