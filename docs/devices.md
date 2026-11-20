@@ -64,7 +64,7 @@ goes from calibre to Dalibre and back with its library:
   cdetype into files that lack them, so that the Kindle shows their
   covers; Dalibre doesn't modify book files yet.
 
-Like calibre, opening a reader writes these two files: `driveinfo.calibre`
+As in calibre, opening a reader writes these two files: `driveinfo.calibre`
 on every connection, `metadata.calibre` when the files changed since it
 was written.
 
