@@ -763,7 +763,7 @@ dalibre-plugin tool add . brew:heartleo/tap/zlib
 | `version` | **Required.** The exact version Dalibre downloads. |
 | `min` | The oldest version you take from a package manager or a file the user chose. Default `version`. |
 | `packages` | Its names in Homebrew (`pandoc`, or a tap's `owner/tap/name`), winget (the id) and Scoop (`bucket/name`). Dalibre uses an install of exactly that package, never another program of the same name on `PATH`. |
-| `platforms` | Optional since Dalibre 0.7.1. One build per platform: `darwin-arm64`, `darwin-amd64`, `linux-amd64`, `linux-arm64`, `windows-amd64`, `windows-arm64`. Omit it when users need to choose a local executable at install. Each build still needs an HTTPS `url` and matching `sha256`, plus `bin` for an archive. |
+| `platforms` | Optional since Dalibre 0.7.1. One build per platform: `darwin-arm64`, `darwin-amd64`, `linux-amd64`, `linux-arm64`, `windows-amd64`, `windows-arm64`. Omit it when users must choose a local executable or install the named package-manager package. Each build still needs an HTTPS `url` and matching `sha256`, plus `bin` for an archive. |
 
 When the user installs your plugin, each tool is the first thing it asks
 to do: "Run pandoc 3.6.4 on this computer", in the warning tone, since

@@ -61,9 +61,10 @@ func NeedsDalibre(min string) string {
 }
 
 // FeaturesSince is the oldest Dalibre with what the manifest uses of plugin
-// API 1: "0.7.0" for permissions.device, "0.6.4" for permissions.open,
-// "0.4.0" for actions and the newer kinds of settings, "" for what every
-// Dalibre has. A plugin using them
+// API 1: "0.7.1" for a tool without `platforms`, "0.7.0" for
+// permissions.device, "0.6.4" for permissions.open, "0.4.0" for actions and
+// the newer kinds of settings, "" for what every Dalibre has. A plugin
+// using them
 // should say so in its dalibre field: an older Dalibre can't load its
 // manifest.
 func (m *Manifest) FeaturesSince() string {

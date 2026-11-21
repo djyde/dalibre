@@ -4,11 +4,6 @@ Each version's section is the release notes that Dalibre's update window
 shows, so write them for readers of the app. `mygo build` needs a
 `## <version>` section for the version in `cmd/dalibre/mygo.json`.
 
-## 0.7.1
-
-- Plugin tools without a downloadable build can use a local executable
-  you choose. Dalibre still asks for permission to run the tool.
-
 ## 0.7.0
 
 - Right-click the list's header to show, hide and rearrange its columns:
