@@ -54,6 +54,18 @@ func TestToolsManifest(t *testing.T) {
 			t.Errorf("%s: accepted", name)
 		}
 	}
+
+	fileOnly := `{"engine":{"version":"0.2.0","homepage":"https://example.com","license":"GPL-3.0-or-later"}}`
+	m, err = ParseManifest([]byte(toolManifest(fileOnly)))
+	if err != nil {
+		t.Fatalf("file-only tool: %v", err)
+	}
+	if _, ok := m.Tools["engine"].Build(); ok {
+		t.Fatal("file-only tool unexpectedly has a downloaded build")
+	}
+	if since := m.FeaturesSince(); since != "0.7.1" {
+		t.Fatalf("file-only tool feature version = %q", since)
+	}
 }
 
 func TestCompareVersions(t *testing.T) {
