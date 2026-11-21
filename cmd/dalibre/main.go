@@ -21,11 +21,17 @@ func main() {
 		serveMCP()
 		return
 	}
+	// A file opened while Dalibre runs reaches the running app, which adds
+	// it to its library, rather than a second app on the same library.
+	if !mygo.App.RequestSingleInstanceLock() {
+		return
+	}
 	if err := theme.RegisterFonts(); err != nil {
 		log.Fatal(err)
 	}
 	a := app.New(settings.DefaultPath())
 	app.ApplyAppearance(a.Appearance())
+	mygo.App.OnOpenFile(a.OpenFile)
 	mygo.App.WhenReady(func() {
 		setMenu(a)
 		mygo.App.OnLocaleChanged(func(string) { setMenu(a) })
@@ -43,6 +49,18 @@ func main() {
 		})
 		a.Attach(win)
 		keepRunningOnClose(win)
+		// Opening a file shows the window it is added in, even after the
+		// window was closed: macOS opens files without the reopen event
+		// that OnActivate shows it on.
+		show := func() {
+			if win.IsMinimized() {
+				win.Restore()
+			}
+			win.Show()
+			win.Focus()
+		}
+		mygo.App.OnSecondInstance(func([]string, string) { show() })
+		mygo.App.OnOpenFile(func(string) { show() })
 	})
 	if err := mygo.App.Run(); err != nil {
 		log.Fatal(err)
