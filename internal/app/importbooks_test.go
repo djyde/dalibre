@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+
+	"dalibre/internal/calibre"
 )
 
 // TestDropImport drops a new book, a new format of a book the library
@@ -59,6 +61,34 @@ func TestDropImport(t *testing.T) {
 		if b.Title == "Dune" && !slices.Contains(b.Formats, "PDF") {
 			t.Errorf("Dune formats = %v", b.Formats)
 		}
+	}
+}
+
+// TestOpenFileBeforeLibrary opens a file with the app before its library
+// is open, as Finder does when it launches the app: the file waits, then
+// is added to the library once it opens.
+func TestOpenFileBeforeLibrary(t *testing.T) {
+	root := newTestApp(t).loadingRoot
+	f := filepath.Join(t.TempDir(), "Klara and the Sun - Kazuo Ishiguro.azw3")
+	os.WriteFile(f, []byte("x"), 0o644)
+
+	a := New("")
+	a.run = func(fn func()) { fn() }
+	a.trash = nil
+	a.covers.thumbs = nil
+	a.OpenFile(f)
+	a.openLibrary(root)
+	t.Cleanup(func() { a.lib.Close() })
+
+	if len(a.opened) != 0 {
+		t.Fatalf("still waiting: %q", a.opened)
+	}
+	i := slices.IndexFunc(a.books, func(b *calibre.Book) bool { return b.Title == "Klara and the Sun" })
+	if i < 0 {
+		t.Fatalf("not added; %d books", len(a.books))
+	}
+	if got := a.books[i].Formats; !slices.Equal(got, []string{"AZW3"}) {
+		t.Errorf("formats = %v", got)
 	}
 }
 
