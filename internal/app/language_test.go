@@ -14,7 +14,7 @@ import (
 // app shows the language it is set to.
 func TestLanguages(t *testing.T) {
 	langs := languages()
-	for _, want := range []string{"en", "zh-Hans", "zh-Hant", "ja", "ko", "de", "fr", "es", "pt-BR"} {
+	for _, want := range []string{"en", "zh-Hans", "zh-Hant", "ja", "ko", "de", "fr", "es", "pt-BR", "pt-PT"} {
 		if !slices.Contains(langs, want) {
 			t.Errorf("no %s catalog: %v", want, langs)
 		}
@@ -24,6 +24,9 @@ func TestLanguages(t *testing.T) {
 	}
 	if got := bestLanguage("pt-BR"); got != "pt-BR" {
 		t.Errorf("bestLanguage(pt-BR) = %s", got)
+	}
+	if got := bestLanguage("pt-PT"); got != "pt-PT" {
+		t.Errorf("bestLanguage(pt-PT) = %s", got)
 	}
 	if got := bestLanguage("pt"); got != "pt-BR" {
 		t.Errorf("bestLanguage(pt) = %s", got)
@@ -54,6 +57,33 @@ func TestLanguages(t *testing.T) {
 	for _, s := range []string{pt.CommonSettings(), pt.LanguageSystem(autonym("pt-BR"))} {
 		if s == locales.In("en").CommonSettings() || !tt.HasText(s) {
 			t.Errorf("no %q in %q", s, tt.Texts())
+		}
+	}
+
+	if autonym("pt-PT") == "" || autonym("pt-PT") == autonym("pt-BR") {
+		t.Errorf("autonym(pt-PT) = %q, autonym(pt-BR) = %q", autonym("pt-PT"), autonym("pt-BR"))
+	}
+	loc = "pt-PT"
+	tt.SetLocale("pt-PT")
+	tt.Frame()
+	pp := locales.In("pt-PT")
+	if got := pp.CommonSettings(); got != "Definições" {
+		t.Errorf("pt-PT CommonSettings = %q, want Definições", got)
+	}
+	for _, s := range []string{pp.CommonSettings(), pp.LanguageSystem(autonym("pt-PT"))} {
+		if s == locales.In("en").CommonSettings() || !tt.HasText(s) {
+			t.Errorf("no %q in %q", s, tt.Texts())
+		}
+	}
+}
+
+// TestPortugueseLocalesPlurals checks that European Portuguese counts by
+// its own plural rules: nought is plural, «0 livros».
+func TestPortugueseLocalesPlurals(t *testing.T) {
+	pp := locales.In("pt-PT")
+	for n, want := range map[int]string{0: "0 livros", 1: "1 livro", 2: "2 livros"} {
+		if got := pp.CommonBookCount(n); got != want {
+			t.Errorf("pt-PT CommonBookCount(%d) = %q, want %q", n, got, want)
 		}
 	}
 }

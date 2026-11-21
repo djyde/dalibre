@@ -17,8 +17,8 @@ import (
 var files embed.FS
 
 // Catalog holds the messages in en, the source language, and de, es, fr,
-// ja, ko, pt-BR, zh-Hans and zh-Hant. It is registered with package i18n,
-// which makes its languages the app's.
+// ja, ko, pt-BR, pt-PT, zh-Hans and zh-Hant. It is registered with package
+// i18n, which makes its languages the app's.
 var Catalog *i18n.Catalog
 
 func init() {
