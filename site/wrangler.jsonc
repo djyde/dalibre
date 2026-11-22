@@ -8,5 +8,8 @@
   "routes": [
     { "pattern": "dalibre.randynamic.org", "custom_domain": true }
   ],
-  "workers_dev": false
+  "workers_dev": false,
+  // Branch builds run `wrangler preview`, which needs this block; the
+  // site has no bindings for Previews to override.
+  "previews": {}
 }
