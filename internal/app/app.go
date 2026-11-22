@@ -411,6 +411,7 @@ func (a *App) openLibrary(root string) {
 			if a.lib != nil {
 				a.lib.Close()
 			}
+			lib.SetKeepNames(a.settings.KeepNames)
 			a.lib = lib
 			a.libShared.Store(lib)
 			a.idIndex = ids

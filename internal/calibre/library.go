@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -24,7 +25,16 @@ const SchemaVersion = 28
 type Library struct {
 	Root string
 	db   *sql.DB
+	// keepNames names books' folders and files in their own script
+	// rather than calibre's ASCII; see SetKeepNames.
+	keepNames atomic.Bool
 }
+
+// SetKeepNames sets whether books added or renamed from now on keep the
+// script of their title and authors in their folder and file names
+// ("刘慈欣/三体 (3)") instead of calibre's ASCII ("Liu Ci Xin/San Ti (3)").
+// Books already there keep their names until they are renamed.
+func (l *Library) SetKeepNames(on bool) { l.keepNames.Store(on) }
 
 // ErrNotLibrary means the folder has no metadata.db.
 var ErrNotLibrary = errors.New("not a calibre library (no metadata.db)")

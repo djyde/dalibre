@@ -220,6 +220,27 @@ func (a *App) libraryPane(c *ui.Context) {
 				a.chooseLibrary()
 			}
 		})
+		widgets.Hairline(c)
+		ui.Row(c).Gap(theme.Space16).AlignItems(ui.Center).Children(func() {
+			ui.Row(c).Grow(1).MinWidth(0).Gap(theme.Space4).AlignItems(ui.Center).Children(func() {
+				ui.Text(c, locales.SettingsKeepNamesTitle()).FontSize(13).FontWeight(600)
+				help := ui.ButtonBase(c).Size(18, 18).Radius(theme.RadiusSM).Center().Label(locales.SettingsKeepNamesBody()).Tooltip(locales.SettingsKeepNamesBody())
+				col := pal().TextTertiary
+				if help.Hovered() {
+					col = pal().TextSecondary
+				}
+				help.Children(func() { ui.Icon(c, icons.CircleHelp).FontSize(14).TextColor(col) })
+			})
+			on := a.settings.KeepNames
+			ui.Switch(c, &on).Label(locales.SettingsKeepNamesTitle())
+			if on != a.settings.KeepNames {
+				a.settings.KeepNames = on
+				a.saveSettings()
+				if a.lib != nil {
+					a.lib.SetKeepNames(on)
+				}
+			}
+		})
 	})
 }
 

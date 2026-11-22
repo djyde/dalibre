@@ -394,6 +394,8 @@
   "settingsLibraryBody": "Dalibre lee y escribe bibliotecas de calibre: calibre puede abrir la misma carpeta.",
   "settingsNoLibraryOpen": "No hay ninguna biblioteca abierta",
   "settingsOpenAnotherLibrary": "Abrir otra biblioteca…",
+  "settingsKeepNamesTitle": "Mantener los caracteres originales en los nombres de archivo",
+  "settingsKeepNamesBody": "Los libros que añadas o cambies de nombre a partir de ahora se guardan como «刘慈欣/三体» en lugar del ASCII de calibre «Liu Ci Xin/San Ti», para que la búsqueda del sistema los encuentre. calibre vuelve a pasar un libro a ASCII si lo editas allí.",
   "settingsCatalogsTitle": "Catálogos",
   "settingsCatalogsBody": "Explora y descarga desde catálogos OPDS: un servidor de calibre, Calibre-Web o Kavita en casa, o públicos como Standard Ebooks. Cada uno aparece en la barra lateral.",
   "settingsAddCatalogButton": "Añadir catálogo…",

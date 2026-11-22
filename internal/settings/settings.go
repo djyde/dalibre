@@ -18,6 +18,9 @@ type Settings struct {
 	HideDetail bool     `json:"hideDetail"`
 	Sort       int      `json:"sort"`
 	Descending bool     `json:"descending"`
+	// KeepNames names books' folders and files in the script of their
+	// titles and authors, not calibre's ASCII transliteration.
+	KeepNames bool `json:"keepNames,omitempty"`
 	// ListColumns is how the user laid out the list view's columns.
 	ListColumns ListColumns `json:"listColumns,omitzero"`
 	// EditorSidebar is the width of the book editor's sidebar the user

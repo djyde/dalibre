@@ -4101,6 +4101,26 @@ func (msgs Messages) SettingsOpenAnotherLibrary() string {
 	return Catalog.Format(msgs.locale, "settingsOpenAnotherLibrary", nil)
 }
 
+// SettingsKeepNamesTitle says "Keep original characters in file names"
+// in the language the app shows.
+func SettingsKeepNamesTitle() string { return In(i18n.Locale()).SettingsKeepNamesTitle() }
+
+// SettingsKeepNamesTitle says "Keep original characters in file names"
+// in the language of msgs.
+func (msgs Messages) SettingsKeepNamesTitle() string {
+	return Catalog.Format(msgs.locale, "settingsKeepNamesTitle", nil)
+}
+
+// SettingsKeepNamesBody says "Books added or renamed from now on are stored as “刘慈欣/三体” rather than calibre’s ASCII “Liu Ci Xin/S…"
+// in the language the app shows.
+func SettingsKeepNamesBody() string { return In(i18n.Locale()).SettingsKeepNamesBody() }
+
+// SettingsKeepNamesBody says "Books added or renamed from now on are stored as “刘慈欣/三体” rather than calibre’s ASCII “Liu Ci Xin/S…"
+// in the language of msgs.
+func (msgs Messages) SettingsKeepNamesBody() string {
+	return Catalog.Format(msgs.locale, "settingsKeepNamesBody", nil)
+}
+
 // SettingsCatalogsTitle says "Catalogs"
 // in the language the app shows.
 func SettingsCatalogsTitle() string { return In(i18n.Locale()).SettingsCatalogsTitle() }

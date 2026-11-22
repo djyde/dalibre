@@ -1,12 +1,14 @@
 package calibre
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 func TestTitleSort(t *testing.T) {
@@ -42,25 +44,90 @@ func TestAuthorSort(t *testing.T) {
 }
 
 func TestBookPath(t *testing.T) {
-	if got, want := BookPath(12, "The Three-Body Problem", "Liu Cixin"), "Liu Cixin/The Three-Body Problem (12)"; got != want {
+	if got, want := BookPath(12, "The Three-Body Problem", "Liu Cixin", false), "Liu Cixin/The Three-Body Problem (12)"; got != want {
 		t.Errorf("BookPath = %q, want %q", got, want)
 	}
-	if got := BookPath(3, "三体", "刘慈欣"); got != "Liu Ci Xin/San Ti (3)" {
+	if got := BookPath(3, "三体", "刘慈欣", false); got != "Liu Ci Xin/San Ti (3)" {
 		t.Errorf("CJK BookPath = %q", got)
 	}
-	if got := BookPath(1, "What? Why: Now", "CON"); got != "CONw/What_ Why_ Now (1)" {
+	if got := BookPath(1, "What? Why: Now", "CON", false); got != "CONw/What_ Why_ Now (1)" {
 		t.Errorf("sanitized BookPath = %q", got)
 	}
 	long := strings.Repeat("Very Long Title ", 20)
-	p := BookPath(99, long, "Author")
+	p := BookPath(99, long, "Author", false)
 	// The limit is calibre's, on the title before " (id)" is appended.
 	if title := strings.TrimSuffix(strings.SplitN(p, "/", 2)[1], " (99)"); len(title) > pathLimit()-len(" (99)")/2-2 {
 		t.Errorf("title component too long: %d %q", len(title), title)
 	}
 	if runtime.GOOS == "windows" {
-		if got := BookFileName("The Three-Body Problem", "Liu Cixin"); got != "The Three-Body Problem - Liu Cixin" {
+		if got := BookFileName("The Three-Body Problem", "Liu Cixin", false); got != "The Three-Body Problem - Liu Cixin" {
 			t.Errorf("BookFileName = %q", got)
 		}
+	}
+}
+
+func TestBookPathKeepNames(t *testing.T) {
+	if got := BookPath(3, "三体", "刘慈欣", true); got != "刘慈欣/三体 (3)" {
+		t.Errorf("BookPath = %q", got)
+	}
+	if got := BookPath(1, "黑暗？森林: 第二部", "CON", true); got != "CONw/黑暗？森林_ 第二部 (1)" {
+		t.Errorf("sanitized BookPath = %q", got)
+	}
+	if got := BookFileName("三体", "刘慈欣", true); got != "三体 - 刘慈欣" {
+		t.Errorf("BookFileName = %q", got)
+	}
+	// Long names are cut at whole characters, within calibre's limit in
+	// characters and the 255 bytes a file name can take.
+	long := strings.Repeat("三体𝄞", 60) // 3- and 4-byte characters
+	parts := strings.Split(BookPath(99, long, long, true), "/")
+	limit := pathLimit() - len(" (99)")/2 - 2
+	title := strings.TrimSuffix(parts[1], " (99)")
+	for _, s := range []string{parts[0], title} {
+		if !utf8.ValidString(s) || utf8.RuneCountInString(s) > limit || utf8.RuneCountInString(s) < limit/2 {
+			t.Errorf("component %d chars, valid %v: %q", utf8.RuneCountInString(s), utf8.ValidString(s), s)
+		}
+	}
+	for _, s := range []string{parts[0], parts[1], BookFileName(long, long, true) + ".original_epub"} {
+		if len(s) > 255 || !utf8.ValidString(s) {
+			t.Errorf("name of %d bytes, valid %v: %q", len(s), utf8.ValidString(s), s)
+		}
+	}
+}
+
+func TestKeepNames(t *testing.T) {
+	lib := newTestLibrary(t)
+	lib.SetKeepNames(true)
+	id, err := lib.AddBook(NewBook{File: writeTemp(t, "in.epub", "epub"), Metadata: Metadata{Title: "三体", Authors: []string{"刘慈欣"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := lib.AddFormat(id, writeTemp(t, "x.pdf", "pdf")); err != nil {
+		t.Fatal(err)
+	}
+	b, _ := lib.Book(id)
+	if want := fmt.Sprintf("刘慈欣/三体 (%d)", id); b.Path != want {
+		t.Errorf("path = %q, want %q", b.Path, want)
+	}
+	for _, f := range []string{"三体 - 刘慈欣.epub", "三体 - 刘慈欣.pdf"} {
+		if _, err := os.Stat(filepath.Join(lib.Dir(b), f)); err != nil {
+			t.Error(err)
+		}
+	}
+
+	// Turned off, a rename goes back to calibre's ASCII.
+	lib.SetKeepNames(false)
+	d, _ := lib.Details(b)
+	m := b.Metadata(d)
+	m.Title = "三体II"
+	if err := lib.UpdateMetadata(id, m); err != nil {
+		t.Fatal(err)
+	}
+	b, _ = lib.Book(id)
+	if want := fmt.Sprintf("Liu Ci Xin/San Ti II (%d)", id); b.Path != want {
+		t.Errorf("path = %q, want %q", b.Path, want)
+	}
+	if _, err := os.Stat(filepath.Join(lib.Dir(b), "San Ti II - Liu Ci Xin.epub")); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -157,7 +224,7 @@ func TestBookLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 	b2, _ := lib.Book(id)
-	if b2.Path != BookPath(id, "Three Body", "Cixin Liu") {
+	if b2.Path != BookPath(id, "Three Body", "Cixin Liu", false) {
 		t.Errorf("path = %q", b2.Path)
 	}
 	if b2.Sort != "Three Body" || b2.AuthorSort != "Liu, Cixin & Liu, Ken" || b2.Rating != 0 || b2.Series != "" {

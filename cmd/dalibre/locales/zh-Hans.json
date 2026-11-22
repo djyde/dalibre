@@ -394,6 +394,8 @@
   "settingsLibraryBody": "Dalibre 读写 calibre 书库：calibre 也可以打开同一文件夹。",
   "settingsNoLibraryOpen": "未打开书库",
   "settingsOpenAnotherLibrary": "打开其他书库…",
+  "settingsKeepNamesTitle": "文件名保留原文字符",
+  "settingsKeepNamesBody": "此后添加或改名的书存为“刘慈欣/三体”，而不是 calibre 的 ASCII 转写“Liu Ci Xin/San Ti”，便于用系统搜索查找。在 calibre 中编辑这本书时，calibre 会把它改回 ASCII。",
   "settingsCatalogsTitle": "书目",
   "settingsCatalogsBody": "从 OPDS 书目浏览和下载：家中的 calibre、Calibre-Web 或 Kavita 服务器，或 Standard Ebooks 等公共书目。每个书目都会显示在边栏中。",
   "settingsAddCatalogButton": "添加书目…",

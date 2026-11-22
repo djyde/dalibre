@@ -394,6 +394,8 @@
   "settingsLibraryBody": "Dalibre는 calibre 라이브러리를 읽고 씁니다. calibre에서도 같은 폴더를 열 수 있습니다.",
   "settingsNoLibraryOpen": "열린 라이브러리가 없습니다",
   "settingsOpenAnotherLibrary": "다른 라이브러리 열기…",
+  "settingsKeepNamesTitle": "파일 이름에 원래 문자 유지",
+  "settingsKeepNamesBody": "앞으로 추가하거나 이름을 바꾼 책은 calibre의 ASCII 표기 “Liu Ci Xin/San Ti” 대신 “刘慈欣/三体”로 저장되어 시스템 검색으로 찾을 수 있습니다. calibre에서 책을 편집하면 calibre가 다시 ASCII로 바꿉니다.",
   "settingsCatalogsTitle": "카탈로그",
   "settingsCatalogsBody": "OPDS 카탈로그에서 둘러보고 내려받을 수 있습니다. 집에 있는 calibre, Calibre-Web, Kavita 서버나 Standard Ebooks 같은 공개 카탈로그를 사용할 수 있습니다. 각 카탈로그는 사이드바에 표시됩니다.",
   "settingsAddCatalogButton": "카탈로그 추가…",

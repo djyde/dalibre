@@ -262,7 +262,8 @@ func (l *Library) UpdateMetadata(id int64, m Metadata) error {
 // author, inside tx, and returns a function that moves them back.
 func (l *Library) relocate(tx *sql.Tx, id int64, oldPath, title, author string) (undo func(), err error) {
 	undo = func() {}
-	newPath := BookPath(id, title, author)
+	keep := l.keepNames.Load()
+	newPath := BookPath(id, title, author, keep)
 	type file struct{ format, name string }
 	var files []file
 	rows, err := tx.Query(`SELECT format, name FROM data WHERE book = ?`, id)
@@ -278,7 +279,7 @@ func (l *Library) relocate(tx *sql.Tx, id int64, oldPath, title, author string) 
 		files = append(files, f)
 	}
 	rows.Close()
-	newName := BookFileName(title, author)
+	newName := BookFileName(title, author, keep)
 	if newPath == oldPath {
 		same := true
 		for _, f := range files {
@@ -379,7 +380,8 @@ func (l *Library) AddBook(nb NewBook) (int64, error) {
 	if err := setMetadata(tx, id, &m, now); err != nil {
 		return 0, err
 	}
-	rel := BookPath(id, m.Title, m.Authors[0])
+	keep := l.keepNames.Load()
+	rel := BookPath(id, m.Title, m.Authors[0], keep)
 	dir := filepath.Join(l.Root, filepath.FromSlash(rel))
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return 0, err
@@ -391,7 +393,7 @@ func (l *Library) AddBook(nb NewBook) (int64, error) {
 			removeIfEmpty(filepath.Dir(dir), l.Root)
 		}
 	}()
-	name := BookFileName(m.Title, m.Authors[0])
+	name := BookFileName(m.Title, m.Authors[0], keep)
 	size, err := copyFile(nb.File, filepath.Join(dir, name+"."+ext))
 	if err != nil {
 		return 0, err
@@ -423,7 +425,7 @@ func (l *Library) AddFormat(id int64, file string) error {
 		return err
 	}
 	ext := strings.ToLower(strings.TrimPrefix(filepath.Ext(file), "."))
-	name := BookFileName(b.Title, firstOr(b.Authors, "Unknown"))
+	name := BookFileName(b.Title, firstOr(b.Authors, "Unknown"), l.keepNames.Load())
 	if err := os.MkdirAll(l.Dir(b), 0o755); err != nil {
 		return err
 	}

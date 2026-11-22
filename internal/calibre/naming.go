@@ -175,20 +175,42 @@ func pathLimit() int {
 	return 100
 }
 
-func truncate(s string, n int) string {
-	if len(s) <= n {
-		return s
+// fileName is asciiFilename, or with keep the name in its own script,
+// made just as safe: "三体" stays "三体".
+func fileName(s string, keep bool) string {
+	if !keep {
+		return asciiFilename(s)
 	}
-	return s[:n] // ASCII after asciiFilename, so byte slicing is safe
+	return sanitizeFileName(strings.Join(strings.Fields(s), " "))
+}
+
+// nameMax is the most bytes a file name can take on ext4 and APFS.
+const nameMax = 255
+
+// truncate keeps at most n characters of s, as calibre counts its
+// limits, and at most limit bytes, without cutting a character in two.
+func truncate(s string, n, limit int) string {
+	for i := range s {
+		if n == 0 {
+			return s[:i]
+		}
+		n--
+		if _, size := utf8.DecodeRuneInString(s[i:]); i+size > limit {
+			return s[:i]
+		}
+	}
+	return s
 }
 
 // BookPath is the folder of a book relative to the library root:
 // "Author/Title (id)", always with forward slashes as calibre stores it.
-func BookPath(id int64, title, author string) string {
+// With keepNames the names keep their own script instead of calibre's
+// ASCII transliteration.
+func BookPath(id int64, title, author string, keepNames bool) string {
 	idPart := fmt.Sprintf(" (%d)", id)
 	l := pathLimit() - len(idPart)/2 - 2
-	a := truncate(asciiFilename(author), l)
-	t := strings.TrimRight(truncate(asciiFilename(strings.TrimLeft(title, " ")), l), " ")
+	a := truncate(fileName(author, keepNames), l, nameMax)
+	t := strings.TrimRight(truncate(fileName(strings.TrimLeft(title, " "), keepNames), l, nameMax-len(idPart)), " ")
 	if t == "" {
 		t = "Unknown"
 	}
@@ -203,8 +225,8 @@ func BookPath(id int64, title, author string) string {
 }
 
 // BookFileName is the base name, without extension, of a book's files:
-// "Title - Author".
-func BookFileName(title, author string) string {
+// "Title - Author". keepNames is as for BookPath.
+func BookFileName(title, author string, keepNames bool) string {
 	const extlen = 14
 	var l int
 	if runtime.GOOS == "windows" {
@@ -212,8 +234,9 @@ func BookFileName(title, author string) string {
 	} else {
 		l = (pathLimit() - extlen - 2) / 2
 	}
-	a := truncate(asciiFilename(author), l)
-	t := strings.TrimRight(truncate(asciiFilename(strings.TrimLeft(title, " ")), l), " ")
+	limit := (nameMax - extlen - len(" - ")) / 2
+	a := truncate(fileName(author, keepNames), l, limit)
+	t := strings.TrimRight(truncate(fileName(strings.TrimLeft(title, " "), keepNames), l, limit), " ")
 	if t == "" {
 		t = "Unknown"
 	}
