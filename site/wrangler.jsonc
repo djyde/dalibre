@@ -9,6 +9,9 @@
     { "pattern": "dalibre.randynamic.org", "custom_domain": true }
   ],
   "workers_dev": false,
+  // Gives each branch's Preview a workers.dev URL, linked on its pull
+  // request; production stays on the custom domain only.
+  "preview_urls": true,
   // Branch builds run `wrangler preview`, which needs this block; the
   // site has no bindings for Previews to override.
   "previews": {}
