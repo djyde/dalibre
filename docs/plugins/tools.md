@@ -71,11 +71,16 @@ start at login. A tool is one executable file.
 | `min` | The oldest version the plugin accepts from a package manager or a chosen file. Default `version`. |
 | `homepage`, `license` | Shown at install. `license` is an SPDX id. |
 | `packages` | Optional. Names in `brew` (a tap's formula as `owner/tap/name`), `winget` (the package id), `scoop` (`bucket/name`). Fully qualified, so Dalibre never takes another program of the same name: homebrew-core's `zlib` is a compression library, `heartleo/tap/zlib` a CLI. |
-| `platforms` | **Required.** One entry per `os-arch`, from `darwin-arm64`, `darwin-amd64`, `linux-amd64`, `linux-arm64`, `windows-amd64`, `windows-arm64`. A platform not listed has no download. |
+| `platforms` | Optional. One entry per `os-arch`, from `darwin-arm64`, `darwin-amd64`, `linux-amd64`, `linux-arm64`, `windows-amd64`, `windows-arm64`. Omit it when users must choose a local executable or install the named package-manager package. |
 | `url` | An https URL: a `.zip`, `.tar.gz`, `.tgz`, or the executable itself. |
 | `sha256` | **Required.** Of the file at `url`. |
 | `size` | Bytes, shown at install and checked after download. |
 | `bin` | The executable's path inside the archive. Omit when `url` is the executable. |
+
+Starting in Dalibre 0.7.1, a tool without any platform builds can use a
+local executable chosen by the user or the named package-manager package.
+Declare `"dalibre": ">=0.7.1"` for such plugins. Permission to run the
+tool is still required. A plugin can check its readiness in `check()`.
 
 A plugin with `tools` is checked by `dalibre-plugin check` as any other,
 plus each platform's download and hash (below).

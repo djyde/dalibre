@@ -429,8 +429,7 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "version",
-          "platforms"
+          "version"
         ],
         "properties": {
           "version": {
@@ -471,8 +470,7 @@
           "platforms": {
             "type": "object",
             "additionalProperties": false,
-            "minProperties": 1,
-            "description": "Its builds, by platform.",
+            "description": "Its builds, by platform. Omit it when the user must choose a local executable file.",
             "properties": {
               "darwin-arm64": {
                 "type": "object",
