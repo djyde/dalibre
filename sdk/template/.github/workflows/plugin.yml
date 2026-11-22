@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 22
       - name: Check
-        run: npx --yes dalibre-plugin@latest check .
+        run: npx --yes dalibre-plugin@latest check --strict .
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         env:

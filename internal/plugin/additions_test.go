@@ -56,3 +56,29 @@ func TestNeedsDalibre(t *testing.T) {
 		}
 	}
 }
+
+func TestFeaturesSince(t *testing.T) {
+	sha := strings.Repeat("a", 64)
+	for _, c := range []struct{ manifest, want string }{
+		// A book source is what API 1 began with: every Dalibre has it.
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example.com"]}}`, ""},
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":{"fileType":{}},"permissions":{}}`, "0.3.0"},
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example.com"]},"settings":[{"key":"on","title":"On","type":"toggle"}]}`, "0.4.0"},
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":{"actions":[{"id":"go","title":"Go","scope":"library"}]},"permissions":{"hosts":["a.example.com"],"library":"read"}}`, "0.4.0"},
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example.com"],"covers":"any"}}`, "0.6.0"},
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example.com"],"open":"any"}}`, "0.6.4"},
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":["source"],"permissions":{"hosts":["a.example.com"],"open":"any","device":true}}`, "0.7.0"},
+		// Several features: the newest wins, not the first found.
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":{"fileType":{},"actions":[{"id":"go","title":"Go","scope":"library"}]},"permissions":{"hosts":["a.example.com"],"library":"read"}}`, "0.4.0"},
+		{`{"id":"a.b","name":"A","version":"1.0.0","api":1,"capabilities":{"actions":[{"id":"go","title":"Go","scope":"library"}]},"permissions":{"hosts":["a.example.com"],"library":"read"},"tools":{"t":{"version":"1.0.0","platforms":{"linux-amd64":{"url":"https://a.example.com/t","sha256":"` + sha + `"}}}}}`, "0.6.0"},
+	} {
+		m, err := ParseManifest([]byte(c.manifest))
+		if err != nil {
+			t.Errorf("want %q: %v", c.want, err)
+			continue
+		}
+		if since := m.FeaturesSince(); since != c.want {
+			t.Errorf("want %q, got %q", c.want, since)
+		}
+	}
+}
