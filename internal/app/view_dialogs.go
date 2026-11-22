@@ -48,6 +48,7 @@ type editState struct {
 	authorSort          string
 	series, seriesIndex string
 	rating              int // widgets.Stars, 0–5
+	origRating          int // preserved when rating widget is untouched on half-stars
 	tags                []string
 	publisher           string
 	pubdate             time.Time
@@ -87,7 +88,7 @@ func (a *App) openEditor(b *calibre.Book) {
 	text := htmlToText(d.Comments)
 	a.edit = editState{
 		id: b.ID, order: ids, title: m.Title, titleSort: b.Sort, authors: m.Authors, authorSort: m.AuthorSort,
-		series: m.Series, seriesIndex: seriesIndex(m.SeriesIndex), rating: (m.Rating + 1) / 2, tags: m.Tags,
+		series: m.Series, seriesIndex: seriesIndex(m.SeriesIndex), rating: (m.Rating + 1) / 2, origRating: m.Rating, tags: m.Tags,
 		publisher: m.Publisher, pubdate: m.Pubdate, languages: m.Languages, identifiers: strings.Join(idents, ", "),
 		comments: text, commentsText: text, origComments: d.Comments,
 	}
@@ -98,9 +99,13 @@ func (a *App) openEditor(b *calibre.Book) {
 // metadata returns what the editor holds as calibre metadata.
 func (e *editState) metadata() calibre.Metadata {
 	idx, _ := strconv.ParseFloat(strings.TrimSpace(e.seriesIndex), 64)
+	rating := e.rating * 2
+	if e.origRating%2 == 1 && e.rating == (e.origRating+1)/2 {
+		rating = e.origRating
+	}
 	m := calibre.Metadata{
 		Title: e.title, Authors: e.authors, AuthorSort: e.authorSort, Series: e.series, SeriesIndex: idx,
-		Tags: e.tags, Publisher: e.publisher, Rating: e.rating * 2, Pubdate: e.pubdate,
+		Tags: e.tags, Publisher: e.publisher, Rating: rating, Pubdate: e.pubdate,
 		Identifiers: map[string]string{}, Comments: e.origComments,
 	}
 	for _, l := range e.languages {

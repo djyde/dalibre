@@ -200,7 +200,7 @@ func ratingLabel(r int) string {
 	if r == 0 {
 		return locales.WidgetsNotRated()
 	}
-	return locales.WidgetsStars(r / 2)
+	return locales.WidgetsStars((r + 1) / 2)
 }
 
 // Overline is a small uppercase section heading.
