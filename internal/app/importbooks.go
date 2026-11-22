@@ -186,6 +186,26 @@ func (a *App) importFiles(paths []string) {
 	})
 }
 
+// OpenFile adds a file opened with the app, from the file manager or the
+// Dock icon, as a dropped file is added. Until a library is open it
+// waits, and joins the library that opens.
+func (a *App) OpenFile(path string) {
+	a.post(func() {
+		a.opened = append(a.opened, path)
+		a.importOpened()
+	})
+}
+
+// importOpened adds the files opened with the app, once a library is open.
+func (a *App) importOpened() {
+	if a.lib == nil || a.loading || len(a.opened) == 0 {
+		return
+	}
+	files := a.opened
+	a.opened = nil
+	a.importFiles(files)
+}
+
 // finishImport shows what an import did: the review sheet when books
 // were held, else a toast.
 func (a *App) finishImport() {

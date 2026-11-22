@@ -51,6 +51,7 @@ type App struct {
 	loadErr, loadErrDetail func() string
 	welcome                welcomeState
 	imp                    importState // adding dropped or chosen files
+	opened                 []string    // files opened with the app, waiting for a library
 	books                  []*calibre.Book
 	byID                   map[int64]*calibre.Book
 	counts                 catalog.Counts
@@ -426,6 +427,7 @@ func (a *App) openLibrary(root string) {
 			if a.win != nil {
 				a.win.SetTitle(locales.AppWindowTitle(filepath.Base(root)))
 			}
+			a.importOpened()
 		})
 	})
 }

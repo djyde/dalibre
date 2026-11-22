@@ -4,6 +4,14 @@
   "publisher": "Dalibre",
   "version": "0.8.0",
   "out": "build",
+  "fileAssociations": [
+    {
+      "ext": ["azw3"],
+      "name": "Kindle Book (AZW3)",
+      "mimeType": "application/x-mobi8-ebook",
+      "role": "Viewer"
+    }
+  ],
   "i18n": {
     "dir": "locales",
     "source": "en"
