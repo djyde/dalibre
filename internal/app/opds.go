@@ -502,6 +502,17 @@ func (a *App) shareAddress() string {
 
 // lanAddress is this computer's address on the local network.
 func lanAddress() string {
+	// Ask the OS routing table which interface holds the default outbound
+	// route first, so virtual adapters (such as WSL2/Hyper-V/Docker) don't
+	// mask the physical LAN IP before falling back to interface scanning.
+	if conn, err := net.Dial("udp4", "198.51.100.1:80"); err == nil {
+		defer conn.Close()
+		if addr, ok := conn.LocalAddr().(*net.UDPAddr); ok {
+			if ip := addr.IP.To4(); ip != nil && ip.IsPrivate() {
+				return ip.String()
+			}
+		}
+	}
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return "localhost"
