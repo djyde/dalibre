@@ -21,11 +21,21 @@ func main() {
 		serveMCP()
 		return
 	}
+	// Book links start the app again on Windows and Linux: the running
+	// one takes them.
+	if !mygo.App.RequestSingleInstanceLock() {
+		return
+	}
 	if err := theme.RegisterFonts(); err != nil {
 		log.Fatal(err)
 	}
+	if runtime.GOOS == "windows" {
+		// The portable zip has no installer to register the scheme.
+		_ = mygo.App.RegisterURLScheme(app.LinkScheme)
+	}
 	a := app.New(settings.DefaultPath())
 	app.ApplyAppearance(a.Appearance())
+	mygo.App.OnOpenURL(a.OpenLink)
 	mygo.App.WhenReady(func() {
 		setMenu(a)
 		mygo.App.OnLocaleChanged(func(string) { setMenu(a) })
@@ -43,6 +53,13 @@ func main() {
 		})
 		a.Attach(win)
 		keepRunningOnClose(win)
+		mygo.App.OnSecondInstance(func([]string, string) {
+			if win.IsMinimized() {
+				win.Restore()
+			}
+			win.Show()
+			win.Focus()
+		})
 	})
 	if err := mygo.App.Run(); err != nil {
 		log.Fatal(err)

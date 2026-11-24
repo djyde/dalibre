@@ -524,6 +524,9 @@ func (a *App) bookMenu(b *calibre.Book) func(m *ui.Menu) {
 			if m.Item(locales.CommonShowInFolder()).Icon(icons.Menu(icons.Folder)).Chosen() {
 				a.revealBook(b)
 			}
+			if a.libID != "" && m.Item(locales.LinkCopyItem()).Icon(icons.Menu(icons.Link)).Chosen() {
+				a.copyLink(b)
+			}
 		}
 		if above {
 			m.Separator()

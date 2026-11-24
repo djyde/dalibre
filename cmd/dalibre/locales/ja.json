@@ -957,5 +957,11 @@
   "emailSent": "{count, plural, other {# 冊}}を {device} にメールで送信しました",
   "emailNoFormat": "送信しませんでした：{titles}。Send to Kindle が受け付けるのは EPUB、PDF、DOCX、RTF、TXT、HTML です。",
   "emailTooBig": "送信しませんでした：{titles}。Send to Kindle が受け付けるのは 50 MB までのファイルです。",
-  "emailFailed": "{device} にメールで送信できませんでした：{reason}"
+  "emailFailed": "{device} にメールで送信できませんでした：{reason}",
+  "linkCopyItem": "リンクをコピー",
+  "linkCopied": "「{title}」のリンクをコピーしました",
+  "linkNoLibrary": "リンクを開けません：そのライブラリは Dalibre で開いたことがありません",
+  "linkOpenLibrary": "ライブラリを開く…",
+  "linkNoBook": "リンクを開けません：{library} に id {id} の本はありません",
+  "linkNotBook": "リンクを開けません：{link} は本のリンクではありません"
 }

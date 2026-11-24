@@ -1147,5 +1147,11 @@
   "emailSent": "{count, plural, other {책 #권}}을 {device}(으)로 이메일로 보냈습니다",
   "emailNoFormat": "보내지 않음: {titles}. Send to Kindle은 EPUB, PDF, DOCX, RTF, TXT, HTML만 받습니다.",
   "emailTooBig": "보내지 않음: {titles}. Send to Kindle은 50MB까지의 파일만 받습니다.",
-  "emailFailed": "{device}(으)로 이메일을 보낼 수 없음: {reason}"
+  "emailFailed": "{device}(으)로 이메일을 보낼 수 없음: {reason}",
+  "linkCopyItem": "링크 복사",
+  "linkCopied": "{title}의 링크를 복사했습니다",
+  "linkNoLibrary": "링크를 열 수 없음: Dalibre에서 연 적 없는 라이브러리입니다",
+  "linkOpenLibrary": "라이브러리 열기…",
+  "linkNoBook": "링크를 열 수 없음: {library}에 id {id}인 책이 없습니다",
+  "linkNotBook": "링크를 열 수 없음: {link}은(는) 책 링크가 아닙니다"
 }

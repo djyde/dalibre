@@ -957,5 +957,11 @@
   "emailSent": "已通过邮件发送 {count, plural, other {# 本书}}到 {device}",
   "emailNoFormat": "未发送：{titles}。Send to Kindle 只接受 EPUB、PDF、DOCX、RTF、TXT 和 HTML。",
   "emailTooBig": "未发送：{titles}。Send to Kindle 只接受 50 MB 以内的文件。",
-  "emailFailed": "无法通过邮件发送到 {device}：{reason}"
+  "emailFailed": "无法通过邮件发送到 {device}：{reason}",
+  "linkCopyItem": "复制链接",
+  "linkCopied": "已复制《{title}》的链接",
+  "linkNoLibrary": "无法打开链接：它的书库不是 Dalibre 打开过的书库",
+  "linkOpenLibrary": "打开书库…",
+  "linkNoBook": "无法打开链接：{library} 中没有 id 为 {id} 的书",
+  "linkNotBook": "无法打开链接：{link} 不是书籍链接"
 }

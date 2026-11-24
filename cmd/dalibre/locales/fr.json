@@ -1147,5 +1147,11 @@
   "emailSent": "{count, plural, one {# livre envoyé} many {# livres envoyés} other {# livres envoyés}} par e‑mail à {device}",
   "emailNoFormat": "Non envoyés : {titles}. Send to Kindle accepte EPUB, PDF, DOCX, RTF, TXT et HTML.",
   "emailTooBig": "Non envoyés : {titles}. Send to Kindle accepte les fichiers jusqu’à 50 Mo.",
-  "emailFailed": "Impossible d’envoyer par e‑mail à {device} : {reason}"
+  "emailFailed": "Impossible d’envoyer par e‑mail à {device} : {reason}",
+  "linkCopyItem": "Copier le lien",
+  "linkCopied": "Lien vers {title} copié",
+  "linkNoLibrary": "Impossible d’ouvrir le lien : Dalibre n’a jamais ouvert sa bibliothèque",
+  "linkOpenLibrary": "Ouvrir une bibliothèque…",
+  "linkNoBook": "Impossible d’ouvrir le lien : {library} n’a aucun livre avec l’id {id}",
+  "linkNotBook": "Impossible d’ouvrir le lien : {link} n’est pas un lien de livre"
 }

@@ -957,5 +957,11 @@
   "emailSent": "已以郵件寄送 {count, plural, other {# 本書}}到 {device}",
   "emailNoFormat": "未寄送：{titles}。Send to Kindle 只接受 EPUB、PDF、DOCX、RTF、TXT 與 HTML。",
   "emailTooBig": "未寄送：{titles}。Send to Kindle 只接受 50 MB 以內的檔案。",
-  "emailFailed": "無法以郵件寄到 {device}：{reason}"
+  "emailFailed": "無法以郵件寄到 {device}：{reason}",
+  "linkCopyItem": "拷貝連結",
+  "linkCopied": "已拷貝《{title}》的連結",
+  "linkNoLibrary": "無法打開連結：它的書庫不是 Dalibre 開啟過的書庫",
+  "linkOpenLibrary": "開啟書庫…",
+  "linkNoBook": "無法打開連結：{library} 中沒有 id 為 {id} 的書",
+  "linkNotBook": "無法打開連結：{link} 不是書籍連結"
 }

@@ -41,7 +41,12 @@ type App struct {
 	settings *settings.Settings
 
 	lib     *calibre.Library
+	libID   string // lib's id, as in its book links
 	loading bool
+	// linkWait is the book link waiting for its library to open.
+	linkWait bookRef
+	// links are book links that came before the window.
+	links []string
 	// loadingRoot is the library being opened; loadGen tells an open the
 	// user cancelled from the current one.
 	loadingRoot string
@@ -277,6 +282,10 @@ func (a *App) Attach(win *mygo.Window) {
 	a.welcome.coversNet = true
 	a.findCalibreLibrary()
 	a.openLibrary(a.startupLibrary())
+	for _, l := range a.links {
+		a.openLink(l)
+	}
+	a.links = nil
 	a.applyShare()
 	a.applyMCP()
 	a.applyDevice()
@@ -372,7 +381,7 @@ func (a *App) openLibrary(root string) {
 				if gen != a.loadGen {
 					return
 				}
-				a.loading = false
+				a.loading, a.linkWait = false, bookRef{}
 				a.loadErr = func() string { return locales.AppCouldntOpenLibrary(filepath.Base(root)) }
 				a.loadErrDetail = func() string { return locales.AppLibraryGone(abbreviateHome(root)) }
 			})
@@ -381,11 +390,13 @@ func (a *App) openLibrary(root string) {
 		lib, err := a.open(root)
 		var books []*calibre.Book
 		var ids map[string]int64
+		var uuid string
 		if err == nil {
 			books, err = lib.Books()
 		}
 		if err == nil {
 			ids, _ = lib.Identifiers()
+			uuid = lib.UUID()
 		}
 		a.post(func() {
 			if gen != a.loadGen { // cancelled, or another library asked for since
@@ -396,6 +407,7 @@ func (a *App) openLibrary(root string) {
 			}
 			a.loading = false
 			if err != nil {
+				a.linkWait = bookRef{}
 				if lib != nil {
 					lib.Close()
 				}
@@ -412,7 +424,7 @@ func (a *App) openLibrary(root string) {
 				a.lib.Close()
 			}
 			lib.SetKeepNames(a.settings.KeepNames)
-			a.lib = lib
+			a.lib, a.libID = lib, uuid
 			a.libShared.Store(lib)
 			a.idIndex = ids
 			a.details, a.detailsReq = map[int64]*calibre.Details{}, map[int64]bool{}
@@ -421,11 +433,12 @@ func (a *App) openLibrary(root string) {
 			a.query.Filter, a.query.Search, a.query.Shelf = catalog.Filter{}, "", catalog.AllBooks
 			a.act.results, a.act.review = nil, nil
 			a.setBooks(books)
-			a.settings.Opened(root)
+			a.settings.Opened(root, uuid)
 			a.saveSettings()
 			if a.win != nil {
 				a.win.SetTitle(locales.AppWindowTitle(filepath.Base(root)))
 			}
+			a.linkedLibraryOpened(uuid)
 		})
 	})
 }
@@ -433,7 +446,7 @@ func (a *App) openLibrary(root string) {
 // cancelOpen stops waiting for the library being opened.
 func (a *App) cancelOpen() {
 	a.loadGen++
-	a.loading = false
+	a.loading, a.linkWait = false, bookRef{}
 }
 
 func (a *App) createLibrary(root string) {
@@ -788,12 +801,19 @@ func (a *App) revealBook(b *calibre.Book) {
 	}
 }
 
-func (a *App) chooseLibrary() {
+func (a *App) chooseLibrary() { a.chooseLibraryFor(bookRef{}) }
+
+// chooseLibraryFor asks for a library to open, then chooses the book of
+// link in it, if link names one.
+func (a *App) chooseLibraryFor(link bookRef) {
 	a.run(func() {
 		dirs, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: a.win, Title: locales.AppOpenCalibreLibraryTitle(), Directory: true, CreateDirectories: true})
 		if err != nil || len(dirs) == 0 {
 			return
 		}
-		a.post(func() { a.openLibrary(dirs[0]) })
+		a.post(func() {
+			a.linkWait = link
+			a.openLibrary(dirs[0])
+		})
 	})
 }

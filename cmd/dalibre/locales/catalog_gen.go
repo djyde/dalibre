@@ -9038,3 +9038,63 @@ func EmailFailed(device string, reason string) string {
 func (msgs Messages) EmailFailed(device string, reason string) string {
 	return Catalog.Format(msgs.locale, "emailFailed", map[string]any{"device": device, "reason": reason})
 }
+
+// LinkCopyItem says "Copy link"
+// in the language the app shows.
+func LinkCopyItem() string { return In(i18n.Locale()).LinkCopyItem() }
+
+// LinkCopyItem says "Copy link"
+// in the language of msgs.
+func (msgs Messages) LinkCopyItem() string {
+	return Catalog.Format(msgs.locale, "linkCopyItem", nil)
+}
+
+// LinkCopied says "Copied link to {title}"
+// in the language the app shows.
+func LinkCopied(title string) string { return In(i18n.Locale()).LinkCopied(title) }
+
+// LinkCopied says "Copied link to {title}"
+// in the language of msgs.
+func (msgs Messages) LinkCopied(title string) string {
+	return Catalog.Format(msgs.locale, "linkCopied", map[string]any{"title": title})
+}
+
+// LinkNoLibrary says "Couldn’t open the link: its library isn’t one Dalibre has opened"
+// in the language the app shows.
+func LinkNoLibrary() string { return In(i18n.Locale()).LinkNoLibrary() }
+
+// LinkNoLibrary says "Couldn’t open the link: its library isn’t one Dalibre has opened"
+// in the language of msgs.
+func (msgs Messages) LinkNoLibrary() string {
+	return Catalog.Format(msgs.locale, "linkNoLibrary", nil)
+}
+
+// LinkOpenLibrary says "Open library…"
+// in the language the app shows.
+func LinkOpenLibrary() string { return In(i18n.Locale()).LinkOpenLibrary() }
+
+// LinkOpenLibrary says "Open library…"
+// in the language of msgs.
+func (msgs Messages) LinkOpenLibrary() string {
+	return Catalog.Format(msgs.locale, "linkOpenLibrary", nil)
+}
+
+// LinkNoBook says "Couldn’t open the link: {library} has no book with id {id}"
+// in the language the app shows.
+func LinkNoBook(library string, id string) string { return In(i18n.Locale()).LinkNoBook(library, id) }
+
+// LinkNoBook says "Couldn’t open the link: {library} has no book with id {id}"
+// in the language of msgs.
+func (msgs Messages) LinkNoBook(library string, id string) string {
+	return Catalog.Format(msgs.locale, "linkNoBook", map[string]any{"library": library, "id": id})
+}
+
+// LinkNotBook says "Couldn’t open the link: {link} isn’t a book link"
+// in the language the app shows.
+func LinkNotBook(link string) string { return In(i18n.Locale()).LinkNotBook(link) }
+
+// LinkNotBook says "Couldn’t open the link: {link} isn’t a book link"
+// in the language of msgs.
+func (msgs Messages) LinkNotBook(link string) string {
+	return Catalog.Format(msgs.locale, "linkNotBook", map[string]any{"link": link})
+}

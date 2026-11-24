@@ -1240,5 +1240,11 @@
   },
   "emailNoFormat": "Not emailed: {titles}. Send to Kindle takes EPUB, PDF, DOCX, RTF, TXT and HTML.",
   "emailTooBig": "Not emailed: {titles}. Send to Kindle takes files up to 50 MB.",
-  "emailFailed": "Couldn’t email {device}: {reason}"
+  "emailFailed": "Couldn’t email {device}: {reason}",
+  "linkCopyItem": "Copy link",
+  "linkCopied": "Copied link to {title}",
+  "linkNoLibrary": "Couldn’t open the link: its library isn’t one Dalibre has opened",
+  "linkOpenLibrary": "Open library…",
+  "linkNoBook": "Couldn’t open the link: {library} has no book with id {id}",
+  "linkNotBook": "Couldn’t open the link: {link} isn’t a book link"
 }

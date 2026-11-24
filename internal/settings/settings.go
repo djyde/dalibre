@@ -4,6 +4,7 @@ package settings
 
 import (
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -12,12 +13,15 @@ import (
 
 // Settings are the choices Dalibre remembers.
 type Settings struct {
-	Library    string   `json:"library"`
-	Recent     []string `json:"recent"`
-	ListView   bool     `json:"listView"`
-	HideDetail bool     `json:"hideDetail"`
-	Sort       int      `json:"sort"`
-	Descending bool     `json:"descending"`
+	Library string   `json:"library"`
+	Recent  []string `json:"recent"`
+	// LibraryIDs are the folders of the libraries opened, by their ids,
+	// for book links.
+	LibraryIDs map[string]string `json:"libraryIds,omitempty"`
+	ListView   bool              `json:"listView"`
+	HideDetail bool              `json:"hideDetail"`
+	Sort       int               `json:"sort"`
+	Descending bool              `json:"descending"`
 	// KeepNames names books' folders and files in the script of their
 	// titles and authors, not calibre's ASCII transliteration.
 	KeepNames bool `json:"keepNames,omitempty"`
@@ -337,8 +341,17 @@ func (s *Settings) Save() error {
 	return os.Rename(tmp, s.path)
 }
 
-// Opened records root as the library in use, first among the recent ones.
-func (s *Settings) Opened(root string) {
+// Opened records root, whose library's id is id, as the library in use,
+// first among the recent ones.
+func (s *Settings) Opened(root, id string) {
+	if id != "" {
+		if s.LibraryIDs == nil {
+			s.LibraryIDs = map[string]string{}
+		}
+		// A folder holds one library: one made there again has a new id.
+		maps.DeleteFunc(s.LibraryIDs, func(_, r string) bool { return r == root })
+		s.LibraryIDs[id] = root
+	}
 	s.Library = root
 	s.Recent = append([]string{root}, slices.DeleteFunc(s.Recent, func(r string) bool { return r == root })...)
 	if len(s.Recent) > MaxRecent {

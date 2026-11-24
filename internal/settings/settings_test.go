@@ -12,7 +12,7 @@ func TestRoundTrip(t *testing.T) {
 		t.Error("default order is newest first")
 	}
 	for _, r := range []string{"a", "b", "c", "d", "e", "f", "g", "b"} {
-		s.Opened(r)
+		s.Opened(r, "")
 	}
 	s.ListView = true
 	if err := s.Save(); err != nil {

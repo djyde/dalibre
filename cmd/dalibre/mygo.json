@@ -4,6 +4,7 @@
   "publisher": "Dalibre",
   "version": "0.8.0",
   "out": "build",
+  "urlSchemes": ["dalibre"],
   "i18n": {
     "dir": "locales",
     "source": "en"
